@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideFlow — עורך תמונות</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#7c3aed;--p2:#a78bfa;--bg:#18181b;--s1:#27272a;--s2:#1e1e24;--t1:#fafafa;--t2:#a1a1aa;--t3:#71717a;--brd:rgba(255,255,255,0.08);--r:12px;--ease:cubic-bezier(0.16,1,0.3,1)}
+        body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+        
+        .toolbar{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--s1);border-bottom:1px solid var(--brd);flex-wrap:wrap}
+        .tb-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:transparent;color:var(--t2);border:1px solid transparent;cursor:pointer;font-family:inherit;font-size:.82em;font-weight:500;transition:all .2s;white-space:nowrap}
+        .tb-btn:hover{background:var(--s2);color:var(--t1);border-color:var(--brd)}
+        .tb-btn.active{background:var(--p);color:#fff}
+        .tb-div{width:1px;height:26px;background:var(--brd);margin:0 3px}
+        .btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;transition:all .2s;text-decoration:none}
+        .btn-icon:hover{color:var(--t1);border-color:var(--p2)}
+        .btn-primary{background:var(--p);border-color:var(--p);color:#fff;padding:7px 18px;border-radius:10px;font-family:inherit;font-size:.85em;font-weight:600;cursor:pointer;transition:all .3s}
+        .btn-primary:hover{box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+        .ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+        .main{flex:1;display:flex;overflow:hidden}
+        
+        /* Sidebar */
+        .sidebar{width:240px;background:var(--s1);border-left:1px solid var(--brd);padding:16px;overflow-y:auto;flex-shrink:0}
+        .side-label{font-size:.7em;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 10px}
+        .side-label:first-child{margin-top:0}
+        
+        .filter-group{display:flex;flex-direction:column;gap:10px}
+        .filter-row{display:flex;align-items:center;gap:10px}
+        .filter-row label{font-size:.8em;color:var(--t2);min-width:60px}
+        .filter-slider{flex:1;-webkit-appearance:none;height:4px;background:var(--s2);border-radius:2px;outline:none}
+        .filter-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--p);border-radius:50%;cursor:pointer}
+        .filter-val{font-size:.75em;color:var(--t3);min-width:30px;text-align:center}
+        
+        .preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .preset{
+            aspect-ratio:1;border-radius:10px;cursor:pointer;border:2px solid transparent;
+            transition:all .2s;position:relative;overflow:hidden;background:var(--s2);
+            display:flex;align-items:center;justify-content:center;font-size:.65em;color:var(--t3);text-align:center;padding:4px;
+        }
+        .preset:hover{border-color:var(--p2);transform:scale(1.05)}
+        .preset.active{border-color:var(--p)}
+        
+        .text-controls{display:flex;flex-direction:column;gap:8px}
+        .text-input{width:100%;padding:8px 12px;border-radius:8px;background:var(--s2);color:var(--t1);border:1px solid var(--brd);font-family:inherit;font-size:.9em}
+        .text-input:focus{outline:none;border-color:var(--p)}
+        
+        /* Canvas area */
+        .canvas-area{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg);position:relative}
+        .canvas-container{position:relative;display:inline-block;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+        #imgCanvas{max-width:100%;max-height:100%;display:block;border-radius:4px}
+        
+        /* Upload overlay */
+        .upload-overlay{
+            position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+            gap:15px;background:var(--bg);z-index:10;cursor:pointer;
+            border:3px dashed var(--brd);border-radius:16px;margin:20px;transition:all .3s;
+        }
+        .upload-overlay:hover{border-color:var(--p);background:rgba(124,58,237,0.03)}
+        .upload-overlay.hidden{display:none}
+        .upload-ico{width:64px;height:64px;color:var(--t3)}
+        .upload-text{font-size:1.1em;color:var(--t2);font-weight:500}
+        .upload-sub{font-size:.85em;color:var(--t3)}
+        
+        /* Text overlay on canvas */
+        .text-overlay{
+            position:absolute;cursor:move;padding:4px 8px;border:2px solid transparent;
+            font-family:'Heebo',sans-serif;white-space:nowrap;
+        }
+        .text-overlay:hover,.text-overlay.active{border-color:var(--p)}
+        
+        .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--t1);color:var(--bg);padding:12px 24px;border-radius:var(--r);font-size:.88em;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .5s var(--ease);z-index:999}
+        .toast.show{transform:translateX(-50%) translateY(0)}
+        
+        @media(max-width:768px){.sidebar{width:180px}.tb-btn span{display:none}}
+    </style>
+</head>
+<body>
+
+<svg style="display:none"><defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="i-crop" viewBox="0 0 24 24"><path d="M6.13 1L6 16a2 2 0 0 0 2 2h15"/><path d="M1 6.13L16 6a2 2 0 0 1 2 2v15"/></symbol>
+    <symbol id="i-type" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
+</defs></svg>
+
+<div class="toolbar">
+    <a href="index.html" class="btn-icon" title="חזרה"><svg class="ico"><use href="#i-home"/></svg></a>
+    <div class="tb-div"></div>
+    <button class="tb-btn" onclick="fileInput.click()"><svg class="ico"><use href="#i-upload"/></svg><span>העלה תמונה</span></button>
+    <div class="tb-div"></div>
+    <button class="tb-btn" onclick="rotateImg()"><svg class="ico"><use href="#i-rotate"/></svg><span>סובב</span></button>
+    <button class="tb-btn" onclick="flipImg()"><svg class="ico"><use href="#i-flip"/></svg><span>הפוך</span></button>
+    <button class="tb-btn" onclick="addTextOverlay()"><svg class="ico"><use href="#i-type"/></svg><span>טקסט</span></button>
+    <button class="tb-btn" onclick="undo()"><svg class="ico"><use href="#i-undo"/></svg><span>בטל</span></button>
+    <div style="flex:1"></div>
+    <button class="btn-primary" onclick="exportImg()"><svg class="ico" style="color:#fff"><use href="#i-download"/></svg> שמור תמונה</button>
+</div>
+
+<div class="main">
+    <div class="sidebar">
+        <div class="side-label">פילטרים</div>
+        <div class="preset-grid" id="presetGrid"></div>
+        
+        <div class="side-label">התאמות</div>
+        <div class="filter-group" id="filterGroup"></div>
+        
+        <div class="side-label">טקסט על תמונה</div>
+        <div class="text-controls">
+            <input type="text" class="text-input" id="txtInput" placeholder="הקלד טקסט..." oninput="updateText()">
+            <div style="display:flex;gap:6px">
+                <select class="text-input" id="txtSize" style="flex:1" onchange="updateText()">
+                    <option value="20">קטן</option>
+                    <option value="32" selected>בינוני</option>
+                    <option value="48">גדול</option>
+                    <option value="64">ענק</option>
+                </select>
+                <input type="color" value="#ffffff" id="txtColor" onchange="updateText()" style="width:40px;height:38px;border:1px solid var(--brd);border-radius:8px;cursor:pointer;padding:0">
+            </div>
+        </div>
+    </div>
+    
+    <div class="canvas-area">
+        <div class="upload-overlay" id="uploadOverlay" onclick="fileInput.click()">
+            <svg class="upload-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            </svg>
+            <div class="upload-text">העלה תמונה לעריכה</div>
+            <div class="upload-sub">גרור לכאן או לחץ לבחירה</div>
+        </div>
+        <div class="canvas-container" id="canvasContainer" style="display:none">
+            <canvas id="imgCanvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" style="display:none" onchange="loadImage(this)">
+
+<div class="toast" id="toast"></div>
+
+<script>
+const canvas=document.getElementById('imgCanvas');
+const ctx=canvas.getContext('2d');
+let img=null, rotation=0, flipped=false, history=[], textOverlays=[];
+
+const FILTERS=[
+    {name:'רגיל',vals:{brightness:100,contrast:100,saturate:100,blur:0,grayscale:0,sepia:0,hueRotate:0}},
+    {name:'חם',vals:{brightness:105,contrast:105,saturate:130,blur:0,grayscale:0,sepia:20,hueRotate:0}},
+    {name:'קר',vals:{brightness:100,contrast:110,saturate:80,blur:0,grayscale:0,sepia:0,hueRotate:180}},
+    {name:'וינטג\'',vals:{brightness:110,contrast:85,saturate:70,blur:0,grayscale:0,sepia:40,hueRotate:0}},
+    {name:'שחור לבן',vals:{brightness:110,contrast:120,saturate:0,blur:0,grayscale:100,sepia:0,hueRotate:0}},
+    {name:'דרמטי',vals:{brightness:90,contrast:150,saturate:120,blur:0,grayscale:0,sepia:0,hueRotate:0}},
+    {name:'רך',vals:{brightness:110,contrast:90,saturate:90,blur:1,grayscale:0,sepia:10,hueRotate:0}},
+    {name:'סגול',vals:{brightness:100,contrast:110,saturate:100,blur:0,grayscale:0,sepia:0,hueRotate:270}},
+    {name:'ירוק',vals:{brightness:100,contrast:100,saturate:100,blur:0,grayscale:0,sepia:0,hueRotate:90}},
+];
+
+let currentFilter={brightness:100,contrast:100,saturate:100,blur:0,grayscale:0,sepia:0,hueRotate:0};
+
+const ADJUSTMENTS=[
+    {key:'brightness',label:'בהירות',min:50,max:150,val:100},
+    {key:'contrast',label:'ניגודיות',min:50,max:200,val:100},
+    {key:'saturate',label:'רוויה',min:0,max:200,val:100},
+    {key:'blur',label:'טשטוש',min:0,max:10,val:0},
+    {key:'grayscale',label:'אפור',min:0,max:100,val:0},
+    {key:'sepia',label:'ספיה',min:0,max:100,val:0},
+    {key:'hueRotate',label:'גוון',min:0,max:360,val:0},
+];
+
+function renderPresets(){
+    document.getElementById('presetGrid').innerHTML=FILTERS.map((f,i)=>`
+        <div class="preset ${i===0?'active':''}" onclick="applyPreset(${i})">${f.name}</div>
+    `).join('');
+}
+
+function renderAdjustments(){
+    document.getElementById('filterGroup').innerHTML=ADJUSTMENTS.map(a=>`
+        <div class="filter-row">
+            <label>${a.label}</label>
+            <input type="range" class="filter-slider" min="${a.min}" max="${a.max}" value="${a.val}" id="sl_${a.key}" oninput="adjustFilter('${a.key}',this.value)">
+            <span class="filter-val" id="val_${a.key}">${a.val}</span>
+        </div>
+    `).join('');
+}
+
+function loadImage(input){
+    const file=input.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        img=new Image();
+        img.onload=()=>{
+            rotation=0;flipped=false;
+            canvas.width=img.width;canvas.height=img.height;
+            ctx.drawImage(img,0,0);
+            document.getElementById('uploadOverlay').classList.add('hidden');
+            document.getElementById('canvasContainer').style.display='inline-block';
+            // Limit display size
+            canvas.style.maxWidth=Math.min(img.width,700)+'px';
+            canvas.style.maxHeight='70vh';
+            saveHistory();
+        };
+        img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function getFilterCSS(){
+    return `brightness(${currentFilter.brightness}%) contrast(${currentFilter.contrast}%) saturate(${currentFilter.saturate}%) blur(${currentFilter.blur}px) grayscale(${currentFilter.grayscale}%) sepia(${currentFilter.sepia}%) hue-rotate(${currentFilter.hueRotate}deg)`;
+}
+
+function applyPreset(i){
+    currentFilter={...FILTERS[i].vals};
+    ADJUSTMENTS.forEach(a=>{
+        const sl=document.getElementById('sl_'+a.key);
+        const val=document.getElementById('val_'+a.key);
+        if(sl){sl.value=currentFilter[a.key];val.textContent=currentFilter[a.key]}
+    });
+    document.querySelectorAll('.preset').forEach((p,j)=>p.classList.toggle('active',j===i));
+    renderImage();
+}
+
+function adjustFilter(key,val){
+    currentFilter[key]=+val;
+    document.getElementById('val_'+key).textContent=val;
+    document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'));
+    renderImage();
+}
+
+function renderImage(){
+    if(!img)return;
+    ctx.save();
+    canvas.width=rotation%180===0?img.width:img.height;
+    canvas.height=rotation%180===0?img.height:img.width;
+    ctx.filter=getFilterCSS();
+    ctx.translate(canvas.width/2,canvas.height/2);
+    ctx.rotate(rotation*Math.PI/180);
+    if(flipped)ctx.scale(-1,1);
+    ctx.drawImage(img,-img.width/2,-img.height/2);
+    ctx.restore();
+    // Draw text overlays
+    ctx.filter='none';
+    textOverlays.forEach(t=>{
+        ctx.fillStyle=t.color;
+        ctx.font=`bold ${t.size}px Heebo, sans-serif`;
+        ctx.textAlign='center';
+        ctx.fillText(t.text,t.x,t.y);
+    });
+}
+
+function rotateImg(){
+    if(!img)return;
+    rotation=(rotation+90)%360;
+    renderImage();saveHistory();
+}
+
+function flipImg(){
+    if(!img)return;
+    flipped=!flipped;
+    renderImage();saveHistory();
+}
+
+function addTextOverlay(){
+    if(!img)return;
+    const text=document.getElementById('txtInput').value||'טקסט';
+    const size=+document.getElementById('txtSize').value;
+    const color=document.getElementById('txtColor').value;
+    textOverlays.push({text,size,color,x:canvas.width/2,y:canvas.height/2});
+    renderImage();saveHistory();
+    toast('טקסט נוסף!');
+}
+
+function updateText(){
+    // Update last text overlay if exists
+    if(textOverlays.length===0)return;
+    const last=textOverlays[textOverlays.length-1];
+    const text=document.getElementById('txtInput').value;
+    if(text)last.text=text;
+    last.size=+document.getElementById('txtSize').value;
+    last.color=document.getElementById('txtColor').value;
+    renderImage();
+}
+
+function saveHistory(){
+    if(!img)return;
+    history.push(canvas.toDataURL());
+    if(history.length>20)history.shift();
+}
+
+function undo(){
+    if(history.length<2)return;
+    history.pop();
+    const prev=history[history.length-1];
+    const undoImg=new Image();
+    undoImg.onload=()=>{
+        canvas.width=undoImg.width;canvas.height=undoImg.height;
+        ctx.drawImage(undoImg,0,0);
+    };
+    undoImg.src=prev;
+    toast('פעולה בוטלה');
+}
+
+function exportImg(){
+    if(!img)return;
+    const a=document.createElement('a');
+    a.download='edited-image.png';
+    a.href=canvas.toDataURL('image/png');
+    a.click();
+    toast('תמונה נשמרה!');
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+// Drag & drop
+const overlay=document.getElementById('uploadOverlay');
+const area=document.querySelector('.canvas-area');
+['dragenter','dragover'].forEach(e=>area.addEventListener(e,ev=>{ev.preventDefault();overlay.style.borderColor='var(--p)'}));
+['dragleave','drop'].forEach(e=>area.addEventListener(e,ev=>{ev.preventDefault();overlay.style.borderColor=''}));
+area.addEventListener('drop',e=>{
+    e.preventDefault();
+    const file=e.dataTransfer.files[0];
+    if(file&&file.type.startsWith('image/')){
+        const input=document.getElementById('fileInput');
+        const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
+        loadImage(input);
+    }
+});
+
+renderPresets();renderAdjustments();
+</script>
+</body>
+</html>

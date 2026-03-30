@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideFlow — בונה אתרים</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#7c3aed;--p2:#a78bfa;--bg:#fafafa;--s1:#fff;--s2:#f4f4f5;--s3:#e4e4e7;--t1:#18181b;--t2:#71717a;--t3:#a1a1aa;--brd:rgba(0,0,0,0.08);--r:12px;--ease:cubic-bezier(0.16,1,0.3,1)}
+        body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+        .toolbar{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--s1);border-bottom:1px solid var(--brd);flex-wrap:wrap}
+        .tb-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:transparent;color:var(--t2);border:1px solid transparent;cursor:pointer;font-family:inherit;font-size:.82em;font-weight:500;transition:all .2s;white-space:nowrap}
+        .tb-btn:hover{background:var(--s2);color:var(--t1);border-color:var(--brd)}
+        .tb-btn.active{background:var(--p);color:#fff}
+        .tb-div{width:1px;height:26px;background:var(--brd);margin:0 3px}
+        .btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;transition:all .2s;text-decoration:none}
+        .btn-icon:hover{color:var(--t1);border-color:var(--p2)}
+        .btn-primary{background:var(--p);border-color:var(--p);color:#fff;padding:7px 18px;border-radius:10px;font-family:inherit;font-size:.85em;font-weight:600;cursor:pointer;border:none;transition:all .3s}
+        .btn-primary:hover{box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+        .ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        
+        .main{flex:1;display:flex;overflow:hidden}
+        
+        .sidebar{width:250px;background:var(--s1);border-left:1px solid var(--brd);padding:16px;overflow-y:auto;flex-shrink:0}
+        .side-label{font-size:.7em;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:16px 0 10px}
+        .side-label:first-child{margin-top:0}
+        
+        .block-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .block-btn{
+            padding:14px 8px;border-radius:10px;background:var(--s2);border:1px solid var(--brd);
+            cursor:pointer;text-align:center;font-size:.78em;font-weight:500;color:var(--t2);
+            transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px;
+        }
+        .block-btn:hover{background:var(--s3);border-color:var(--p2);color:var(--t1);transform:scale(1.02)}
+        .block-btn svg{width:24px;height:24px}
+        
+        .prop-group{margin-bottom:12px}
+        .prop-label{font-size:.78em;color:var(--t2);margin-bottom:4px}
+        .prop-input{width:100%;padding:8px 12px;border-radius:8px;background:var(--s2);color:var(--t1);border:1px solid var(--brd);font-family:inherit;font-size:.88em}
+        .prop-input:focus{outline:none;border-color:var(--p)}
+        
+        .canvas-wrap{flex:1;overflow-y:auto;padding:20px;background:var(--s2);display:flex;justify-content:center}
+        .site-canvas{
+            width:100%;max-width:800px;min-height:600px;background:#fff;border-radius:8px;
+            box-shadow:0 4px 25px rgba(0,0,0,0.08);overflow:hidden;
+        }
+        
+        .site-block{
+            padding:30px 40px;position:relative;border:2px solid transparent;
+            cursor:pointer;transition:border-color .2s;min-height:60px;
+        }
+        .site-block:hover{border-color:rgba(124,58,237,0.2)}
+        .site-block.selected{border-color:var(--p);background:rgba(124,58,237,0.02)}
+        .site-block .block-del{
+            position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;
+            background:rgba(239,68,68,0.9);color:#fff;border:none;cursor:pointer;
+            font-size:.7em;display:none;align-items:center;justify-content:center;
+        }
+        .site-block:hover .block-del{display:flex}
+        .site-block .block-move{
+            position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;
+            background:rgba(0,0,0,0.5);color:#fff;border:none;cursor:grab;
+            font-size:.7em;display:none;align-items:center;justify-content:center;
+        }
+        .site-block:hover .block-move{display:flex}
+        
+        /* Block styles */
+        .b-hero{padding:60px 40px;text-align:center}
+        .b-hero h1{font-size:2.5em;font-weight:900;margin-bottom:10px}
+        .b-hero p{font-size:1.1em;color:var(--t2);margin-bottom:20px}
+        .b-hero .hero-btn{display:inline-block;padding:12px 30px;background:var(--p);color:#fff;border-radius:30px;font-weight:700;text-decoration:none;font-size:.95em}
+        
+        .b-text h2{font-size:1.5em;font-weight:700;margin-bottom:8px}
+        .b-text p{line-height:1.8;color:var(--t2)}
+        
+        .b-features{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+        .feature-card{text-align:center;padding:20px}
+        .feature-card .f-ico{width:48px;height:48px;background:rgba(124,58,237,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--p)}
+        .feature-card h3{font-size:1em;margin-bottom:6px}
+        .feature-card p{font-size:.85em;color:var(--t3)}
+        
+        .b-image{text-align:center;padding:20px}
+        .b-image .img-placeholder{width:100%;height:200px;background:var(--s2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:.9em}
+        
+        .b-footer{background:var(--t1);color:#fff;padding:30px 40px;text-align:center;font-size:.85em}
+        .b-footer a{color:var(--p2)}
+        
+        .b-cta{text-align:center;padding:50px 40px;background:linear-gradient(135deg,var(--p),#4f46e5);color:#fff;border-radius:0}
+        .b-cta h2{font-size:2em;font-weight:800;margin-bottom:10px}
+        .b-cta p{margin-bottom:20px;opacity:.9}
+        .b-cta .cta-btn{display:inline-block;padding:12px 30px;background:#fff;color:var(--p);border-radius:30px;font-weight:700;text-decoration:none}
+        
+        .b-divider{padding:10px 40px}.b-divider hr{border:none;border-top:2px solid var(--s3)}
+        
+        .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--t1);color:#fff;padding:12px 24px;border-radius:var(--r);font-size:.88em;box-shadow:0 10px 30px rgba(0,0,0,.15);transition:transform .5s var(--ease);z-index:999}
+        .toast.show{transform:translateX(-50%) translateY(0)}
+        
+        @media(max-width:768px){.sidebar{width:180px}.b-features{grid-template-columns:1fr}.tb-btn span{display:none}}
+    </style>
+</head>
+<body>
+
+<svg style="display:none"><defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+    <symbol id="i-type" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></symbol>
+    <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+</defs></svg>
+
+<div class="toolbar">
+    <a href="index.html" class="btn-icon" title="חזרה"><svg class="ico"><use href="#i-home"/></svg></a>
+    <div class="tb-div"></div>
+    <button class="tb-btn" onclick="previewSite()"><svg class="ico"><use href="#i-eye"/></svg><span>תצוגה מקדימה</span></button>
+    <div style="flex:1"></div>
+    <button class="btn-primary" onclick="exportSite()"><svg class="ico" style="color:#fff"><use href="#i-save"/></svg> ייצוא אתר</button>
+</div>
+
+<div class="main">
+    <div class="sidebar">
+        <div class="side-label">הוסף בלוק</div>
+        <div class="block-grid">
+            <div class="block-btn" onclick="addBlock('hero')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-star"/></svg>הירו</div>
+            <div class="block-btn" onclick="addBlock('text')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-text"/></svg>טקסט</div>
+            <div class="block-btn" onclick="addBlock('features')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-grid"/></svg>פיצ'רים</div>
+            <div class="block-btn" onclick="addBlock('image')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-image"/></svg>תמונה</div>
+            <div class="block-btn" onclick="addBlock('cta')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-zap"/></svg>קריאה לפעולה</div>
+            <div class="block-btn" onclick="addBlock('divider')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-minus"/></svg>קו הפרדה</div>
+            <div class="block-btn" onclick="addBlock('footer')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-layout"/></svg>פוטר</div>
+        </div>
+        
+        <div class="side-label">עריכת בלוק נבחר</div>
+        <div id="propPanel">
+            <p style="font-size:.85em;color:var(--t3)">בחר בלוק לעריכה</p>
+        </div>
+    </div>
+    
+    <div class="canvas-wrap">
+        <div class="site-canvas" id="siteCanvas"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let blocks=[
+    {type:'hero',data:{title:'האתר המדהים שלי',subtitle:'בנה אתרים יפים בדקות','btnText':'התחל עכשיו','btnUrl':'#'}},
+    {type:'text',data:{title:'אודות','content':'זהו טקסט לדוגמה. לחץ כדי לערוך ולהתאים אישית את התוכן שלך.'}},
+    {type:'features',data:{items:[{title:'מהיר',desc:'ביצועים מעולים'},{title:'פשוט',desc:'ממשק ידידותי'},{title:'מאובטח',desc:'הגנה מלאה'}]}},
+];
+let selBlock=null;
+
+function renderSite(){
+    const c=document.getElementById('siteCanvas');
+    c.innerHTML=blocks.map((b,i)=>{
+        let html=`<div class="site-block ${selBlock===i?'selected':''}" onclick="selectBlock(${i})" data-i="${i}">
+            <button class="block-del" onclick="event.stopPropagation();removeBlock(${i})">✕</button>`;
+        
+        if(b.type==='hero')html+=`<div class="b-hero"><h1 contenteditable="true" oninput="blocks[${i}].data.title=this.textContent">${b.data.title}</h1><p contenteditable="true" oninput="blocks[${i}].data.subtitle=this.textContent">${b.data.subtitle}</p><a class="hero-btn" href="#">${b.data.btnText}</a></div>`;
+        else if(b.type==='text')html+=`<div class="b-text"><h2 contenteditable="true" oninput="blocks[${i}].data.title=this.textContent">${b.data.title}</h2><p contenteditable="true" oninput="blocks[${i}].data.content=this.textContent">${b.data.content}</p></div>`;
+        else if(b.type==='features')html+=`<div class="b-features">${b.data.items.map((f,j)=>`<div class="feature-card"><div class="f-ico"><svg class="ico"><use href="#i-zap"/></svg></div><h3 contenteditable="true" oninput="blocks[${i}].data.items[${j}].title=this.textContent">${f.title}</h3><p contenteditable="true" oninput="blocks[${i}].data.items[${j}].desc=this.textContent">${f.desc}</p></div>`).join('')}</div>`;
+        else if(b.type==='image')html+=`<div class="b-image"><div class="img-placeholder">לחץ להעלאת תמונה</div></div>`;
+        else if(b.type==='cta')html+=`<div class="b-cta"><h2 contenteditable="true" oninput="blocks[${i}].data.title=this.textContent">${b.data.title||'מוכן להתחיל?'}</h2><p contenteditable="true" oninput="blocks[${i}].data.subtitle=this.textContent">${b.data.subtitle||'הצטרף אלינו היום'}</p><a class="cta-btn" href="#">${b.data.btnText||'הרשם'}</a></div>`;
+        else if(b.type==='divider')html+=`<div class="b-divider"><hr></div>`;
+        else if(b.type==='footer')html+=`<div class="b-footer">© 2026 האתר שלי. כל הזכויות שמורות.</div>`;
+        
+        return html+'</div>';
+    }).join('');
+    saveSite();
+}
+
+function addBlock(type){
+    const defaults={
+        hero:{title:'כותרת חדשה',subtitle:'תיאור קצר','btnText':'כפתור','btnUrl':'#'},
+        text:{title:'כותרת',content:'תוכן הטקסט שלך כאן...'},
+        features:{items:[{title:'פיצ\'ר 1',desc:'תיאור'},{title:'פיצ\'ר 2',desc:'תיאור'},{title:'פיצ\'ר 3',desc:'תיאור'}]},
+        image:{},cta:{title:'מוכן?',subtitle:'הצטרף עכשיו',btnText:'התחל'},
+        divider:{},footer:{}
+    };
+    blocks.push({type,data:defaults[type]||{}});
+    renderSite();toast('בלוק נוסף');
+}
+
+function removeBlock(i){blocks.splice(i,1);if(selBlock===i)selBlock=null;renderSite()}
+function selectBlock(i){selBlock=i;renderSite()}
+
+function previewSite(){
+    const html=generateHTML();
+    const w=window.open('','_blank');
+    w.document.write(html);w.document.close();
+}
+
+function exportSite(){
+    const html=generateHTML();
+    const blob=new Blob([html],{type:'text/html'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='my-website.html';a.click();
+    toast('אתר יוצא בהצלחה!');
+}
+
+function generateHTML(){
+    let body=blocks.map(b=>{
+        if(b.type==='hero')return`<section style="padding:80px 40px;text-align:center;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff"><h1 style="font-size:3em;font-weight:900;margin-bottom:15px">${b.data.title}</h1><p style="font-size:1.2em;opacity:.9;margin-bottom:25px">${b.data.subtitle}</p><a href="${b.data.btnUrl||'#'}" style="display:inline-block;padding:14px 35px;background:#fff;color:#7c3aed;border-radius:30px;font-weight:700;text-decoration:none;font-size:1em">${b.data.btnText}</a></section>`;
+        if(b.type==='text')return`<section style="padding:50px 40px;max-width:800px;margin:0 auto"><h2 style="font-size:1.8em;font-weight:700;margin-bottom:12px">${b.data.title}</h2><p style="line-height:1.9;color:#555">${b.data.content}</p></section>`;
+        if(b.type==='features')return`<section style="padding:50px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px;max-width:900px;margin:0 auto">${b.data.items.map(f=>`<div style="text-align:center;padding:20px"><div style="width:56px;height:56px;background:rgba(124,58,237,0.1);border-radius:50%;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-size:24px">⚡</div><h3 style="font-size:1.1em;margin-bottom:8px">${f.title}</h3><p style="color:#888;font-size:.9em">${f.desc}</p></div>`).join('')}</section>`;
+        if(b.type==='cta')return`<section style="padding:70px 40px;text-align:center;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff"><h2 style="font-size:2.2em;font-weight:800;margin-bottom:12px">${b.data.title||''}</h2><p style="margin-bottom:25px;opacity:.9">${b.data.subtitle||''}</p><a href="#" style="display:inline-block;padding:14px 35px;background:#fff;color:#7c3aed;border-radius:30px;font-weight:700;text-decoration:none">${b.data.btnText||'התחל'}</a></section>`;
+        if(b.type==='divider')return`<hr style="border:none;border-top:2px solid #eee;margin:20px 40px">`;
+        if(b.type==='footer')return`<footer style="background:#18181b;color:#fff;padding:40px;text-align:center;font-size:.9em">© 2026 האתר שלי. כל הזכויות שמורות.</footer>`;
+        return'';
+    }).join('\n');
+    return`<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>האתר שלי</title><style>@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Heebo',sans-serif}@media(max-width:768px){section[style*="grid-template-columns"]{grid-template-columns:1fr!important}}</style></head><body>${body}</body></html>`;
+}
+
+function saveSite(){localStorage.setItem('sf_site',JSON.stringify(blocks))}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+// Load saved
+const saved=JSON.parse(localStorage.getItem('sf_site')||'null');
+if(saved)blocks=saved;
+renderSite();
+</script>
+</body>
+</html>

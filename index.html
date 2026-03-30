@@ -449,17 +449,16 @@
 let DB=JSON.parse(localStorage.getItem('sf3')||'[]'),P=null,SI=0,SEL=null,DRG=null,PI=0;
 
 const CATS=[
-    {name:'מצגת',icon:'i-pres',color:'#f97316'},
-    {name:'רשתות חברתיות',icon:'i-heart',color:'#ec4899'},
-    {name:'סרטון',icon:'i-video',color:'#ef4444'},
-    {name:'מסמך',icon:'i-file',color:'#06b6d4'},
-    {name:'לוח ציור',icon:'i-pen',color:'#10b981'},
-    {name:'גיליון',icon:'i-grid',color:'#22c55e'},
-    {name:'אתר',icon:'i-globe',color:'#6366f1'},
-    {name:"דוא\"ל",icon:'i-mail',color:'#8b5cf6'},
-    {name:'עורך תמונות',icon:'i-image',color:'#a855f7'},
-    {name:'העלה',icon:'i-upload',color:'#64748b'},
-    {name:'עוד',icon:'i-more',color:'#94a3b8'},
+    {name:'מצגת',icon:'i-pres',color:'#f97316',link:'templates'},
+    {name:'רשתות חברתיות',icon:'i-heart',color:'#ec4899',link:'soon'},
+    {name:'סרטון',icon:'i-video',color:'#ef4444',link:'soon'},
+    {name:'מסמך',icon:'i-file',color:'#06b6d4',link:'docs.html'},
+    {name:'לוח ציור',icon:'i-pen',color:'#10b981',link:'soon'},
+    {name:'אתר',icon:'i-globe',color:'#6366f1',link:'website.html'},
+    {name:"דוא\"ל",icon:'i-mail',color:'#8b5cf6',link:'soon'},
+    {name:'עורך תמונות',icon:'i-image',color:'#a855f7',link:'photos.html'},
+    {name:'העלה',icon:'i-upload',color:'#64748b',link:'soon'},
+    {name:'עוד',icon:'i-more',color:'#94a3b8',link:'soon'},
 ];
 
 const BG=[
@@ -497,7 +496,7 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.cla
 
 function renderCats(){
     document.getElementById('cats').innerHTML=CATS.map(c=>`
-        <div class="cat-item" onclick="showTemplates()">
+        <div class="cat-item" onclick="${c.link==='templates'?'showTemplates()':c.link==='soon'?`toast('בקרוב!')`:`location.href='${c.link}'`}">
             <div class="cat-ico" style="background:${c.color}15;color:${c.color}">
                 <svg class="ico"><use href="#${c.icon}"/></svg>
             </div>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideFlow — עורך מסמכים</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#7c3aed;--p2:#a78bfa;--bg:#fafafa;--s1:#fff;--s2:#f4f4f5;--s3:#e4e4e7;--t1:#18181b;--t2:#71717a;--t3:#a1a1aa;--brd:rgba(0,0,0,0.08);--r:12px;--ease:cubic-bezier(0.16,1,0.3,1)}
+        body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+        
+        .toolbar{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--s1);border-bottom:1px solid var(--brd);flex-wrap:wrap}
+        .tb-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;background:transparent;color:var(--t2);border:1px solid transparent;cursor:pointer;font-family:inherit;font-size:.85em;font-weight:500;transition:all .2s}
+        .tb-btn:hover{background:var(--s2);color:var(--t1);border-color:var(--brd)}
+        .tb-btn.active{background:var(--p);color:#fff}
+        .tb-div{width:1px;height:26px;background:var(--brd);margin:0 3px}
+        .tb-select{padding:5px 10px;border-radius:8px;background:var(--s2);color:var(--t1);border:1px solid var(--brd);font-family:inherit;font-size:.85em}
+        .tb-color{width:28px;height:28px;border:2px solid var(--brd);border-radius:8px;cursor:pointer;padding:0}
+        .btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;transition:all .2s;text-decoration:none}
+        .btn-icon:hover{color:var(--t1);border-color:var(--p2)}
+        .doc-title{font-weight:600;font-size:.95em;padding:5px 12px;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--t1);font-family:inherit;min-width:150px}
+        .doc-title:hover{border-color:var(--brd)}.doc-title:focus{outline:none;border-color:var(--p);background:var(--s2)}
+        
+        .editor-wrap{flex:1;display:flex;justify-content:center;padding:30px;overflow-y:auto;background:var(--s2)}
+        .doc-page{
+            width:100%;max-width:750px;min-height:900px;background:#fff;
+            border-radius:8px;box-shadow:0 2px 20px rgba(0,0,0,0.06);
+            padding:60px 70px;font-size:16px;line-height:1.8;
+            outline:none;direction:rtl;
+        }
+        .doc-page:focus{box-shadow:0 4px 30px rgba(124,58,237,0.08)}
+        .doc-page h1{font-size:2em;font-weight:800;margin-bottom:10px;color:var(--t1)}
+        .doc-page h2{font-size:1.5em;font-weight:700;margin:20px 0 8px;color:var(--t1)}
+        .doc-page h3{font-size:1.2em;font-weight:600;margin:15px 0 6px;color:var(--t2)}
+        .doc-page ul,ol{padding-right:25px;margin:8px 0}
+        .doc-page blockquote{border-right:4px solid var(--p);padding:10px 20px;margin:12px 0;background:rgba(124,58,237,0.03);border-radius:0 8px 8px 0}
+        .doc-page a{color:var(--p);text-decoration:underline}
+        .doc-page img{max-width:100%;border-radius:8px}
+        .doc-page code{background:var(--s2);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.9em}
+        .doc-page hr{border:none;border-top:2px solid var(--s3);margin:20px 0}
+        
+        .bottom-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:var(--s1);border-top:1px solid var(--brd);font-size:.8em;color:var(--t3)}
+        
+        .ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+        
+        .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--t1);color:#fff;padding:12px 24px;border-radius:var(--r);font-size:.88em;box-shadow:0 10px 30px rgba(0,0,0,.15);transition:transform .5s var(--ease);z-index:999}
+        .toast.show{transform:translateX(-50%) translateY(0)}
+        
+        @media(max-width:768px){
+            .doc-page{padding:30px 25px}.editor-wrap{padding:15px}
+            .tb-btn span{display:none}
+        }
+    </style>
+</head>
+<body>
+
+<svg style="display:none"><defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+    <symbol id="i-bold" viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></symbol>
+    <symbol id="i-italic" viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></symbol>
+    <symbol id="i-underline" viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/><line x1="4" y1="21" x2="20" y2="21"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+    <symbol id="i-list-ord" viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></symbol>
+    <symbol id="i-align-right" viewBox="0 0 24 24"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></symbol>
+    <symbol id="i-align-center" viewBox="0 0 24 24"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></symbol>
+    <symbol id="i-align-left" viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-hr" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-type" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></symbol>
+</defs></svg>
+
+<div class="toolbar">
+    <a href="index.html" class="btn-icon" title="חזרה"><svg class="ico"><use href="#i-home"/></svg></a>
+    <input type="text" class="doc-title" id="docTitle" value="מסמך ללא שם" oninput="autoSave()">
+    <div class="tb-div"></div>
+    
+    <select class="tb-select" id="headingSel" onchange="execCmd(this.value);this.value=''">
+        <option value="">סגנון...</option>
+        <option value="h1">כותרת 1</option>
+        <option value="h2">כותרת 2</option>
+        <option value="h3">כותרת 3</option>
+        <option value="p">פסקה</option>
+    </select>
+    <div class="tb-div"></div>
+    
+    <select class="tb-select" id="fontFam" onchange="document.execCommand('fontName',false,this.value)">
+        <option value="Heebo">Heebo</option>
+        <option value="Arial">Arial</option>
+        <option value="David">David</option>
+        <option value="serif">Serif</option>
+        <option value="monospace">Monospace</option>
+    </select>
+    <select class="tb-select" id="fontSzSel" onchange="document.execCommand('fontSize',false,this.value)">
+        <option value="2">קטן</option>
+        <option value="3" selected>רגיל</option>
+        <option value="4">בינוני</option>
+        <option value="5">גדול</option>
+        <option value="6">ענק</option>
+    </select>
+    <div class="tb-div"></div>
+    
+    <button class="tb-btn" onclick="document.execCommand('bold')" title="מודגש"><svg class="ico"><use href="#i-bold"/></svg><span>B</span></button>
+    <button class="tb-btn" onclick="document.execCommand('italic')" title="נטוי"><svg class="ico"><use href="#i-italic"/></svg><span>I</span></button>
+    <button class="tb-btn" onclick="document.execCommand('underline')" title="קו תחתי"><svg class="ico"><use href="#i-underline"/></svg><span>U</span></button>
+    <input type="color" class="tb-color" value="#18181b" onchange="document.execCommand('foreColor',false,this.value)" title="צבע">
+    <input type="color" class="tb-color" value="#ffffff" onchange="document.execCommand('hiliteColor',false,this.value)" title="צבע רקע" style="border-color:#ff0">
+    <div class="tb-div"></div>
+    
+    <button class="tb-btn" onclick="document.execCommand('justifyRight')" title="ימין"><svg class="ico"><use href="#i-align-right"/></svg></button>
+    <button class="tb-btn" onclick="document.execCommand('justifyCenter')" title="מרכז"><svg class="ico"><use href="#i-align-center"/></svg></button>
+    <button class="tb-btn" onclick="document.execCommand('justifyLeft')" title="שמאל"><svg class="ico"><use href="#i-align-left"/></svg></button>
+    <div class="tb-div"></div>
+    
+    <button class="tb-btn" onclick="document.execCommand('insertUnorderedList')" title="רשימה"><svg class="ico"><use href="#i-list"/></svg></button>
+    <button class="tb-btn" onclick="document.execCommand('insertOrderedList')" title="רשימה ממוספרת"><svg class="ico"><use href="#i-list-ord"/></svg></button>
+    <button class="tb-btn" onclick="addQuote()" title="ציטוט"><svg class="ico"><use href="#i-quote"/></svg></button>
+    <button class="tb-btn" onclick="document.execCommand('insertHorizontalRule')" title="קו הפרדה"><svg class="ico"><use href="#i-hr"/></svg></button>
+    <button class="tb-btn" onclick="addLink()" title="קישור"><svg class="ico"><use href="#i-link"/></svg></button>
+    
+    <div style="flex:1"></div>
+    <button class="tb-btn" onclick="exportDoc()" title="ייצוא"><svg class="ico"><use href="#i-download"/></svg><span>ייצוא</span></button>
+</div>
+
+<div class="editor-wrap">
+    <div class="doc-page" id="docPage" contenteditable="true" oninput="autoSave()">
+        <h1>המסמך שלי</h1>
+        <p>התחל לכתוב כאן... אפשר להוסיף כותרות, רשימות, ציטוטים, קישורים ועוד!</p>
+        <p></p>
+    </div>
+</div>
+
+<div class="bottom-bar">
+    <span id="wordCount">0 מילים</span>
+    <span id="saveStatus">נשמר אוטומטית</span>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const page=document.getElementById('docPage');
+const titleEl=document.getElementById('docTitle');
+
+// Load saved doc
+const saved=JSON.parse(localStorage.getItem('sf_doc')||'null');
+if(saved){page.innerHTML=saved.content||'';titleEl.value=saved.title||'מסמך ללא שם'}
+
+function autoSave(){
+    localStorage.setItem('sf_doc',JSON.stringify({title:titleEl.value,content:page.innerHTML}));
+    document.getElementById('saveStatus').textContent='נשמר';
+    setTimeout(()=>document.getElementById('saveStatus').textContent='נשמר אוטומטית',1000);
+    updateWordCount();
+}
+
+function updateWordCount(){
+    const text=page.textContent||'';
+    const words=text.trim().split(/\s+/).filter(w=>w.length>0).length;
+    document.getElementById('wordCount').textContent=words+' מילים';
+}
+
+function execCmd(tag){
+    if(!tag)return;
+    document.execCommand('formatBlock',false,'<'+tag+'>');
+}
+
+function addQuote(){
+    document.execCommand('formatBlock',false,'<blockquote>');
+}
+
+function addLink(){
+    const url=prompt('הכנס כתובת URL:');
+    if(url)document.execCommand('createLink',false,url);
+}
+
+function exportDoc(){
+    const html=`<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${titleEl.value}</title><style>@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');body{font-family:'Heebo',sans-serif;max-width:750px;margin:40px auto;padding:20px;line-height:1.8;color:#18181b}h1{font-size:2em;font-weight:800}h2{font-size:1.5em;font-weight:700;margin-top:25px}h3{font-size:1.2em;font-weight:600}blockquote{border-right:4px solid #7c3aed;padding:10px 20px;margin:12px 0;background:#f5f3ff;border-radius:0 8px 8px 0}a{color:#7c3aed}code{background:#f4f4f5;padding:2px 6px;border-radius:4px;font-family:monospace}hr{border:none;border-top:2px solid #e4e4e7;margin:20px 0}</style></head><body>${page.innerHTML}</body></html>`;
+    const blob=new Blob([html],{type:'text/html'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=(titleEl.value||'document')+'.html';
+    a.click();
+    toast('מסמך יוצא בהצלחה');
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+updateWordCount();
+page.addEventListener('input',autoSave);
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+    if(e.ctrlKey||e.metaKey){
+        if(e.key==='b'){e.preventDefault();document.execCommand('bold')}
+        if(e.key==='i'){e.preventDefault();document.execCommand('italic')}
+        if(e.key==='u'){e.preventDefault();document.execCommand('underline')}
+        if(e.key==='s'){e.preventDefault();autoSave();toast('נשמר!')}
+    }
+});
+</script>
+</body>
+</html>
