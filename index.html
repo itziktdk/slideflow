@@ -247,7 +247,8 @@
         .el:hover { border-color:rgba(124,58,237,0.3); }
         .el.sel { border-color:var(--p); box-shadow:0 0 0 3px rgba(124,58,237,0.15); }
         .el:focus { border-color:var(--p); }
-        .el.txt { font-family:'Heebo',sans-serif; }
+        .el.txt { font-family:'Heebo',sans-serif; cursor:text; }
+        .el.txt:focus { background:rgba(124,58,237,0.08); border-color:var(--p); cursor:text; }
         .el.shp { padding:0; display:flex; align-items:center; justify-content:center; }
         
         /* Slide panel */
@@ -626,11 +627,41 @@ function setColor(c){if(SEL===null)return;P.slides[SI].els[SEL].c=c;save();rende
 function setBg(i){P.slides[SI].bg=BG[i];save();renderCv();renderSl()}
 function saveState(){if(P){P.name=document.getElementById('presTitle').value;save()}}
 
+let _clickTimer=null,_isDrag=false;
 function dragStart(ev,i){
-    if(ev.target.getAttribute('contenteditable')==='true'&&document.activeElement===ev.target)return;
+    const el=ev.target.closest('.el');
+    const isTxt=el&&el.getAttribute('contenteditable')==='true';
+    // If already editing this text element, don't drag
+    if(isTxt&&document.activeElement===el)return;
     const cv=document.getElementById('canvas'),r=cv.getBoundingClientRect();
+    _isDrag=false;
     DRG={i,sx:ev.clientX,sy:ev.clientY,ox:P.slides[SI].els[i].x,oy:P.slides[SI].els[i].y,cw:r.width,ch:r.height};
-    sel(i);document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',stopDrag);ev.preventDefault();
+    sel(i);
+    document.addEventListener('mousemove',onDragCheck);
+    document.addEventListener('mouseup',function stopOrClick(e){
+        document.removeEventListener('mousemove',onDragCheck);
+        document.removeEventListener('mouseup',stopOrClick);
+        if(!_isDrag&&isTxt){
+            // It was a click, not a drag — focus the text for editing
+            el.focus();
+            // Place cursor at end
+            const range=document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            const s=window.getSelection();
+            s.removeAllRanges();
+            s.addRange(range);
+            DRG=null;
+        } else {
+            stopDrag();
+        }
+    });
+    ev.preventDefault();
+}
+function onDragCheck(ev){
+    if(!DRG)return;
+    const dx=Math.abs(ev.clientX-DRG.sx),dy=Math.abs(ev.clientY-DRG.sy);
+    if(dx>4||dy>4){_isDrag=true;onDrag(ev);document.removeEventListener('mousemove',onDragCheck);document.addEventListener('mousemove',onDrag)}
 }
 function onDrag(ev){
     if(!DRG)return;const e=P.slides[SI].els[DRG.i];
@@ -641,9 +672,40 @@ function onDrag(ev){
 function stopDrag(){if(DRG){save();renderSl()}DRG=null;document.removeEventListener('mousemove',onDrag);document.removeEventListener('mouseup',stopDrag)}
 
 // Touch support
-document.addEventListener('touchstart',e=>{if(e.target.closest('.el')){const t=e.touches[0];e.target.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY,bubbles:true}))}},{passive:false});
-document.addEventListener('touchmove',e=>{if(DRG){e.preventDefault();const t=e.touches[0];onDrag({clientX:t.clientX,clientY:t.clientY})}},{passive:false});
-document.addEventListener('touchend',()=>{if(DRG)stopDrag()});
+let _touchEl=null;
+document.addEventListener('touchstart',e=>{
+    const el=e.target.closest('.el');
+    if(el){
+        _touchEl=el;
+        const isTxt=el.getAttribute('contenteditable')==='true';
+        if(isTxt&&document.activeElement===el)return; // already editing, let it be
+        const t=e.touches[0];
+        const i=+el.dataset.i;
+        if(i>=0){
+            const cv=document.getElementById('canvas'),r=cv.getBoundingClientRect();
+            _isDrag=false;
+            DRG={i,sx:t.clientX,sy:t.clientY,ox:P.slides[SI].els[i].x,oy:P.slides[SI].els[i].y,cw:r.width,ch:r.height};
+            sel(i);
+        }
+    }
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+    if(DRG){
+        const t=e.touches[0];
+        const dx=Math.abs(t.clientX-DRG.sx),dy=Math.abs(t.clientY-DRG.sy);
+        if(dx>4||dy>4){_isDrag=true;e.preventDefault();onDrag({clientX:t.clientX,clientY:t.clientY})}
+    }
+},{passive:false});
+document.addEventListener('touchend',e=>{
+    if(DRG){
+        if(!_isDrag&&_touchEl&&_touchEl.getAttribute('contenteditable')==='true'){
+            _touchEl.focus();
+        }
+        if(_isDrag){save();renderSl()}
+        DRG=null;
+    }
+    _touchEl=null;
+});
 
 // Presentation
 function startPres(){PI=0;showScreen('presentScreen');renderPres();document.addEventListener('keydown',presKey)}
