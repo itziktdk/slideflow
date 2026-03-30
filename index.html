@@ -3,1281 +3,673 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SlideFlow - יוצר מצגות</title>
+    <title>SlideFlow — יוצר מצגות מקצועי</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
         
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --primary: #7c3aed;
-            --primary-light: #a78bfa;
-            --primary-dark: #5b21b6;
-            --bg: #0f0f1a;
-            --surface: #1a1a2e;
-            --surface2: #22223a;
-            --surface3: #2a2a42;
-            --text: #e0e0e0;
-            --text-dim: #888;
-            --accent: #06b6d4;
-            --accent2: #f59e0b;
-            --danger: #ef4444;
-            --success: #10b981;
-            --border: rgba(255,255,255,0.08);
+            --p: #7c3aed; --p2: #a78bfa; --p3: #5b21b6; --p4: #ede9fe;
+            --bg: #09090b; --s1: #18181b; --s2: #1e1e24; --s3: #27272a;
+            --t1: #fafafa; --t2: #a1a1aa; --t3: #71717a;
+            --acc: #06b6d4; --acc2: #f59e0b; --err: #ef4444; --ok: #10b981;
+            --brd: rgba(255,255,255,0.06);
+            --glow: 0 0 20px rgba(124,58,237,0.15);
+            --glass: rgba(255,255,255,0.03);
+            --r: 12px; --r2: 16px; --r3: 20px;
+            --transition: cubic-bezier(0.16, 1, 0.3, 1);
         }
         
-        body {
-            font-family: 'Heebo', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
+        body { font-family:'Heebo',sans-serif; background:var(--bg); color:var(--t1); height:100vh; overflow:hidden; -webkit-font-smoothing:antialiased; }
+        
+        /* ===== UTILITY ===== */
+        .screen { display:none; height:100vh; }
+        .screen.active { display:flex; }
+        
+        /* ===== ICONS (SVG) ===== */
+        .ico { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+        .ico-sm { width:14px; height:14px; }
+        .ico-lg { width:22px; height:22px; }
+        .ico-xl { width:32px; height:32px; }
+        
+        /* ===== BUTTONS ===== */
+        .btn {
+            display:inline-flex; align-items:center; gap:8px; padding:10px 22px;
+            border-radius:var(--r); border:1px solid var(--brd); background:var(--s2);
+            color:var(--t1); font-family:inherit; font-size:0.9em; font-weight:600;
+            cursor:pointer; transition:all 0.4s var(--transition); position:relative; overflow:hidden;
         }
+        .btn::before {
+            content:''; position:absolute; inset:0; opacity:0;
+            background:linear-gradient(135deg, rgba(124,58,237,0.1), rgba(6,182,212,0.1));
+            transition:opacity 0.4s;
+        }
+        .btn:hover { border-color:var(--p2); transform:translateY(-1px); box-shadow:var(--glow); }
+        .btn:hover::before { opacity:1; }
+        .btn:active { transform:scale(0.97); }
         
-        /* ===== SCREENS ===== */
-        .screen { display: none; height: 100vh; }
-        .screen.active { display: flex; }
+        .btn-primary {
+            background:linear-gradient(135deg, var(--p), var(--p3));
+            border-color:var(--p); color:#fff;
+            box-shadow:0 4px 25px rgba(124,58,237,0.25);
+        }
+        .btn-primary:hover { box-shadow:0 8px 40px rgba(124,58,237,0.4); border-color:var(--p2); }
         
-        /* ===== HOME SCREEN ===== */
+        .btn-ghost { background:transparent; border-color:transparent; }
+        .btn-ghost:hover { background:var(--s2); border-color:var(--brd); }
+        
+        .btn-danger { background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); color:var(--err); }
+        .btn-danger:hover { background:rgba(239,68,68,0.2); box-shadow:0 0 20px rgba(239,68,68,0.15); }
+        
+        .btn-sm { padding:6px 14px; font-size:0.82em; border-radius:var(--r); }
+        
+        .btn-icon {
+            width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center;
+            border-radius:10px; background:var(--s2); border:1px solid var(--brd);
+            color:var(--t2); cursor:pointer; transition:all 0.3s var(--transition);
+        }
+        .btn-icon:hover { color:var(--t1); border-color:var(--p2); background:var(--s3); box-shadow:var(--glow); }
+        
+        /* ===== HOME ===== */
         #homeScreen {
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 40px;
-            background: var(--bg);
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(124,58,237,0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(6,182,212,0.06) 0%, transparent 50%);
+            flex-direction:column; align-items:center; justify-content:center; gap:35px;
+            background:var(--bg);
+            background-image:
+                radial-gradient(ellipse at 25% 0%, rgba(124,58,237,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 75% 100%, rgba(6,182,212,0.06) 0%, transparent 50%);
         }
         
         .home-logo {
-            font-size: 60px;
-            animation: float 3s ease-in-out infinite;
+            width:72px; height:72px; border-radius:20px;
+            background:linear-gradient(135deg, var(--p), var(--acc));
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 8px 40px rgba(124,58,237,0.3);
+            animation:float 4s ease-in-out infinite;
         }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         
         .home-title {
-            font-size: 3em;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size:3.2em; font-weight:900; letter-spacing:-1px;
+            background:linear-gradient(135deg, #fff 0%, var(--t2) 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
         }
+        .home-sub { color:var(--t3); font-size:1.05em; margin-top:-15px; font-weight:300; }
+        .home-actions { display:flex; gap:12px; }
         
-        .home-subtitle { color: var(--text-dim); font-size: 1.1em; margin-top: -20px; }
+        .recent-section { max-width:750px; width:92%; }
+        .recent-label { font-size:0.8em; color:var(--t3); font-weight:600; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; }
+        .recent-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; }
         
-        .home-actions { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-        
-        .btn {
-            padding: 14px 32px;
-            border-radius: 14px;
-            border: none;
-            font-family: 'Heebo', sans-serif;
-            font-size: 1em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn:hover { transform: translateY(-2px); }
-        .btn:active { transform: scale(0.97); }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(124,58,237,0.3);
-        }
-        .btn-primary:hover { box-shadow: 0 8px 30px rgba(124,58,237,0.5); }
-        
-        .btn-secondary {
-            background: var(--surface2);
-            color: var(--text);
-            border: 2px solid var(--border);
-        }
-        .btn-secondary:hover { border-color: var(--primary-light); }
-        
-        .btn-danger { background: var(--danger); color: #fff; }
-        .btn-small { padding: 8px 16px; font-size: 0.85em; border-radius: 10px; }
-        .btn-icon { padding: 8px; border-radius: 10px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 1.1em; transition: all 0.2s; }
-        .btn-icon:hover { background: var(--surface3); border-color: var(--primary-light); }
-        
-        /* Recent presentations */
-        .recent-section { max-width: 700px; width: 90%; }
-        .recent-title { font-size: 0.9em; color: var(--text-dim); margin-bottom: 12px; }
-        .recent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
         .recent-card {
-            background: var(--surface);
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
+            background:var(--s1); border:1px solid var(--brd); border-radius:var(--r2);
+            padding:18px; cursor:pointer; transition:all 0.4s var(--transition); position:relative;
         }
-        .recent-card:hover { border-color: var(--primary-light); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
-        .recent-card .name { font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
-        .recent-card .meta { font-size: 0.75em; color: var(--text-dim); }
-        .recent-card .delete-card { position: absolute; top: 8px; left: 8px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7em; cursor: pointer; opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
-        .recent-card:hover .delete-card { opacity: 1; }
-        
-        /* ===== TEMPLATE PICKER ===== */
-        #templateScreen {
-            flex-direction: column;
-            padding: 30px;
-            gap: 25px;
+        .recent-card:hover { border-color:var(--p2); transform:translateY(-3px); box-shadow:0 12px 35px rgba(0,0,0,0.3), var(--glow); }
+        .recent-card .rc-name { font-weight:700; font-size:0.95em; margin-bottom:5px; }
+        .recent-card .rc-meta { font-size:0.75em; color:var(--t3); }
+        .recent-card .rc-del {
+            position:absolute; top:10px; left:10px; width:24px; height:24px; border-radius:50%;
+            background:var(--err); color:#fff; border:none; font-size:0.65em; cursor:pointer;
+            opacity:0; transition:opacity 0.2s; display:flex; align-items:center; justify-content:center;
+        }
+        .recent-card:hover .rc-del { opacity:1; }
+        .recent-card .rc-preview {
+            width:100%; height:4px; border-radius:2px; margin-top:10px; opacity:0.6;
         }
         
-        .template-header { display: flex; justify-content: space-between; align-items: center; }
-        .template-header h2 { font-size: 1.5em; }
+        .empty-state { text-align:center; padding:40px; color:var(--t3); font-size:0.9em; grid-column:1/-1; }
         
-        .templates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 18px;
-            overflow-y: auto;
-            padding-bottom: 20px;
+        /* ===== TEMPLATES ===== */
+        #templateScreen { flex-direction:column; padding:30px; gap:25px; background:var(--bg); }
+        .tmpl-header { display:flex; justify-content:space-between; align-items:center; }
+        .tmpl-header h2 { font-size:1.5em; font-weight:800; }
+        
+        .tmpl-grid {
+            display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+            gap:16px; overflow-y:auto; padding-bottom:20px;
         }
         
-        .template-card {
-            border-radius: 16px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 3px solid transparent;
+        .tmpl-card {
+            border-radius:var(--r2); overflow:hidden; cursor:pointer;
+            transition:all 0.4s var(--transition); border:2px solid transparent;
+            background:var(--s1);
         }
-        .template-card:hover { transform: translateY(-5px) scale(1.02); border-color: var(--primary); box-shadow: 0 12px 35px rgba(0,0,0,0.4); }
+        .tmpl-card:hover { transform:translateY(-5px) scale(1.01); border-color:var(--p); box-shadow:0 15px 40px rgba(0,0,0,0.4), var(--glow); }
         
-        .template-preview {
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            font-weight: 700;
-            padding: 20px;
-            text-align: center;
+        .tmpl-preview {
+            height:140px; display:flex; align-items:center; justify-content:center;
+            font-size:1.15em; font-weight:700; padding:20px; text-align:center; position:relative; overflow:hidden;
         }
-        
-        .template-info { padding: 12px 15px; background: var(--surface); }
-        .template-info .name { font-weight: 700; font-size: 0.95em; }
-        .template-info .desc { font-size: 0.75em; color: var(--text-dim); margin-top: 3px; }
-        
-        /* ===== EDITOR SCREEN ===== */
-        #editorScreen {
-            flex-direction: column;
-            height: 100vh;
+        .tmpl-preview::after {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(transparent 60%, rgba(0,0,0,0.3));
         }
+        .tmpl-info { padding:14px 16px; }
+        .tmpl-info .name { font-weight:700; font-size:0.95em; }
+        .tmpl-info .desc { font-size:0.75em; color:var(--t3); margin-top:3px; }
         
-        /* Toolbar */
+        /* ===== EDITOR ===== */
+        #editorScreen { flex-direction:column; }
+        
         .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            flex-wrap: wrap;
+            display:flex; align-items:center; gap:6px; padding:6px 12px;
+            background:var(--s1); border-bottom:1px solid var(--brd);
+            flex-shrink:0; flex-wrap:wrap; min-height:48px;
         }
         
         .toolbar-title {
-            font-weight: 700;
-            font-size: 0.95em;
-            padding: 5px 10px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            color: var(--text);
-            font-family: 'Heebo', sans-serif;
-            cursor: text;
-            min-width: 120px;
+            font-weight:600; font-size:0.92em; padding:5px 10px;
+            background:transparent; border:1px solid transparent; border-radius:8px;
+            color:var(--t1); font-family:inherit; cursor:text; min-width:120px;
         }
-        .toolbar-title:hover { border-color: var(--border); }
-        .toolbar-title:focus { outline: none; border-color: var(--primary); background: var(--surface2); }
+        .toolbar-title:hover { border-color:var(--brd); }
+        .toolbar-title:focus { outline:none; border-color:var(--p); background:var(--s2); }
         
-        .toolbar-divider { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
+        .tb-div { width:1px; height:26px; background:var(--brd); margin:0 3px; flex-shrink:0; }
+        .tb-group { display:flex; gap:3px; align-items:center; }
         
-        .toolbar-group { display: flex; gap: 4px; align-items: center; }
-        
-        .toolbar-btn {
-            padding: 6px 10px;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--text);
-            border: 1px solid transparent;
-            cursor: pointer;
-            font-family: 'Heebo', sans-serif;
-            font-size: 0.85em;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .tb-btn {
+            display:flex; align-items:center; gap:5px; padding:5px 10px;
+            border-radius:8px; background:transparent; color:var(--t2);
+            border:1px solid transparent; cursor:pointer; font-family:inherit;
+            font-size:0.82em; font-weight:500; transition:all 0.25s var(--transition);
+            white-space:nowrap;
         }
-        .toolbar-btn:hover { background: var(--surface2); border-color: var(--border); }
-        .toolbar-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .tb-btn:hover { background:var(--s2); color:var(--t1); border-color:var(--brd); }
+        .tb-btn.active { background:var(--p); color:#fff; border-color:var(--p); }
         
-        .color-dot {
-            width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
-            cursor: pointer; transition: all 0.2s;
+        .tb-select {
+            padding:4px 8px; border-radius:8px; background:var(--s2); color:var(--t1);
+            border:1px solid var(--brd); font-family:inherit; font-size:0.82em; cursor:pointer;
         }
-        .color-dot:hover { transform: scale(1.2); border-color: #fff; }
+        .tb-select:focus { outline:none; border-color:var(--p); }
         
-        .font-select {
-            padding: 5px 10px;
-            border-radius: 8px;
-            background: var(--surface2);
-            color: var(--text);
-            border: 1px solid var(--border);
-            font-family: 'Heebo', sans-serif;
-            font-size: 0.85em;
-            cursor: pointer;
+        .tb-color {
+            width:28px; height:28px; border:2px solid var(--brd); border-radius:8px;
+            cursor:pointer; transition:all 0.2s; padding:0;
         }
+        .tb-color:hover { border-color:var(--p2); transform:scale(1.1); }
         
-        /* Editor main area */
-        .editor-main {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
+        .editor-main { display:flex; flex:1; overflow:hidden; }
+        
+        /* Sidebar */
+        .sidebar {
+            width:210px; background:var(--s1); border-right:1px solid var(--brd);
+            padding:14px; overflow-y:auto; flex-shrink:0;
         }
-        
-        /* Slide panel (sidebar) */
-        .slide-panel {
-            width: 180px;
-            background: var(--surface);
-            border-left: 1px solid var(--border);
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-shrink: 0;
+        .side-label {
+            font-size:0.7em; color:var(--t3); font-weight:700; text-transform:uppercase;
+            letter-spacing:1.5px; margin-bottom:10px; margin-top:16px;
         }
+        .side-label:first-child { margin-top:0; }
         
-        .slide-thumb {
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: all 0.2s;
-            position: relative;
-            aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.6em;
-            padding: 8px;
-            text-align: center;
+        .bg-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+        .bg-swatch {
+            width:100%; aspect-ratio:1; border-radius:8px; cursor:pointer;
+            border:2px solid transparent; transition:all 0.25s var(--transition);
         }
-        .slide-thumb:hover { border-color: var(--primary-light); }
-        .slide-thumb.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(124,58,237,0.3); }
-        .slide-number {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            font-size: 0.6em;
-            padding: 1px 6px;
-            border-radius: 8px;
-            font-weight: 700;
-        }
-        .slide-thumb .delete-slide {
-            position: absolute;
-            bottom: 4px;
-            left: 4px;
-            background: var(--danger);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 18px; height: 18px;
-            font-size: 0.55em;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .slide-thumb:hover .delete-slide { opacity: 1; }
+        .bg-swatch:hover { transform:scale(1.1); border-color:var(--p2); }
+        .bg-swatch.active { border-color:#fff; box-shadow:var(--glow); }
         
-        .add-slide-btn {
-            border: 2px dashed var(--border);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            color: var(--text-dim);
-            font-size: 0.8em;
-            transition: all 0.2s;
-        }
-        .add-slide-btn:hover { border-color: var(--primary); color: var(--primary); }
-        
-        /* Canvas area */
-        .canvas-area {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 30px;
-            background: var(--bg);
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .slide-canvas {
-            width: 100%;
-            max-width: 900px;
-            aspect-ratio: 16/9;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            cursor: default;
-        }
-        
-        /* Editable elements on canvas */
-        .slide-element {
-            position: absolute;
-            cursor: move;
-            padding: 8px 14px;
-            border: 2px solid transparent;
-            border-radius: 6px;
-            transition: border-color 0.2s;
-            min-width: 40px;
-            min-height: 25px;
-            outline: none;
-        }
-        .slide-element:hover { border-color: rgba(124,58,237,0.4); }
-        .slide-element.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124,58,237,0.2); }
-        .slide-element:focus { border-color: var(--primary); }
-        
-        .slide-element.text-element { font-family: 'Heebo', sans-serif; }
-        
-        .slide-element.image-element {
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3em;
-        }
-        
-        .slide-element .resize-handle {
-            position: absolute;
-            bottom: -5px;
-            left: -5px;
-            width: 10px;
-            height: 10px;
-            background: var(--primary);
-            border-radius: 50%;
-            cursor: se-resize;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .slide-element.selected .resize-handle { opacity: 1; }
-        
-        /* Properties panel */
-        .props-panel {
-            width: 220px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            padding: 15px;
-            overflow-y: auto;
-            flex-shrink: 0;
-        }
-        
-        .props-title { font-size: 0.8em; color: var(--text-dim); font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .prop-group { margin-bottom: 15px; }
-        .prop-label { font-size: 0.75em; color: var(--text-dim); margin-bottom: 4px; }
-        .prop-input {
-            width: 100%;
-            padding: 7px 10px;
-            border-radius: 8px;
-            background: var(--surface2);
-            color: var(--text);
-            border: 1px solid var(--border);
-            font-family: 'Heebo', sans-serif;
-            font-size: 0.85em;
-        }
-        .prop-input:focus { outline: none; border-color: var(--primary); }
-        
-        .bg-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
-        .bg-preset {
-            width: 100%; aspect-ratio: 1; border-radius: 8px; cursor: pointer;
-            border: 2px solid transparent; transition: all 0.2s;
-        }
-        .bg-preset:hover { transform: scale(1.1); border-color: var(--primary); }
-        .bg-preset.active { border-color: #fff; }
-        
-        /* Shape buttons */
-        .shapes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .shape-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
         .shape-btn {
-            aspect-ratio: 1;
-            border-radius: 10px;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            transition: all 0.2s;
+            aspect-ratio:1; border-radius:10px; background:var(--s2); border:1px solid var(--brd);
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:all 0.25s var(--transition); color:var(--t2);
         }
-        .shape-btn:hover { background: var(--surface3); border-color: var(--primary); transform: scale(1.05); }
+        .shape-btn:hover { background:var(--s3); border-color:var(--p2); color:var(--t1); box-shadow:var(--glow); transform:scale(1.03); }
+        
+        .icon-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+        .icon-btn {
+            aspect-ratio:1; border-radius:8px; background:var(--s2); border:1px solid var(--brd);
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:all 0.25s var(--transition); color:var(--t2);
+        }
+        .icon-btn:hover { background:var(--s3); border-color:var(--p2); color:var(--p2); box-shadow:var(--glow); }
+        
+        /* Canvas */
+        .canvas-wrap {
+            flex:1; display:flex; align-items:center; justify-content:center;
+            padding:25px; background:var(--bg); overflow:hidden; position:relative;
+        }
+        
+        .canvas {
+            width:100%; max-width:880px; aspect-ratio:16/9; border-radius:var(--r);
+            position:relative; overflow:hidden;
+            box-shadow:0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+        }
+        
+        .el {
+            position:absolute; cursor:move; padding:8px 14px; border:2px solid transparent;
+            border-radius:6px; transition:border-color 0.2s; min-width:30px; min-height:20px; outline:none;
+        }
+        .el:hover { border-color:rgba(124,58,237,0.3); }
+        .el.sel { border-color:var(--p); box-shadow:0 0 0 3px rgba(124,58,237,0.15); }
+        .el:focus { border-color:var(--p); }
+        .el.txt { font-family:'Heebo',sans-serif; }
+        .el.shp { padding:0; display:flex; align-items:center; justify-content:center; }
+        
+        /* Slide panel */
+        .slide-panel {
+            width:170px; background:var(--s1); border-left:1px solid var(--brd);
+            overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:8px; flex-shrink:0;
+        }
+        
+        .sl-thumb {
+            border-radius:10px; overflow:hidden; cursor:pointer; border:2px solid transparent;
+            transition:all 0.25s var(--transition); position:relative; aspect-ratio:16/9;
+            display:flex; align-items:center; justify-content:center; font-size:0.5em; padding:6px; text-align:center;
+        }
+        .sl-thumb:hover { border-color:var(--p2); }
+        .sl-thumb.active { border-color:var(--p); box-shadow:0 0 18px rgba(124,58,237,0.25); }
+        .sl-num {
+            position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.65);
+            color:#fff; font-size:0.55em; padding:1px 6px; border-radius:8px; font-weight:700; backdrop-filter:blur(4px);
+        }
+        .sl-del {
+            position:absolute; bottom:4px; left:4px; width:18px; height:18px;
+            background:var(--err); color:#fff; border:none; border-radius:50%;
+            font-size:0.5em; cursor:pointer; opacity:0; transition:opacity 0.2s;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .sl-thumb:hover .sl-del { opacity:1; }
+        
+        .add-sl {
+            border:2px dashed var(--brd); border-radius:10px; padding:12px;
+            text-align:center; cursor:pointer; color:var(--t3); font-size:0.78em;
+            font-weight:500; transition:all 0.25s var(--transition);
+        }
+        .add-sl:hover { border-color:var(--p); color:var(--p2); }
         
         /* Bottom bar */
         .bottom-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 15px;
-            background: var(--surface);
-            border-top: 1px solid var(--border);
-            flex-shrink: 0;
+            display:flex; align-items:center; justify-content:space-between;
+            padding:6px 14px; background:var(--s1); border-top:1px solid var(--brd); flex-shrink:0;
         }
+        .counter { font-size:0.82em; color:var(--t3); }
+        .bottom-actions { display:flex; gap:6px; }
         
-        .slide-counter { font-size: 0.85em; color: var(--text-dim); }
-        
-        /* ===== PRESENTATION MODE ===== */
-        #presentScreen {
-            background: #000;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+        /* ===== PRESENT ===== */
+        #presentScreen { background:#000; align-items:center; justify-content:center; }
+        .pres-slide {
+            width:100vw; height:100vh; position:relative; overflow:hidden;
+            animation:slideReveal 0.5s var(--transition);
         }
-        
-        .present-slide {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            overflow: hidden;
-            animation: slideIn 0.4s ease;
+        @keyframes slideReveal { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+        .pres-el {
+            position:absolute;
+            animation:elReveal 0.6s var(--transition) backwards;
         }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
+        @keyframes elReveal { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .pres-ctrl {
+            position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+            display:flex; gap:8px; background:rgba(0,0,0,0.75); padding:8px 18px;
+            border-radius:30px; backdrop-filter:blur(15px); border:1px solid rgba(255,255,255,0.1);
+            opacity:0; transition:opacity 0.3s;
         }
-        
-        .present-element {
-            position: absolute;
-            animation: elementFade 0.6s ease backwards;
+        #presentScreen:hover .pres-ctrl { opacity:1; }
+        .pres-btn {
+            background:rgba(255,255,255,0.1); border:none; color:#fff;
+            padding:7px 18px; border-radius:20px; cursor:pointer; font-family:inherit;
+            font-size:0.85em; font-weight:500; transition:all 0.2s;
         }
-        
-        @keyframes elementFade {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .present-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 10px 20px;
-            border-radius: 30px;
-            backdrop-filter: blur(10px);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        #presentScreen:hover .present-controls { opacity: 1; }
-        
-        .present-btn {
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: 'Heebo', sans-serif;
-            font-size: 0.9em;
-            transition: all 0.2s;
-        }
-        .present-btn:hover { background: rgba(255,255,255,0.25); }
-        
-        /* ===== MODAL ===== */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-            display: none; align-items: center; justify-content: center; z-index: 1000;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal {
-            background: var(--surface); border-radius: 20px; padding: 30px;
-            max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        .modal h3 { margin-bottom: 15px; }
-        .modal input {
-            width: 100%; padding: 12px 15px; border-radius: 12px;
-            background: var(--surface2); color: var(--text); border: 2px solid var(--border);
-            font-family: 'Heebo', sans-serif; font-size: 1em; margin-bottom: 15px;
-        }
-        .modal input:focus { outline: none; border-color: var(--primary); }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-        
-        /* ===== EMOJI PICKER ===== */
-        .emoji-picker {
-            position: absolute;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 10px;
-            display: none;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-        .emoji-picker.open { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
-        .emoji-item {
-            font-size: 1.3em;
-            padding: 4px;
-            cursor: pointer;
-            border-radius: 6px;
-            text-align: center;
-            transition: background 0.2s;
-        }
-        .emoji-item:hover { background: var(--surface3); }
+        .pres-btn:hover { background:rgba(255,255,255,0.2); }
         
         /* ===== TOAST ===== */
         .toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: var(--surface2); color: var(--text); padding: 12px 24px;
-            border-radius: 12px; font-size: 0.9em; box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 2000; border: 1px solid var(--border);
+            position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px);
+            background:var(--s2); color:var(--t1); padding:12px 24px; border-radius:var(--r);
+            font-size:0.88em; box-shadow:0 10px 35px rgba(0,0,0,0.5); border:1px solid var(--brd);
+            transition:transform 0.5s var(--transition); z-index:9999; backdrop-filter:blur(10px);
         }
-        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.show { transform:translateX(-50%) translateY(0); }
         
         /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .slide-panel { width: 60px; }
-            .slide-thumb { font-size: 0.4em; }
-            .props-panel { display: none; }
-            .toolbar { gap: 4px; }
-            .toolbar-btn span { display: none; }
-            .home-title { font-size: 2em; }
-            .templates-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+        @media(max-width:768px) {
+            .sidebar { display:none; }
+            .slide-panel { width:55px; }
+            .sl-thumb { font-size:0.3em; }
+            .tb-btn span { display:none; }
+            .home-title { font-size:2.2em; }
+            .tmpl-grid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== HOME SCREEN ===== -->
+<!-- SVG Icon definitions -->
+<svg style="display:none;">
+    <defs>
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+        <symbol id="i-type" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></symbol>
+        <symbol id="i-text" viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></symbol>
+        <symbol id="i-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+        <symbol id="i-bold" viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></symbol>
+        <symbol id="i-italic" viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+        <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+        <symbol id="i-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></symbol>
+        <symbol id="i-arrow-left" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+        <symbol id="i-square" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></symbol>
+        <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></symbol>
+        <symbol id="i-triangle" viewBox="0 0 24 24"><polygon points="12 2 22 22 2 22"/></symbol>
+        <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+        <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+        <symbol id="i-minus" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+        <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+        <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+        <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></symbol>
+        <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+        <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></symbol>
+        <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></symbol>
+    </defs>
+</svg>
+
+<!-- ===== HOME ===== -->
 <div id="homeScreen" class="screen active">
-    <div class="home-logo">🎨</div>
+    <div class="home-logo">
+        <svg class="ico" style="width:36px;height:36px;color:#fff;"><use href="#i-layout"/></svg>
+    </div>
     <div class="home-title">SlideFlow</div>
-    <div class="home-subtitle">יוצר מצגות מקצועי</div>
+    <div class="home-sub">צור מצגות מקצועיות בקלות</div>
     <div class="home-actions">
-        <button class="btn btn-primary" onclick="showTemplates()">✨ מצגת חדשה</button>
+        <button class="btn btn-primary" onclick="showTemplates()">
+            <svg class="ico"><use href="#i-sparkle"/></svg>
+            מצגת חדשה
+        </button>
     </div>
     <div class="recent-section">
-        <div class="recent-title">📁 מצגות אחרונות</div>
+        <div class="recent-label">מצגות אחרונות</div>
         <div class="recent-grid" id="recentGrid"></div>
     </div>
 </div>
 
-<!-- ===== TEMPLATE PICKER ===== -->
+<!-- ===== TEMPLATES ===== -->
 <div id="templateScreen" class="screen">
-    <div class="template-header">
-        <h2>✨ בחר תבנית</h2>
-        <button class="btn btn-secondary btn-small" onclick="showScreen('homeScreen')">← חזרה</button>
+    <div class="tmpl-header">
+        <h2>בחר תבנית</h2>
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('homeScreen')">
+            <svg class="ico ico-sm"><use href="#i-arrow-right"/></svg> חזרה
+        </button>
     </div>
-    <div class="templates-grid" id="templatesGrid"></div>
+    <div class="tmpl-grid" id="tmplGrid"></div>
 </div>
 
 <!-- ===== EDITOR ===== -->
 <div id="editorScreen" class="screen">
     <div class="toolbar">
-        <button class="btn-icon" onclick="showScreen('homeScreen')" title="דף הבית">🏠</button>
+        <button class="btn-icon" onclick="showScreen('homeScreen')" title="דף הבית">
+            <svg class="ico"><use href="#i-home"/></svg>
+        </button>
         <input type="text" class="toolbar-title" id="presTitle" value="מצגת חדשה" onchange="saveState()">
-        <div class="toolbar-divider"></div>
+        <div class="tb-div"></div>
         
-        <div class="toolbar-group">
-            <button class="toolbar-btn" onclick="addTextElement('כותרת', 32, 700)" title="כותרת">📝 <span>כותרת</span></button>
-            <button class="toolbar-btn" onclick="addTextElement('טקסט', 18, 400)" title="טקסט">📄 <span>טקסט</span></button>
+        <div class="tb-group">
+            <button class="tb-btn" onclick="addText('כותרת',36,700)" title="כותרת">
+                <svg class="ico ico-sm"><use href="#i-type"/></svg><span>כותרת</span>
+            </button>
+            <button class="tb-btn" onclick="addText('טקסט',18,400)" title="טקסט">
+                <svg class="ico ico-sm"><use href="#i-text"/></svg><span>טקסט</span>
+            </button>
         </div>
         
-        <div class="toolbar-divider"></div>
+        <div class="tb-div"></div>
         
-        <div class="toolbar-group">
-            <button class="toolbar-btn" onclick="toggleEmojiPicker()" title="אימוג'י">😀</button>
-            <button class="toolbar-btn" onclick="addShapeElement('rect')" title="מלבן">⬜</button>
-            <button class="toolbar-btn" onclick="addShapeElement('circle')" title="עיגול">⭕</button>
-        </div>
-        
-        <div class="toolbar-divider"></div>
-        
-        <div class="toolbar-group">
-            <select class="font-select" id="fontSizeSelect" onchange="changeFontSize(this.value)">
-                <option value="14">14px</option>
-                <option value="18">18px</option>
-                <option value="24">24px</option>
-                <option value="32">32px</option>
-                <option value="40">40px</option>
-                <option value="48">48px</option>
-                <option value="60">60px</option>
-                <option value="72">72px</option>
+        <div class="tb-group">
+            <select class="tb-select" id="fontSz" onchange="setFontSz(this.value)">
+                <option value="14">14</option><option value="18">18</option>
+                <option value="24">24</option><option value="32">32</option>
+                <option value="40">40</option><option value="48">48</option>
+                <option value="60">60</option><option value="72">72</option>
             </select>
-            <button class="toolbar-btn" id="boldBtn" onclick="toggleBold()" title="מודגש"><b>B</b></button>
-            <button class="toolbar-btn" id="italicBtn" onclick="toggleItalic()" title="נטוי"><i>I</i></button>
+            <button class="tb-btn" id="bBtn" onclick="togBold()" title="מודגש">
+                <svg class="ico ico-sm"><use href="#i-bold"/></svg>
+            </button>
+            <button class="tb-btn" id="iBtn" onclick="togItalic()" title="נטוי">
+                <svg class="ico ico-sm"><use href="#i-italic"/></svg>
+            </button>
+            <input type="color" class="tb-color" id="tColor" value="#ffffff" onchange="setColor(this.value)" title="צבע">
         </div>
         
-        <div class="toolbar-divider"></div>
+        <div style="flex:1"></div>
         
-        <div class="toolbar-group">
-            <input type="color" id="textColorPicker" value="#ffffff" onchange="changeTextColor(this.value)" title="צבע טקסט" style="width:30px;height:30px;border:none;border-radius:8px;cursor:pointer;">
-        </div>
-        
-        <div style="flex:1;"></div>
-        
-        <button class="btn btn-primary btn-small" onclick="startPresentation()">▶️ הצג</button>
+        <button class="btn btn-primary btn-sm" onclick="startPres()">
+            <svg class="ico ico-sm"><use href="#i-play"/></svg> הצג
+        </button>
     </div>
     
     <div class="editor-main">
-        <!-- Properties Panel -->
-        <div class="props-panel">
-            <div class="props-title">🎨 רקע שקופית</div>
-            <div class="prop-group">
-                <div class="bg-presets" id="bgPresets"></div>
-            </div>
-            <div class="prop-group">
-                <div class="prop-label">צבע מותאם</div>
-                <input type="color" class="prop-input" id="bgColorPicker" onchange="changeSlideBg(this.value)" style="height:35px;padding:2px;cursor:pointer;">
+        <div class="sidebar">
+            <div class="side-label">רקע</div>
+            <div class="bg-grid" id="bgGrid"></div>
+            
+            <div class="side-label">צורות</div>
+            <div class="shape-grid">
+                <button class="shape-btn" onclick="addShape('square')" title="מלבן"><svg class="ico"><use href="#i-square"/></svg></button>
+                <button class="shape-btn" onclick="addShape('circle')" title="עיגול"><svg class="ico"><use href="#i-circle"/></svg></button>
+                <button class="shape-btn" onclick="addShape('triangle')" title="משולש"><svg class="ico"><use href="#i-triangle"/></svg></button>
+                <button class="shape-btn" onclick="addShape('star')" title="כוכב"><svg class="ico"><use href="#i-star"/></svg></button>
+                <button class="shape-btn" onclick="addShape('heart')" title="לב"><svg class="ico"><use href="#i-heart"/></svg></button>
+                <button class="shape-btn" onclick="addShape('line')" title="קו"><svg class="ico"><use href="#i-minus"/></svg></button>
             </div>
             
-            <div class="props-title" style="margin-top:20px;">🔷 צורות</div>
-            <div class="shapes-grid">
-                <button class="shape-btn" onclick="addShapeElement('rect')">⬜</button>
-                <button class="shape-btn" onclick="addShapeElement('circle')">⭕</button>
-                <button class="shape-btn" onclick="addShapeElement('triangle')">🔺</button>
-                <button class="shape-btn" onclick="addShapeElement('star')">⭐</button>
-                <button class="shape-btn" onclick="addShapeElement('heart')">❤️</button>
-                <button class="shape-btn" onclick="addShapeElement('line')">➖</button>
+            <div class="side-label">אייקונים</div>
+            <div class="icon-grid">
+                <button class="icon-btn" onclick="addIcon('i-zap')" title="ברק"><svg class="ico ico-sm"><use href="#i-zap"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-target')" title="מטרה"><svg class="ico ico-sm"><use href="#i-target"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-check')" title="וי"><svg class="ico ico-sm"><use href="#i-check"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-rocket')" title="רקטה"><svg class="ico ico-sm"><use href="#i-rocket"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-star')" title="כוכב"><svg class="ico ico-sm"><use href="#i-star"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-heart')" title="לב"><svg class="ico ico-sm"><use href="#i-heart"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-sparkle')" title="ניצוץ"><svg class="ico ico-sm"><use href="#i-sparkle"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-image')" title="תמונה"><svg class="ico ico-sm"><use href="#i-image"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-layout')" title="פריסה"><svg class="ico ico-sm"><use href="#i-layout"/></svg></button>
+                <button class="icon-btn" onclick="addIcon('i-play')" title="הפעלה"><svg class="ico ico-sm"><use href="#i-play"/></svg></button>
             </div>
             
-            <div class="props-title" style="margin-top:20px;">😀 אימוג'ים</div>
-            <div class="shapes-grid" style="grid-template-columns: repeat(5,1fr);">
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🚀')">🚀</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('💡')">💡</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🎯')">🎯</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('✅')">✅</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🔥')">🔥</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('⚡')">⚡</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🎨')">🎨</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('📊')">📊</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('💻')">💻</button>
-                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🌟')">🌟</button>
-            </div>
-
-            <div class="props-title" style="margin-top:20px;">🗑️ אלמנט נבחר</div>
-            <button class="btn btn-danger btn-small" onclick="deleteSelected()" style="width:100%;">🗑️ מחק אלמנט</button>
+            <div class="side-label">אלמנט נבחר</div>
+            <button class="btn btn-danger btn-sm" onclick="delSel()" style="width:100%;">
+                <svg class="ico ico-sm"><use href="#i-trash"/></svg> מחק
+            </button>
         </div>
         
-        <!-- Canvas -->
-        <div class="canvas-area" onclick="deselectAll(event)">
-            <div class="slide-canvas" id="slideCanvas"></div>
-            
-            <!-- Emoji Picker (floating) -->
-            <div class="emoji-picker" id="emojiPicker"></div>
+        <div class="canvas-wrap" onclick="desel(event)">
+            <div class="canvas" id="canvas"></div>
         </div>
         
-        <!-- Slide Panel -->
-        <div class="slide-panel" id="slidePanel"></div>
+        <div class="slide-panel" id="slPanel"></div>
     </div>
     
     <div class="bottom-bar">
-        <div class="slide-counter" id="slideCounter">שקופית 1 מתוך 1</div>
-        <div style="display:flex;gap:8px;">
-            <button class="btn-icon" onclick="duplicateSlide()" title="שכפל שקופית">📋</button>
-            <button class="btn-icon" onclick="exportPresentation()" title="ייצוא">💾</button>
+        <div class="counter" id="counter">שקופית 1 מתוך 1</div>
+        <div class="bottom-actions">
+            <button class="btn-icon" onclick="dupSlide()" title="שכפל"><svg class="ico"><use href="#i-copy"/></svg></button>
+            <button class="btn-icon" onclick="exportPres()" title="ייצוא"><svg class="ico"><use href="#i-save"/></svg></button>
         </div>
     </div>
 </div>
 
-<!-- ===== PRESENTATION MODE ===== -->
+<!-- ===== PRESENTATION ===== -->
 <div id="presentScreen" class="screen">
-    <div class="present-slide" id="presentSlide"></div>
-    <div class="present-controls">
-        <button class="present-btn" onclick="prevPresentSlide()">◀ הקודם</button>
-        <span id="presentCounter" style="color:#fff;padding:8px;font-size:0.9em;"></span>
-        <button class="present-btn" onclick="nextPresentSlide()">הבא ▶</button>
-        <button class="present-btn" onclick="exitPresentation()">✕ יציאה</button>
+    <div class="pres-slide" id="presSlide"></div>
+    <div class="pres-ctrl">
+        <button class="pres-btn" onclick="presPrev()"><svg class="ico ico-sm" style="color:#fff"><use href="#i-arrow-right"/></svg></button>
+        <span id="presCnt" style="color:#fff;padding:5px 10px;font-size:0.85em;"></span>
+        <button class="pres-btn" onclick="presNext()"><svg class="ico ico-sm" style="color:#fff"><use href="#i-arrow-left"/></svg></button>
+        <button class="pres-btn" onclick="exitPres()"><svg class="ico ico-sm" style="color:#fff"><use href="#i-x"/></svg></button>
     </div>
 </div>
 
-<!-- ===== TOAST ===== -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== APP STATE =====
-let presentations = JSON.parse(localStorage.getItem('slideflow_presentations') || '[]');
-let currentPres = null;
-let currentSlideIndex = 0;
-let selectedElement = null;
-let dragState = null;
-let presentIndex = 0;
+let DB=JSON.parse(localStorage.getItem('sf2')||'[]'),P=null,SI=0,SEL=null,DRG=null,PI=0;
 
-// ===== TEMPLATES =====
-const templates = [
-    {
-        name: 'ריק',
-        desc: 'התחל מאפס',
-        bg: 'linear-gradient(135deg, #1a1a2e, #16213e)',
-        color: '#fff',
-        slides: [{ bg: 'linear-gradient(135deg, #1a1a2e, #16213e)', elements: [
-            { type: 'text', text: 'כותרת המצגת', x: 50, y: 35, fontSize: 48, fontWeight: 700, color: '#fff', align: 'center' },
-            { type: 'text', text: 'תת כותרת', x: 50, y: 55, fontSize: 24, fontWeight: 300, color: '#aaa', align: 'center' }
-        ]}]
-    },
-    {
-        name: 'סגול חלומי',
-        desc: 'עיצוב מודרני וחלק',
-        bg: 'linear-gradient(135deg, #667eea, #764ba2)',
-        color: '#fff',
-        slides: [{ bg: 'linear-gradient(135deg, #667eea, #764ba2)', elements: [
-            { type: 'text', text: '✨ כותרת מדהימה', x: 50, y: 30, fontSize: 44, fontWeight: 900, color: '#fff', align: 'center' },
-            { type: 'text', text: 'הוסף את התוכן שלך כאן', x: 50, y: 55, fontSize: 20, fontWeight: 400, color: 'rgba(255,255,255,0.8)', align: 'center' }
-        ]}]
-    },
-    {
-        name: 'שקיעה',
-        desc: 'צבעים חמים ונעימים',
-        bg: 'linear-gradient(135deg, #f093fb, #f5576c)',
-        color: '#fff',
-        slides: [{ bg: 'linear-gradient(135deg, #f093fb, #f5576c)', elements: [
-            { type: 'text', text: '🌅 שקיעה', x: 50, y: 30, fontSize: 52, fontWeight: 900, color: '#fff', align: 'center' },
-            { type: 'text', text: 'מצגת יפהפייה', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.85)', align: 'center' }
-        ]}]
-    },
-    {
-        name: 'אוקיינוס',
-        desc: 'גווני כחול ותכלת',
-        bg: 'linear-gradient(135deg, #0093E9, #80D0C7)',
-        color: '#fff',
-        slides: [{ bg: 'linear-gradient(135deg, #0093E9, #80D0C7)', elements: [
-            { type: 'text', text: '🌊 אוקיינוס', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
-            { type: 'text', text: 'צלילה לעומק', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.85)', align: 'center' }
-        ]}]
-    },
-    {
-        name: 'יער',
-        desc: 'ירוק ורענן',
-        bg: 'linear-gradient(135deg, #11998e, #38ef7d)',
-        color: '#fff',
-        slides: [{ bg: 'linear-gradient(135deg, #11998e, #38ef7d)', elements: [
-            { type: 'text', text: '🌿 טבע', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
-            { type: 'text', text: 'ירוק ומרענן', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.85)', align: 'center' }
-        ]}]
-    },
-    {
-        name: 'לילה',
-        desc: 'כהה ואלגנטי',
-        bg: 'linear-gradient(135deg, #0c0c0c, #1a1a2e)',
-        color: '#fff',
-        slides: [{ bg: 'linear-gradient(135deg, #0c0c0c, #1a1a2e)', elements: [
-            { type: 'text', text: '🌙 מצגת לילה', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
-            { type: 'text', text: 'אלגנטי ומינימליסטי', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: '#888', align: 'center' }
-        ]}]
-    },
-    {
-        name: 'זריחה',
-        desc: 'כתום וזהוב',
-        bg: 'linear-gradient(135deg, #FA8BFF, #2BD2FF, #2BFF88)',
-        color: '#fff',
-        slides: [{ bg: 'linear-gradient(135deg, #FA8BFF, #2BD2FF, #2BFF88)', elements: [
-            { type: 'text', text: '🌈 קשת צבעים', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
-            { type: 'text', text: 'צבעוני ושמח', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.9)', align: 'center' }
-        ]}]
-    },
-    {
-        name: 'לבן נקי',
-        desc: 'מינימליסטי ומקצועי',
-        bg: '#ffffff',
-        color: '#333',
-        slides: [{ bg: '#ffffff', elements: [
-            { type: 'text', text: 'כותרת', x: 50, y: 35, fontSize: 48, fontWeight: 900, color: '#333', align: 'center' },
-            { type: 'text', text: 'תת כותרת', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: '#888', align: 'center' }
-        ]}]
-    }
+const BG=[
+    'linear-gradient(135deg,#1a1a2e,#16213e)','linear-gradient(135deg,#667eea,#764ba2)',
+    'linear-gradient(135deg,#f093fb,#f5576c)','linear-gradient(135deg,#0093E9,#80D0C7)',
+    'linear-gradient(135deg,#11998e,#38ef7d)','linear-gradient(135deg,#0c0c0c,#1a1a2e)',
+    'linear-gradient(135deg,#FA8BFF,#2BD2FF,#2BFF88)','#ffffff',
+    'linear-gradient(135deg,#fc5c7d,#6a82fb)','linear-gradient(135deg,#a8edea,#fed6e3)',
+    'linear-gradient(135deg,#ffecd2,#fcb69f)','linear-gradient(135deg,#2d1b69,#11001c)',
 ];
 
-const bgPresets = [
-    'linear-gradient(135deg, #1a1a2e, #16213e)',
-    'linear-gradient(135deg, #667eea, #764ba2)',
-    'linear-gradient(135deg, #f093fb, #f5576c)',
-    'linear-gradient(135deg, #0093E9, #80D0C7)',
-    'linear-gradient(135deg, #11998e, #38ef7d)',
-    'linear-gradient(135deg, #0c0c0c, #1a1a2e)',
-    'linear-gradient(135deg, #FA8BFF, #2BD2FF, #2BFF88)',
-    '#ffffff',
-    'linear-gradient(135deg, #fc5c7d, #6a82fb)',
-    'linear-gradient(135deg, #a8edea, #fed6e3)',
-    'linear-gradient(135deg, #ffecd2, #fcb69f)',
-    'linear-gradient(135deg, #2d1b69, #11001c)',
+const T=[
+    {n:'מינימלי',d:'התחל מאפס',bg:BG[0],c:'#fff',s:[{bg:BG[0],els:[{t:'text',txt:'כותרת המצגת',x:50,y:35,fs:48,fw:700,c:'#fff'},{t:'text',txt:'תת כותרת',x:50,y:55,fs:24,fw:300,c:'#aaa'}]}]},
+    {n:'סגול חלומי',d:'מודרני וחלק',bg:BG[1],c:'#fff',s:[{bg:BG[1],els:[{t:'text',txt:'כותרת מדהימה',x:50,y:30,fs:44,fw:900,c:'#fff'},{t:'text',txt:'הוסף תוכן כאן',x:50,y:55,fs:20,fw:400,c:'rgba(255,255,255,0.8)'}]}]},
+    {n:'שקיעה',d:'חמים ונעימים',bg:BG[2],c:'#fff',s:[{bg:BG[2],els:[{t:'text',txt:'שקיעה',x:50,y:30,fs:52,fw:900,c:'#fff'},{t:'text',txt:'מצגת יפהפייה',x:50,y:55,fs:22,fw:400,c:'rgba(255,255,255,0.85)'}]}]},
+    {n:'אוקיינוס',d:'כחול ותכלת',bg:BG[3],c:'#fff',s:[{bg:BG[3],els:[{t:'text',txt:'אוקיינוס',x:50,y:30,fs:48,fw:900,c:'#fff'},{t:'text',txt:'צלילה לעומק',x:50,y:55,fs:22,fw:400,c:'rgba(255,255,255,0.85)'}]}]},
+    {n:'יער',d:'ירוק ורענן',bg:BG[4],c:'#fff',s:[{bg:BG[4],els:[{t:'text',txt:'טבע',x:50,y:30,fs:48,fw:900,c:'#fff'},{t:'text',txt:'ירוק ומרענן',x:50,y:55,fs:22,fw:400,c:'rgba(255,255,255,0.85)'}]}]},
+    {n:'לילה',d:'כהה ואלגנטי',bg:BG[5],c:'#fff',s:[{bg:BG[5],els:[{t:'text',txt:'מצגת לילה',x:50,y:30,fs:48,fw:900,c:'#fff'},{t:'text',txt:'אלגנטי ומינימליסטי',x:50,y:55,fs:22,fw:400,c:'#888'}]}]},
+    {n:'קשת',d:'צבעוני ושמח',bg:BG[6],c:'#fff',s:[{bg:BG[6],els:[{t:'text',txt:'קשת צבעים',x:50,y:30,fs:48,fw:900,c:'#fff'},{t:'text',txt:'צבעוני ושמח',x:50,y:55,fs:22,fw:400,c:'rgba(255,255,255,0.9)'}]}]},
+    {n:'לבן נקי',d:'מקצועי ומינימלי',bg:BG[7],c:'#333',s:[{bg:BG[7],els:[{t:'text',txt:'כותרת',x:50,y:35,fs:48,fw:900,c:'#333'},{t:'text',txt:'תת כותרת',x:50,y:55,fs:22,fw:400,c:'#888'}]}]},
 ];
 
-const emojis = ['😀','😂','🥰','😎','🤔','😱','🤩','🥳','👍','👏','💪','🎉','🔥','⭐','💡','🎯','✅','❌','🚀','💻','📊','📈','🎨','🎵','❤️','💜','💙','💚','🌟','⚡','🌈','🏆','🎮','📱','🌍','🔑','📌','💎','🎬','🍕'];
+const SVG_SHAPES={
+    square:'<rect x="2" y="2" width="44" height="44" rx="4"/>',
+    circle:'<circle cx="24" cy="24" r="22"/>',
+    triangle:'<polygon points="24,2 46,46 2,46"/>',
+    star:'<polygon points="24,2 29.5,17.5 46,18.5 33,29 37,46 24,37 11,46 15,29 2,18.5 18.5,17.5"/>',
+    heart:'<path d="M24,44 C8,30 2,20 2,14 A10,10,0,0,1,24,10 A10,10,0,0,1,46,14 C46,20 40,30 24,44Z"/>',
+    line:'<line x1="4" y1="24" x2="44" y2="24" stroke-width="4"/>'
+};
 
-// ===== SCREEN MANAGEMENT =====
-function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function showTemplates(){showScreen('templateScreen');renderTmpl()}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+function renderTmpl(){
+    document.getElementById('tmplGrid').innerHTML=T.map((t,i)=>`
+        <div class="tmpl-card" onclick="create(${i})">
+            <div class="tmpl-preview" style="background:${t.bg};color:${t.c};">${t.s[0].els[0].txt}</div>
+            <div class="tmpl-info"><div class="name">${t.n}</div><div class="desc">${t.d}</div></div>
+        </div>`).join('');
 }
 
-function showTemplates() {
-    showScreen('templateScreen');
-    renderTemplates();
+function renderRecent(){
+    const g=document.getElementById('recentGrid');
+    if(!DB.length){g.innerHTML='<div class="empty-state">אין מצגות עדיין — צור אחת חדשה</div>';return}
+    g.innerHTML=DB.map(p=>`
+        <div class="recent-card" onclick="load(${p.id})">
+            <button class="rc-del" onclick="del(${p.id},event)">✕</button>
+            <div class="rc-name">${p.name}</div>
+            <div class="rc-meta">${p.slides.length} שקופיות</div>
+            <div class="rc-preview" style="background:${p.slides[0].bg}"></div>
+        </div>`).join('');
 }
 
-// ===== TEMPLATE RENDERING =====
-function renderTemplates() {
-    const grid = document.getElementById('templatesGrid');
-    grid.innerHTML = templates.map((t, i) => `
-        <div class="template-card" onclick="createFromTemplate(${i})">
-            <div class="template-preview" style="background:${t.bg}; color:${t.color};">
-                ${t.slides[0].elements[0].text}
-            </div>
-            <div class="template-info">
-                <div class="name">${t.name}</div>
-                <div class="desc">${t.desc}</div>
-            </div>
-        </div>
-    `).join('');
+function save(){if(!P)return;const i=DB.findIndex(p=>p.id===P.id);if(i>=0)DB[i]=P;else DB.unshift(P);localStorage.setItem('sf2',JSON.stringify(DB))}
+
+function create(ti){
+    const t=T[ti];P={id:Date.now(),name:t.n,slides:JSON.parse(JSON.stringify(t.s))};
+    SI=0;document.getElementById('presTitle').value=P.name;save();openEd();
+}
+function load(id){P=DB.find(p=>p.id===id);if(!P)return;SI=0;document.getElementById('presTitle').value=P.name;openEd()}
+function del(id,e){e.stopPropagation();DB=DB.filter(p=>p.id!==id);localStorage.setItem('sf2',JSON.stringify(DB));renderRecent();toast('מצגת נמחקה')}
+
+function openEd(){showScreen('editorScreen');renderSl();renderCv();renderBg();updCnt()}
+
+function renderBg(){
+    document.getElementById('bgGrid').innerHTML=BG.map((b,i)=>`<div class="bg-swatch" style="background:${b}" onclick="setBg(${i})"></div>`).join('');
 }
 
-// ===== PRESENTATION CRUD =====
-function createFromTemplate(templateIndex) {
-    const t = templates[templateIndex];
-    currentPres = {
-        id: Date.now(),
-        name: t.name + ' - מצגת חדשה',
-        created: new Date().toISOString(),
-        slides: JSON.parse(JSON.stringify(t.slides))
-    };
-    currentSlideIndex = 0;
-    document.getElementById('presTitle').value = currentPres.name;
-    savePres();
-    openEditor();
+function renderSl(){
+    document.getElementById('slPanel').innerHTML=P.slides.map((s,i)=>`
+        <div class="sl-thumb ${i===SI?'active':''}" style="background:${s.bg}" onclick="goSl(${i})">
+            <span class="sl-num">${i+1}</span>
+            ${s.els.filter(e=>e.t==='text').map(e=>`<span style="color:${e.c};font-size:${Math.max(e.fs*0.12,4)}px;font-weight:${e.fw};position:absolute;top:${e.y}%;left:${e.x}%;transform:translate(-50%,-50%);white-space:nowrap;overflow:hidden;max-width:90%;">${e.txt}</span>`).join('')}
+            ${P.slides.length>1?`<button class="sl-del" onclick="rmSl(${i},event)">✕</button>`:''}
+        </div>`).join('')+`<div class="add-sl" onclick="addSl()">+ שקופית</div>`;
 }
 
-function savePres() {
-    if (!currentPres) return;
-    const idx = presentations.findIndex(p => p.id === currentPres.id);
-    if (idx >= 0) presentations[idx] = currentPres;
-    else presentations.unshift(currentPres);
-    localStorage.setItem('slideflow_presentations', JSON.stringify(presentations));
-}
-
-function openEditor() {
-    showScreen('editorScreen');
-    renderSlidePanel();
-    renderCanvas();
-    renderBgPresets();
-    updateCounter();
-}
-
-function loadPres(id) {
-    currentPres = presentations.find(p => p.id === id);
-    if (!currentPres) return;
-    currentSlideIndex = 0;
-    document.getElementById('presTitle').value = currentPres.name;
-    openEditor();
-}
-
-function deletePres(id, event) {
-    event.stopPropagation();
-    presentations = presentations.filter(p => p.id !== id);
-    localStorage.setItem('slideflow_presentations', JSON.stringify(presentations));
-    renderRecent();
-    showToast('🗑️ מצגת נמחקה');
-}
-
-// ===== RENDER FUNCTIONS =====
-function renderRecent() {
-    const grid = document.getElementById('recentGrid');
-    if (presentations.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-dim);font-size:0.9em;grid-column:1/-1;text-align:center;padding:30px;">אין מצגות עדיין — צור אחת חדשה! ✨</div>';
-        return;
-    }
-    grid.innerHTML = presentations.map(p => `
-        <div class="recent-card" onclick="loadPres(${p.id})">
-            <button class="delete-card" onclick="deletePres(${p.id}, event)">✕</button>
-            <div class="name">${p.name}</div>
-            <div class="meta">${p.slides.length} שקופיות · ${new Date(p.created).toLocaleDateString('he-IL')}</div>
-        </div>
-    `).join('');
-}
-
-function renderSlidePanel() {
-    const panel = document.getElementById('slidePanel');
-    panel.innerHTML = currentPres.slides.map((s, i) => `
-        <div class="slide-thumb ${i === currentSlideIndex ? 'active' : ''}" 
-             style="background:${s.bg};" 
-             onclick="switchSlide(${i})">
-            <span class="slide-number">${i + 1}</span>
-            ${s.elements.map(e => e.type === 'text' ? `<span style="color:${e.color};font-size:${Math.max(e.fontSize * 0.15, 5)}px;font-weight:${e.fontWeight};position:absolute;top:${e.y}%;left:${e.x}%;transform:translate(-50%,-50%);white-space:nowrap;overflow:hidden;max-width:90%;">${e.text}</span>` : '').join('')}
-            ${currentPres.slides.length > 1 ? `<button class="delete-slide" onclick="deleteSlide(${i},event)">✕</button>` : ''}
-        </div>
-    `).join('') + `<div class="add-slide-btn" onclick="addSlide()">+ שקופית</div>`;
-}
-
-function renderCanvas() {
-    const canvas = document.getElementById('slideCanvas');
-    const slide = currentPres.slides[currentSlideIndex];
-    canvas.style.background = slide.bg;
-    canvas.innerHTML = slide.elements.map((el, i) => {
-        if (el.type === 'text') {
-            return `<div class="slide-element text-element" data-index="${i}"
-                contenteditable="true"
-                style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
-                font-size:${el.fontSize}px;font-weight:${el.fontWeight};color:${el.color};
-                text-align:${el.align || 'center'};font-style:${el.fontStyle || 'normal'};"
-                onmousedown="startDrag(event,${i})"
-                onfocus="selectElement(${i})"
-                oninput="updateElementText(${i}, this.textContent)"
-                >${el.text}</div>`;
-        } else if (el.type === 'shape') {
-            return `<div class="slide-element image-element" data-index="${i}"
-                style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
-                font-size:${el.fontSize || 50}px;width:${el.width || 60}px;height:${el.height || 60}px;"
-                onmousedown="startDrag(event,${i})"
-                onclick="selectElement(${i})"
-                >${el.emoji}</div>`;
-        }
-        return '';
+function renderCv(){
+    const cv=document.getElementById('canvas'),sl=P.slides[SI];
+    cv.style.background=sl.bg;
+    cv.innerHTML=sl.els.map((e,i)=>{
+        if(e.t==='text')return`<div class="el txt" data-i="${i}" contenteditable="true" style="left:${e.x}%;top:${e.y}%;transform:translate(-50%,-50%);font-size:${e.fs}px;font-weight:${e.fw};color:${e.c};text-align:center;font-style:${e.fi||'normal'}" onmousedown="dragStart(event,${i})" onfocus="sel(${i})" oninput="updTxt(${i},this.textContent)">${e.txt}</div>`;
+        if(e.t==='shape')return`<div class="el shp" data-i="${i}" style="left:${e.x}%;top:${e.y}%;transform:translate(-50%,-50%);width:${e.w||60}px;height:${e.h||60}px;color:${e.c||'#fff'}" onmousedown="dragStart(event,${i})" onclick="sel(${i})"><svg viewBox="0 0 48 48" style="width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2;">${SVG_SHAPES[e.shape]||''}</svg></div>`;
+        if(e.t==='icon')return`<div class="el shp" data-i="${i}" style="left:${e.x}%;top:${e.y}%;transform:translate(-50%,-50%);width:${e.w||48}px;height:${e.h||48}px;color:${e.c||'#fff'}" onmousedown="dragStart(event,${i})" onclick="sel(${i})"><svg class="ico" style="width:100%;height:100%"><use href="#${e.icon}"/></svg></div>`;
+        return'';
     }).join('');
-    
-    selectedElement = null;
+    SEL=null;
 }
 
-function renderBgPresets() {
-    const container = document.getElementById('bgPresets');
-    container.innerHTML = bgPresets.map((bg, i) => `
-        <div class="bg-preset" style="background:${bg};" onclick="changeSlideBgPreset(${i})"></div>
-    `).join('');
-}
+function goSl(i){SI=i;renderSl();renderCv();updCnt()}
+function addSl(){const l=P.slides[P.slides.length-1];P.slides.push({bg:l.bg,els:[{t:'text',txt:'כותרת',x:50,y:35,fs:40,fw:700,c:l.els[0]?.c||'#fff'},{t:'text',txt:'תוכן',x:50,y:60,fs:20,fw:400,c:l.els[0]?.c||'#fff'}]});SI=P.slides.length-1;save();renderSl();renderCv();updCnt();toast('שקופית חדשה נוספה')}
+function rmSl(i,e){e.stopPropagation();if(P.slides.length<=1)return;P.slides.splice(i,1);if(SI>=P.slides.length)SI=P.slides.length-1;save();renderSl();renderCv();updCnt()}
+function dupSlide(){P.slides.splice(SI+1,0,JSON.parse(JSON.stringify(P.slides[SI])));SI++;save();renderSl();renderCv();updCnt();toast('שקופית שוכפלה')}
+function updCnt(){document.getElementById('counter').textContent=`שקופית ${SI+1} מתוך ${P.slides.length}`}
 
-// ===== SLIDE MANAGEMENT =====
-function switchSlide(index) {
-    currentSlideIndex = index;
-    renderSlidePanel();
-    renderCanvas();
-    updateCounter();
-}
+function addText(txt,fs,fw){P.slides[SI].els.push({t:'text',txt,x:50,y:50,fs,fw,c:'#fff',fi:'normal'});save();renderCv();renderSl()}
+function addShape(shape){P.slides[SI].els.push({t:'shape',shape,x:50,y:50,w:70,h:70,c:'#fff'});save();renderCv();renderSl()}
+function addIcon(icon){P.slides[SI].els.push({t:'icon',icon,x:50,y:50,w:48,h:48,c:'#fff'});save();renderCv();renderSl()}
 
-function addSlide() {
-    const lastSlide = currentPres.slides[currentPres.slides.length - 1];
-    currentPres.slides.push({
-        bg: lastSlide.bg,
-        elements: [
-            { type: 'text', text: 'כותרת', x: 50, y: 35, fontSize: 40, fontWeight: 700, color: lastSlide.elements[0]?.color || '#fff', align: 'center' },
-            { type: 'text', text: 'תוכן', x: 50, y: 60, fontSize: 20, fontWeight: 400, color: lastSlide.elements[0]?.color || '#fff', align: 'center' }
-        ]
-    });
-    currentSlideIndex = currentPres.slides.length - 1;
-    savePres();
-    renderSlidePanel();
-    renderCanvas();
-    updateCounter();
-    showToast('➕ שקופית חדשה נוספה');
+function sel(i){
+    SEL=i;document.querySelectorAll('.el').forEach(e=>e.classList.remove('sel'));
+    const el=document.querySelector(`[data-i="${i}"]`);if(el)el.classList.add('sel');
+    const e=P.slides[SI].els[i];
+    if(e&&e.t==='text'){document.getElementById('fontSz').value=e.fs;document.getElementById('tColor').value=e.c.startsWith('rgba')?'#ffffff':e.c}
 }
+function desel(ev){if(ev.target.classList.contains('canvas-wrap')||ev.target.id==='canvas'){SEL=null;document.querySelectorAll('.el').forEach(e=>e.classList.remove('sel'))}}
+function delSel(){if(SEL===null)return;P.slides[SI].els.splice(SEL,1);SEL=null;save();renderCv();renderSl();toast('אלמנט נמחק')}
+function updTxt(i,t){P.slides[SI].els[i].txt=t;save();renderSl()}
 
-function deleteSlide(index, event) {
-    event.stopPropagation();
-    if (currentPres.slides.length <= 1) return;
-    currentPres.slides.splice(index, 1);
-    if (currentSlideIndex >= currentPres.slides.length) currentSlideIndex = currentPres.slides.length - 1;
-    savePres();
-    renderSlidePanel();
-    renderCanvas();
-    updateCounter();
+function setFontSz(v){if(SEL===null)return;P.slides[SI].els[SEL].fs=+v;save();renderCv();renderSl()}
+function togBold(){if(SEL===null)return;const e=P.slides[SI].els[SEL];e.fw=e.fw===700?400:700;save();renderCv();renderSl()}
+function togItalic(){if(SEL===null)return;const e=P.slides[SI].els[SEL];e.fi=e.fi==='italic'?'normal':'italic';save();renderCv();renderSl()}
+function setColor(c){if(SEL===null)return;P.slides[SI].els[SEL].c=c;save();renderCv();renderSl()}
+function setBg(i){P.slides[SI].bg=BG[i];save();renderCv();renderSl()}
+function saveState(){if(P){P.name=document.getElementById('presTitle').value;save()}}
+
+function dragStart(ev,i){
+    if(ev.target.getAttribute('contenteditable')==='true'&&document.activeElement===ev.target)return;
+    const cv=document.getElementById('canvas'),r=cv.getBoundingClientRect();
+    DRG={i,sx:ev.clientX,sy:ev.clientY,ox:P.slides[SI].els[i].x,oy:P.slides[SI].els[i].y,cw:r.width,ch:r.height};
+    sel(i);document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',stopDrag);ev.preventDefault();
 }
-
-function duplicateSlide() {
-    const copy = JSON.parse(JSON.stringify(currentPres.slides[currentSlideIndex]));
-    currentPres.slides.splice(currentSlideIndex + 1, 0, copy);
-    currentSlideIndex++;
-    savePres();
-    renderSlidePanel();
-    renderCanvas();
-    updateCounter();
-    showToast('📋 שקופית שוכפלה');
+function onDrag(ev){
+    if(!DRG)return;const e=P.slides[SI].els[DRG.i];
+    e.x=Math.max(2,Math.min(98,DRG.ox+(ev.clientX-DRG.sx)/DRG.cw*100));
+    e.y=Math.max(2,Math.min(98,DRG.oy+(ev.clientY-DRG.sy)/DRG.ch*100));
+    const d=document.querySelector(`[data-i="${DRG.i}"]`);if(d){d.style.left=e.x+'%';d.style.top=e.y+'%'}
 }
+function stopDrag(){if(DRG){save();renderSl()}DRG=null;document.removeEventListener('mousemove',onDrag);document.removeEventListener('mouseup',stopDrag)}
 
-function updateCounter() {
-    document.getElementById('slideCounter').textContent = `שקופית ${currentSlideIndex + 1} מתוך ${currentPres.slides.length}`;
-}
+// Touch support
+document.addEventListener('touchstart',e=>{if(e.target.closest('.el')){const t=e.touches[0];e.target.dispatchEvent(new MouseEvent('mousedown',{clientX:t.clientX,clientY:t.clientY,bubbles:true}))}},{passive:false});
+document.addEventListener('touchmove',e=>{if(DRG){e.preventDefault();const t=e.touches[0];onDrag({clientX:t.clientX,clientY:t.clientY})}},{passive:false});
+document.addEventListener('touchend',()=>{if(DRG)stopDrag()});
 
-// ===== ELEMENT MANAGEMENT =====
-function addTextElement(text, fontSize, fontWeight) {
-    const slide = currentPres.slides[currentSlideIndex];
-    slide.elements.push({
-        type: 'text', text, x: 50, y: 50,
-        fontSize, fontWeight, color: '#fff', align: 'center', fontStyle: 'normal'
-    });
-    savePres();
-    renderCanvas();
-    renderSlidePanel();
-}
-
-function addShapeElement(shape) {
-    const shapeMap = { rect: '⬜', circle: '⭕', triangle: '🔺', star: '⭐', heart: '❤️', line: '➖' };
-    addEmojiElement(shapeMap[shape] || '⬜');
-}
-
-function addEmojiElement(emoji) {
-    const slide = currentPres.slides[currentSlideIndex];
-    slide.elements.push({
-        type: 'shape', emoji, x: 50, y: 50, fontSize: 50, width: 60, height: 60
-    });
-    savePres();
-    renderCanvas();
-    renderSlidePanel();
-}
-
-function selectElement(index) {
-    selectedElement = index;
-    document.querySelectorAll('.slide-element').forEach(el => el.classList.remove('selected'));
-    const el = document.querySelector(`[data-index="${index}"]`);
-    if (el) el.classList.add('selected');
-    
-    // Update toolbar to match element
-    const element = currentPres.slides[currentSlideIndex].elements[index];
-    if (element && element.type === 'text') {
-        document.getElementById('fontSizeSelect').value = element.fontSize;
-        document.getElementById('textColorPicker').value = element.color;
-    }
-}
-
-function deselectAll(event) {
-    if (event.target.classList.contains('canvas-area') || event.target.id === 'slideCanvas') {
-        selectedElement = null;
-        document.querySelectorAll('.slide-element').forEach(el => el.classList.remove('selected'));
-    }
-}
-
-function deleteSelected() {
-    if (selectedElement === null) return;
-    currentPres.slides[currentSlideIndex].elements.splice(selectedElement, 1);
-    selectedElement = null;
-    savePres();
-    renderCanvas();
-    renderSlidePanel();
-    showToast('🗑️ אלמנט נמחק');
-}
-
-function updateElementText(index, text) {
-    currentPres.slides[currentSlideIndex].elements[index].text = text;
-    savePres();
-    // Don't re-render canvas to keep cursor position
-    renderSlidePanel();
-}
-
-// ===== ELEMENT STYLING =====
-function changeFontSize(size) {
-    if (selectedElement === null) return;
-    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
-    if (el) { el.fontSize = parseInt(size); savePres(); renderCanvas(); renderSlidePanel(); }
-}
-
-function toggleBold() {
-    if (selectedElement === null) return;
-    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
-    if (el) { el.fontWeight = el.fontWeight === 700 ? 400 : 700; savePres(); renderCanvas(); renderSlidePanel(); }
-}
-
-function toggleItalic() {
-    if (selectedElement === null) return;
-    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
-    if (el) { el.fontStyle = el.fontStyle === 'italic' ? 'normal' : 'italic'; savePres(); renderCanvas(); renderSlidePanel(); }
-}
-
-function changeTextColor(color) {
-    if (selectedElement === null) return;
-    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
-    if (el) { el.color = color; savePres(); renderCanvas(); renderSlidePanel(); }
-}
-
-// ===== BACKGROUND =====
-function changeSlideBg(color) {
-    currentPres.slides[currentSlideIndex].bg = color;
-    savePres();
-    renderCanvas();
-    renderSlidePanel();
-}
-
-function changeSlideBgPreset(index) {
-    currentPres.slides[currentSlideIndex].bg = bgPresets[index];
-    savePres();
-    renderCanvas();
-    renderSlidePanel();
-}
-
-// ===== DRAG & DROP =====
-function startDrag(event, index) {
-    if (event.target.getAttribute('contenteditable') === 'true' && document.activeElement === event.target) return;
-    
-    const canvas = document.getElementById('slideCanvas');
-    const rect = canvas.getBoundingClientRect();
-    
-    dragState = {
-        index,
-        startX: event.clientX,
-        startY: event.clientY,
-        origX: currentPres.slides[currentSlideIndex].elements[index].x,
-        origY: currentPres.slides[currentSlideIndex].elements[index].y,
-        canvasW: rect.width,
-        canvasH: rect.height
-    };
-    
-    selectElement(index);
-    
-    document.addEventListener('mousemove', onDrag);
-    document.addEventListener('mouseup', stopDrag);
-    event.preventDefault();
-}
-
-function onDrag(event) {
-    if (!dragState) return;
-    const dx = event.clientX - dragState.startX;
-    const dy = event.clientY - dragState.startY;
-    
-    const newX = dragState.origX + (dx / dragState.canvasW) * 100;
-    const newY = dragState.origY + (dy / dragState.canvasH) * 100;
-    
-    const el = currentPres.slides[currentSlideIndex].elements[dragState.index];
-    el.x = Math.max(5, Math.min(95, newX));
-    el.y = Math.max(5, Math.min(95, newY));
-    
-    const domEl = document.querySelector(`[data-index="${dragState.index}"]`);
-    if (domEl) {
-        domEl.style.left = el.x + '%';
-        domEl.style.top = el.y + '%';
-    }
-}
-
-function stopDrag() {
-    if (dragState) {
-        savePres();
-        renderSlidePanel();
-    }
-    dragState = null;
-    document.removeEventListener('mousemove', onDrag);
-    document.removeEventListener('mouseup', stopDrag);
-}
-
-// ===== EMOJI PICKER =====
-function toggleEmojiPicker() {
-    const picker = document.getElementById('emojiPicker');
-    if (picker.classList.contains('open')) {
-        picker.classList.remove('open');
-        return;
-    }
-    picker.innerHTML = emojis.map(e => `<div class="emoji-item" onclick="insertEmoji('${e}')">${e}</div>`).join('');
-    picker.classList.add('open');
-    picker.style.top = '60px';
-    picker.style.right = '200px';
-}
-
-function insertEmoji(emoji) {
-    addEmojiElement(emoji);
-    document.getElementById('emojiPicker').classList.remove('open');
-}
-
-// ===== PRESENTATION MODE =====
-function startPresentation() {
-    presentIndex = 0;
-    showScreen('presentScreen');
-    renderPresentSlide();
-    document.addEventListener('keydown', presentKeyHandler);
-}
-
-function exitPresentation() {
-    showScreen('editorScreen');
-    document.removeEventListener('keydown', presentKeyHandler);
-}
-
-function presentKeyHandler(e) {
-    if (e.key === 'ArrowRight' || e.key === ' ') nextPresentSlide();
-    else if (e.key === 'ArrowLeft') prevPresentSlide();
-    else if (e.key === 'Escape') exitPresentation();
-}
-
-function renderPresentSlide() {
-    const slide = currentPres.slides[presentIndex];
-    const container = document.getElementById('presentSlide');
-    container.style.background = slide.bg;
-    container.innerHTML = slide.elements.map((el, i) => {
-        const delay = i * 0.15;
-        if (el.type === 'text') {
-            return `<div class="present-element" style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
-                font-family:'Heebo',sans-serif;font-size:${el.fontSize * 2}px;font-weight:${el.fontWeight};
-                color:${el.color};text-align:${el.align || 'center'};font-style:${el.fontStyle || 'normal'};
-                animation-delay:${delay}s;">${el.text}</div>`;
-        } else if (el.type === 'shape') {
-            return `<div class="present-element" style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
-                font-size:${(el.fontSize || 50) * 2}px;animation-delay:${delay}s;">${el.emoji}</div>`;
-        }
-        return '';
+// Presentation
+function startPres(){PI=0;showScreen('presentScreen');renderPres();document.addEventListener('keydown',presKey)}
+function exitPres(){showScreen('editorScreen');document.removeEventListener('keydown',presKey)}
+function presKey(e){if(e.key==='ArrowRight'||e.key===' ')presNext();else if(e.key==='ArrowLeft')presPrev();else if(e.key==='Escape')exitPres()}
+function renderPres(){
+    const sl=P.slides[PI],c=document.getElementById('presSlide');c.style.background=sl.bg;
+    c.innerHTML=sl.els.map((e,i)=>{
+        const d=i*0.12;
+        if(e.t==='text')return`<div class="pres-el" style="left:${e.x}%;top:${e.y}%;transform:translate(-50%,-50%);font-family:'Heebo',sans-serif;font-size:${e.fs*2.2}px;font-weight:${e.fw};color:${e.c};text-align:center;font-style:${e.fi||'normal'};animation-delay:${d}s">${e.txt}</div>`;
+        if(e.t==='shape')return`<div class="pres-el" style="left:${e.x}%;top:${e.y}%;transform:translate(-50%,-50%);width:${(e.w||60)*2.2}px;height:${(e.h||60)*2.2}px;color:${e.c||'#fff'};animation-delay:${d}s"><svg viewBox="0 0 48 48" style="width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.5">${SVG_SHAPES[e.shape]||''}</svg></div>`;
+        if(e.t==='icon')return`<div class="pres-el" style="left:${e.x}%;top:${e.y}%;transform:translate(-50%,-50%);width:${(e.w||48)*2.2}px;height:${(e.h||48)*2.2}px;color:${e.c||'#fff'};animation-delay:${d}s"><svg class="ico" style="width:100%;height:100%"><use href="#${e.icon}"/></svg></div>`;
+        return'';
     }).join('');
-    document.getElementById('presentCounter').textContent = `${presentIndex + 1} / ${currentPres.slides.length}`;
+    document.getElementById('presCnt').textContent=`${PI+1} / ${P.slides.length}`;
+}
+function presNext(){if(PI<P.slides.length-1){PI++;renderPres()}}
+function presPrev(){if(PI>0){PI--;renderPres()}}
+
+function exportPres(){
+    const d=JSON.stringify(P,null,2),b=new Blob([d],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=(P.name||'presentation')+'.json';a.click();URL.revokeObjectURL(u);toast('מצגת יוצאה בהצלחה');
 }
 
-function nextPresentSlide() {
-    if (presentIndex < currentPres.slides.length - 1) { presentIndex++; renderPresentSlide(); }
-}
+document.addEventListener('keydown',e=>{if(document.getElementById('editorScreen').classList.contains('active')&&e.key==='Delete'&&SEL!==null&&document.activeElement.getAttribute('contenteditable')!=='true')delSel()});
 
-function prevPresentSlide() {
-    if (presentIndex > 0) { presentIndex--; renderPresentSlide(); }
-}
-
-// ===== EXPORT =====
-function exportPresentation() {
-    const data = JSON.stringify(currentPres, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = (currentPres.name || 'presentation') + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('💾 מצגת יוצאה בהצלחה');
-}
-
-function saveState() {
-    if (currentPres) {
-        currentPres.name = document.getElementById('presTitle').value;
-        savePres();
-    }
-}
-
-// ===== TOAST =====
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
-}
-
-// ===== KEYBOARD SHORTCUTS =====
-document.addEventListener('keydown', (e) => {
-    if (document.getElementById('editorScreen').classList.contains('active')) {
-        if (e.key === 'Delete' && selectedElement !== null && document.activeElement.getAttribute('contenteditable') !== 'true') {
-            deleteSelected();
-        }
-    }
-});
-
-// ===== INIT =====
 renderRecent();
 </script>
 </body>
