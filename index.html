@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideFlow - יוצר מצגות</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #7c3aed;
+            --primary-light: #a78bfa;
+            --primary-dark: #5b21b6;
+            --bg: #0f0f1a;
+            --surface: #1a1a2e;
+            --surface2: #22223a;
+            --surface3: #2a2a42;
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --accent: #06b6d4;
+            --accent2: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: rgba(255,255,255,0.08);
+        }
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        /* ===== SCREENS ===== */
+        .screen { display: none; height: 100vh; }
+        .screen.active { display: flex; }
+        
+        /* ===== HOME SCREEN ===== */
+        #homeScreen {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(124,58,237,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(6,182,212,0.06) 0%, transparent 50%);
+        }
+        
+        .home-logo {
+            font-size: 60px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        
+        .home-title {
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .home-subtitle { color: var(--text-dim); font-size: 1.1em; margin-top: -20px; }
+        
+        .home-actions { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        
+        .btn {
+            padding: 14px 32px;
+            border-radius: 14px;
+            border: none;
+            font-family: 'Heebo', sans-serif;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: scale(0.97); }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 8px 30px rgba(124,58,237,0.5); }
+        
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+        .btn-secondary:hover { border-color: var(--primary-light); }
+        
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-small { padding: 8px 16px; font-size: 0.85em; border-radius: 10px; }
+        .btn-icon { padding: 8px; border-radius: 10px; background: var(--surface2); color: var(--text); border: 1px solid var(--border); cursor: pointer; font-size: 1.1em; transition: all 0.2s; }
+        .btn-icon:hover { background: var(--surface3); border-color: var(--primary-light); }
+        
+        /* Recent presentations */
+        .recent-section { max-width: 700px; width: 90%; }
+        .recent-title { font-size: 0.9em; color: var(--text-dim); margin-bottom: 12px; }
+        .recent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+        .recent-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .recent-card:hover { border-color: var(--primary-light); transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+        .recent-card .name { font-weight: 700; font-size: 0.95em; margin-bottom: 4px; }
+        .recent-card .meta { font-size: 0.75em; color: var(--text-dim); }
+        .recent-card .delete-card { position: absolute; top: 8px; left: 8px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7em; cursor: pointer; opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
+        .recent-card:hover .delete-card { opacity: 1; }
+        
+        /* ===== TEMPLATE PICKER ===== */
+        #templateScreen {
+            flex-direction: column;
+            padding: 30px;
+            gap: 25px;
+        }
+        
+        .template-header { display: flex; justify-content: space-between; align-items: center; }
+        .template-header h2 { font-size: 1.5em; }
+        
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 18px;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+        
+        .template-card {
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 3px solid transparent;
+        }
+        .template-card:hover { transform: translateY(-5px) scale(1.02); border-color: var(--primary); box-shadow: 0 12px 35px rgba(0,0,0,0.4); }
+        
+        .template-preview {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: 700;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .template-info { padding: 12px 15px; background: var(--surface); }
+        .template-info .name { font-weight: 700; font-size: 0.95em; }
+        .template-info .desc { font-size: 0.75em; color: var(--text-dim); margin-top: 3px; }
+        
+        /* ===== EDITOR SCREEN ===== */
+        #editorScreen {
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-title {
+            font-weight: 700;
+            font-size: 0.95em;
+            padding: 5px 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Heebo', sans-serif;
+            cursor: text;
+            min-width: 120px;
+        }
+        .toolbar-title:hover { border-color: var(--border); }
+        .toolbar-title:focus { outline: none; border-color: var(--primary); background: var(--surface2); }
+        
+        .toolbar-divider { width: 1px; height: 28px; background: var(--border); margin: 0 4px; }
+        
+        .toolbar-group { display: flex; gap: 4px; align-items: center; }
+        
+        .toolbar-btn {
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text);
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.85em;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .toolbar-btn:hover { background: var(--surface2); border-color: var(--border); }
+        .toolbar-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        
+        .color-dot {
+            width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .color-dot:hover { transform: scale(1.2); border-color: #fff; }
+        
+        .font-select {
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.85em;
+            cursor: pointer;
+        }
+        
+        /* Editor main area */
+        .editor-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* Slide panel (sidebar) */
+        .slide-panel {
+            width: 180px;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .slide-thumb {
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6em;
+            padding: 8px;
+            text-align: center;
+        }
+        .slide-thumb:hover { border-color: var(--primary-light); }
+        .slide-thumb.active { border-color: var(--primary); box-shadow: 0 0 15px rgba(124,58,237,0.3); }
+        .slide-number {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 0.6em;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+        .slide-thumb .delete-slide {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 18px; height: 18px;
+            font-size: 0.55em;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slide-thumb:hover .delete-slide { opacity: 1; }
+        
+        .add-slide-btn {
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 0.8em;
+            transition: all 0.2s;
+        }
+        .add-slide-btn:hover { border-color: var(--primary); color: var(--primary); }
+        
+        /* Canvas area */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            background: var(--bg);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .slide-canvas {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            cursor: default;
+        }
+        
+        /* Editable elements on canvas */
+        .slide-element {
+            position: absolute;
+            cursor: move;
+            padding: 8px 14px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            transition: border-color 0.2s;
+            min-width: 40px;
+            min-height: 25px;
+            outline: none;
+        }
+        .slide-element:hover { border-color: rgba(124,58,237,0.4); }
+        .slide-element.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(124,58,237,0.2); }
+        .slide-element:focus { border-color: var(--primary); }
+        
+        .slide-element.text-element { font-family: 'Heebo', sans-serif; }
+        
+        .slide-element.image-element {
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+        }
+        
+        .slide-element .resize-handle {
+            position: absolute;
+            bottom: -5px;
+            left: -5px;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: se-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .slide-element.selected .resize-handle { opacity: 1; }
+        
+        /* Properties panel */
+        .props-panel {
+            width: 220px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 15px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .props-title { font-size: 0.8em; color: var(--text-dim); font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .prop-group { margin-bottom: 15px; }
+        .prop-label { font-size: 0.75em; color: var(--text-dim); margin-bottom: 4px; }
+        .prop-input {
+            width: 100%;
+            padding: 7px 10px;
+            border-radius: 8px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.85em;
+        }
+        .prop-input:focus { outline: none; border-color: var(--primary); }
+        
+        .bg-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+        .bg-preset {
+            width: 100%; aspect-ratio: 1; border-radius: 8px; cursor: pointer;
+            border: 2px solid transparent; transition: all 0.2s;
+        }
+        .bg-preset:hover { transform: scale(1.1); border-color: var(--primary); }
+        .bg-preset.active { border-color: #fff; }
+        
+        /* Shape buttons */
+        .shapes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .shape-btn {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            transition: all 0.2s;
+        }
+        .shape-btn:hover { background: var(--surface3); border-color: var(--primary); transform: scale(1.05); }
+        
+        /* Bottom bar */
+        .bottom-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 15px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        
+        .slide-counter { font-size: 0.85em; color: var(--text-dim); }
+        
+        /* ===== PRESENTATION MODE ===== */
+        #presentScreen {
+            background: #000;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .present-slide {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.4s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .present-element {
+            position: absolute;
+            animation: elementFade 0.6s ease backwards;
+        }
+        
+        @keyframes elementFade {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .present-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #presentScreen:hover .present-controls { opacity: 1; }
+        
+        .present-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        .present-btn:hover { background: rgba(255,255,255,0.25); }
+        
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--surface); border-radius: 20px; padding: 30px;
+            max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .modal h3 { margin-bottom: 15px; }
+        .modal input {
+            width: 100%; padding: 12px 15px; border-radius: 12px;
+            background: var(--surface2); color: var(--text); border: 2px solid var(--border);
+            font-family: 'Heebo', sans-serif; font-size: 1em; margin-bottom: 15px;
+        }
+        .modal input:focus { outline: none; border-color: var(--primary); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        
+        /* ===== EMOJI PICKER ===== */
+        .emoji-picker {
+            position: absolute;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .emoji-picker.open { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+        .emoji-item {
+            font-size: 1.3em;
+            padding: 4px;
+            cursor: pointer;
+            border-radius: 6px;
+            text-align: center;
+            transition: background 0.2s;
+        }
+        .emoji-item:hover { background: var(--surface3); }
+        
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--surface2); color: var(--text); padding: 12px 24px;
+            border-radius: 12px; font-size: 0.9em; box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000; border: 1px solid var(--border);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .slide-panel { width: 60px; }
+            .slide-thumb { font-size: 0.4em; }
+            .props-panel { display: none; }
+            .toolbar { gap: 4px; }
+            .toolbar-btn span { display: none; }
+            .home-title { font-size: 2em; }
+            .templates-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HOME SCREEN ===== -->
+<div id="homeScreen" class="screen active">
+    <div class="home-logo">🎨</div>
+    <div class="home-title">SlideFlow</div>
+    <div class="home-subtitle">יוצר מצגות מקצועי</div>
+    <div class="home-actions">
+        <button class="btn btn-primary" onclick="showTemplates()">✨ מצגת חדשה</button>
+    </div>
+    <div class="recent-section">
+        <div class="recent-title">📁 מצגות אחרונות</div>
+        <div class="recent-grid" id="recentGrid"></div>
+    </div>
+</div>
+
+<!-- ===== TEMPLATE PICKER ===== -->
+<div id="templateScreen" class="screen">
+    <div class="template-header">
+        <h2>✨ בחר תבנית</h2>
+        <button class="btn btn-secondary btn-small" onclick="showScreen('homeScreen')">← חזרה</button>
+    </div>
+    <div class="templates-grid" id="templatesGrid"></div>
+</div>
+
+<!-- ===== EDITOR ===== -->
+<div id="editorScreen" class="screen">
+    <div class="toolbar">
+        <button class="btn-icon" onclick="showScreen('homeScreen')" title="דף הבית">🏠</button>
+        <input type="text" class="toolbar-title" id="presTitle" value="מצגת חדשה" onchange="saveState()">
+        <div class="toolbar-divider"></div>
+        
+        <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="addTextElement('כותרת', 32, 700)" title="כותרת">📝 <span>כותרת</span></button>
+            <button class="toolbar-btn" onclick="addTextElement('טקסט', 18, 400)" title="טקסט">📄 <span>טקסט</span></button>
+        </div>
+        
+        <div class="toolbar-divider"></div>
+        
+        <div class="toolbar-group">
+            <button class="toolbar-btn" onclick="toggleEmojiPicker()" title="אימוג'י">😀</button>
+            <button class="toolbar-btn" onclick="addShapeElement('rect')" title="מלבן">⬜</button>
+            <button class="toolbar-btn" onclick="addShapeElement('circle')" title="עיגול">⭕</button>
+        </div>
+        
+        <div class="toolbar-divider"></div>
+        
+        <div class="toolbar-group">
+            <select class="font-select" id="fontSizeSelect" onchange="changeFontSize(this.value)">
+                <option value="14">14px</option>
+                <option value="18">18px</option>
+                <option value="24">24px</option>
+                <option value="32">32px</option>
+                <option value="40">40px</option>
+                <option value="48">48px</option>
+                <option value="60">60px</option>
+                <option value="72">72px</option>
+            </select>
+            <button class="toolbar-btn" id="boldBtn" onclick="toggleBold()" title="מודגש"><b>B</b></button>
+            <button class="toolbar-btn" id="italicBtn" onclick="toggleItalic()" title="נטוי"><i>I</i></button>
+        </div>
+        
+        <div class="toolbar-divider"></div>
+        
+        <div class="toolbar-group">
+            <input type="color" id="textColorPicker" value="#ffffff" onchange="changeTextColor(this.value)" title="צבע טקסט" style="width:30px;height:30px;border:none;border-radius:8px;cursor:pointer;">
+        </div>
+        
+        <div style="flex:1;"></div>
+        
+        <button class="btn btn-primary btn-small" onclick="startPresentation()">▶️ הצג</button>
+    </div>
+    
+    <div class="editor-main">
+        <!-- Properties Panel -->
+        <div class="props-panel">
+            <div class="props-title">🎨 רקע שקופית</div>
+            <div class="prop-group">
+                <div class="bg-presets" id="bgPresets"></div>
+            </div>
+            <div class="prop-group">
+                <div class="prop-label">צבע מותאם</div>
+                <input type="color" class="prop-input" id="bgColorPicker" onchange="changeSlideBg(this.value)" style="height:35px;padding:2px;cursor:pointer;">
+            </div>
+            
+            <div class="props-title" style="margin-top:20px;">🔷 צורות</div>
+            <div class="shapes-grid">
+                <button class="shape-btn" onclick="addShapeElement('rect')">⬜</button>
+                <button class="shape-btn" onclick="addShapeElement('circle')">⭕</button>
+                <button class="shape-btn" onclick="addShapeElement('triangle')">🔺</button>
+                <button class="shape-btn" onclick="addShapeElement('star')">⭐</button>
+                <button class="shape-btn" onclick="addShapeElement('heart')">❤️</button>
+                <button class="shape-btn" onclick="addShapeElement('line')">➖</button>
+            </div>
+            
+            <div class="props-title" style="margin-top:20px;">😀 אימוג'ים</div>
+            <div class="shapes-grid" style="grid-template-columns: repeat(5,1fr);">
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🚀')">🚀</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('💡')">💡</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🎯')">🎯</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('✅')">✅</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🔥')">🔥</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('⚡')">⚡</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🎨')">🎨</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('📊')">📊</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('💻')">💻</button>
+                <button class="shape-btn" style="font-size:1.2em;" onclick="addEmojiElement('🌟')">🌟</button>
+            </div>
+
+            <div class="props-title" style="margin-top:20px;">🗑️ אלמנט נבחר</div>
+            <button class="btn btn-danger btn-small" onclick="deleteSelected()" style="width:100%;">🗑️ מחק אלמנט</button>
+        </div>
+        
+        <!-- Canvas -->
+        <div class="canvas-area" onclick="deselectAll(event)">
+            <div class="slide-canvas" id="slideCanvas"></div>
+            
+            <!-- Emoji Picker (floating) -->
+            <div class="emoji-picker" id="emojiPicker"></div>
+        </div>
+        
+        <!-- Slide Panel -->
+        <div class="slide-panel" id="slidePanel"></div>
+    </div>
+    
+    <div class="bottom-bar">
+        <div class="slide-counter" id="slideCounter">שקופית 1 מתוך 1</div>
+        <div style="display:flex;gap:8px;">
+            <button class="btn-icon" onclick="duplicateSlide()" title="שכפל שקופית">📋</button>
+            <button class="btn-icon" onclick="exportPresentation()" title="ייצוא">💾</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PRESENTATION MODE ===== -->
+<div id="presentScreen" class="screen">
+    <div class="present-slide" id="presentSlide"></div>
+    <div class="present-controls">
+        <button class="present-btn" onclick="prevPresentSlide()">◀ הקודם</button>
+        <span id="presentCounter" style="color:#fff;padding:8px;font-size:0.9em;"></span>
+        <button class="present-btn" onclick="nextPresentSlide()">הבא ▶</button>
+        <button class="present-btn" onclick="exitPresentation()">✕ יציאה</button>
+    </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== APP STATE =====
+let presentations = JSON.parse(localStorage.getItem('slideflow_presentations') || '[]');
+let currentPres = null;
+let currentSlideIndex = 0;
+let selectedElement = null;
+let dragState = null;
+let presentIndex = 0;
+
+// ===== TEMPLATES =====
+const templates = [
+    {
+        name: 'ריק',
+        desc: 'התחל מאפס',
+        bg: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+        color: '#fff',
+        slides: [{ bg: 'linear-gradient(135deg, #1a1a2e, #16213e)', elements: [
+            { type: 'text', text: 'כותרת המצגת', x: 50, y: 35, fontSize: 48, fontWeight: 700, color: '#fff', align: 'center' },
+            { type: 'text', text: 'תת כותרת', x: 50, y: 55, fontSize: 24, fontWeight: 300, color: '#aaa', align: 'center' }
+        ]}]
+    },
+    {
+        name: 'סגול חלומי',
+        desc: 'עיצוב מודרני וחלק',
+        bg: 'linear-gradient(135deg, #667eea, #764ba2)',
+        color: '#fff',
+        slides: [{ bg: 'linear-gradient(135deg, #667eea, #764ba2)', elements: [
+            { type: 'text', text: '✨ כותרת מדהימה', x: 50, y: 30, fontSize: 44, fontWeight: 900, color: '#fff', align: 'center' },
+            { type: 'text', text: 'הוסף את התוכן שלך כאן', x: 50, y: 55, fontSize: 20, fontWeight: 400, color: 'rgba(255,255,255,0.8)', align: 'center' }
+        ]}]
+    },
+    {
+        name: 'שקיעה',
+        desc: 'צבעים חמים ונעימים',
+        bg: 'linear-gradient(135deg, #f093fb, #f5576c)',
+        color: '#fff',
+        slides: [{ bg: 'linear-gradient(135deg, #f093fb, #f5576c)', elements: [
+            { type: 'text', text: '🌅 שקיעה', x: 50, y: 30, fontSize: 52, fontWeight: 900, color: '#fff', align: 'center' },
+            { type: 'text', text: 'מצגת יפהפייה', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.85)', align: 'center' }
+        ]}]
+    },
+    {
+        name: 'אוקיינוס',
+        desc: 'גווני כחול ותכלת',
+        bg: 'linear-gradient(135deg, #0093E9, #80D0C7)',
+        color: '#fff',
+        slides: [{ bg: 'linear-gradient(135deg, #0093E9, #80D0C7)', elements: [
+            { type: 'text', text: '🌊 אוקיינוס', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
+            { type: 'text', text: 'צלילה לעומק', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.85)', align: 'center' }
+        ]}]
+    },
+    {
+        name: 'יער',
+        desc: 'ירוק ורענן',
+        bg: 'linear-gradient(135deg, #11998e, #38ef7d)',
+        color: '#fff',
+        slides: [{ bg: 'linear-gradient(135deg, #11998e, #38ef7d)', elements: [
+            { type: 'text', text: '🌿 טבע', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
+            { type: 'text', text: 'ירוק ומרענן', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.85)', align: 'center' }
+        ]}]
+    },
+    {
+        name: 'לילה',
+        desc: 'כהה ואלגנטי',
+        bg: 'linear-gradient(135deg, #0c0c0c, #1a1a2e)',
+        color: '#fff',
+        slides: [{ bg: 'linear-gradient(135deg, #0c0c0c, #1a1a2e)', elements: [
+            { type: 'text', text: '🌙 מצגת לילה', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
+            { type: 'text', text: 'אלגנטי ומינימליסטי', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: '#888', align: 'center' }
+        ]}]
+    },
+    {
+        name: 'זריחה',
+        desc: 'כתום וזהוב',
+        bg: 'linear-gradient(135deg, #FA8BFF, #2BD2FF, #2BFF88)',
+        color: '#fff',
+        slides: [{ bg: 'linear-gradient(135deg, #FA8BFF, #2BD2FF, #2BFF88)', elements: [
+            { type: 'text', text: '🌈 קשת צבעים', x: 50, y: 30, fontSize: 48, fontWeight: 900, color: '#fff', align: 'center' },
+            { type: 'text', text: 'צבעוני ושמח', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: 'rgba(255,255,255,0.9)', align: 'center' }
+        ]}]
+    },
+    {
+        name: 'לבן נקי',
+        desc: 'מינימליסטי ומקצועי',
+        bg: '#ffffff',
+        color: '#333',
+        slides: [{ bg: '#ffffff', elements: [
+            { type: 'text', text: 'כותרת', x: 50, y: 35, fontSize: 48, fontWeight: 900, color: '#333', align: 'center' },
+            { type: 'text', text: 'תת כותרת', x: 50, y: 55, fontSize: 22, fontWeight: 400, color: '#888', align: 'center' }
+        ]}]
+    }
+];
+
+const bgPresets = [
+    'linear-gradient(135deg, #1a1a2e, #16213e)',
+    'linear-gradient(135deg, #667eea, #764ba2)',
+    'linear-gradient(135deg, #f093fb, #f5576c)',
+    'linear-gradient(135deg, #0093E9, #80D0C7)',
+    'linear-gradient(135deg, #11998e, #38ef7d)',
+    'linear-gradient(135deg, #0c0c0c, #1a1a2e)',
+    'linear-gradient(135deg, #FA8BFF, #2BD2FF, #2BFF88)',
+    '#ffffff',
+    'linear-gradient(135deg, #fc5c7d, #6a82fb)',
+    'linear-gradient(135deg, #a8edea, #fed6e3)',
+    'linear-gradient(135deg, #ffecd2, #fcb69f)',
+    'linear-gradient(135deg, #2d1b69, #11001c)',
+];
+
+const emojis = ['😀','😂','🥰','😎','🤔','😱','🤩','🥳','👍','👏','💪','🎉','🔥','⭐','💡','🎯','✅','❌','🚀','💻','📊','📈','🎨','🎵','❤️','💜','💙','💚','🌟','⚡','🌈','🏆','🎮','📱','🌍','🔑','📌','💎','🎬','🍕'];
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function showTemplates() {
+    showScreen('templateScreen');
+    renderTemplates();
+}
+
+// ===== TEMPLATE RENDERING =====
+function renderTemplates() {
+    const grid = document.getElementById('templatesGrid');
+    grid.innerHTML = templates.map((t, i) => `
+        <div class="template-card" onclick="createFromTemplate(${i})">
+            <div class="template-preview" style="background:${t.bg}; color:${t.color};">
+                ${t.slides[0].elements[0].text}
+            </div>
+            <div class="template-info">
+                <div class="name">${t.name}</div>
+                <div class="desc">${t.desc}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ===== PRESENTATION CRUD =====
+function createFromTemplate(templateIndex) {
+    const t = templates[templateIndex];
+    currentPres = {
+        id: Date.now(),
+        name: t.name + ' - מצגת חדשה',
+        created: new Date().toISOString(),
+        slides: JSON.parse(JSON.stringify(t.slides))
+    };
+    currentSlideIndex = 0;
+    document.getElementById('presTitle').value = currentPres.name;
+    savePres();
+    openEditor();
+}
+
+function savePres() {
+    if (!currentPres) return;
+    const idx = presentations.findIndex(p => p.id === currentPres.id);
+    if (idx >= 0) presentations[idx] = currentPres;
+    else presentations.unshift(currentPres);
+    localStorage.setItem('slideflow_presentations', JSON.stringify(presentations));
+}
+
+function openEditor() {
+    showScreen('editorScreen');
+    renderSlidePanel();
+    renderCanvas();
+    renderBgPresets();
+    updateCounter();
+}
+
+function loadPres(id) {
+    currentPres = presentations.find(p => p.id === id);
+    if (!currentPres) return;
+    currentSlideIndex = 0;
+    document.getElementById('presTitle').value = currentPres.name;
+    openEditor();
+}
+
+function deletePres(id, event) {
+    event.stopPropagation();
+    presentations = presentations.filter(p => p.id !== id);
+    localStorage.setItem('slideflow_presentations', JSON.stringify(presentations));
+    renderRecent();
+    showToast('🗑️ מצגת נמחקה');
+}
+
+// ===== RENDER FUNCTIONS =====
+function renderRecent() {
+    const grid = document.getElementById('recentGrid');
+    if (presentations.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text-dim);font-size:0.9em;grid-column:1/-1;text-align:center;padding:30px;">אין מצגות עדיין — צור אחת חדשה! ✨</div>';
+        return;
+    }
+    grid.innerHTML = presentations.map(p => `
+        <div class="recent-card" onclick="loadPres(${p.id})">
+            <button class="delete-card" onclick="deletePres(${p.id}, event)">✕</button>
+            <div class="name">${p.name}</div>
+            <div class="meta">${p.slides.length} שקופיות · ${new Date(p.created).toLocaleDateString('he-IL')}</div>
+        </div>
+    `).join('');
+}
+
+function renderSlidePanel() {
+    const panel = document.getElementById('slidePanel');
+    panel.innerHTML = currentPres.slides.map((s, i) => `
+        <div class="slide-thumb ${i === currentSlideIndex ? 'active' : ''}" 
+             style="background:${s.bg};" 
+             onclick="switchSlide(${i})">
+            <span class="slide-number">${i + 1}</span>
+            ${s.elements.map(e => e.type === 'text' ? `<span style="color:${e.color};font-size:${Math.max(e.fontSize * 0.15, 5)}px;font-weight:${e.fontWeight};position:absolute;top:${e.y}%;left:${e.x}%;transform:translate(-50%,-50%);white-space:nowrap;overflow:hidden;max-width:90%;">${e.text}</span>` : '').join('')}
+            ${currentPres.slides.length > 1 ? `<button class="delete-slide" onclick="deleteSlide(${i},event)">✕</button>` : ''}
+        </div>
+    `).join('') + `<div class="add-slide-btn" onclick="addSlide()">+ שקופית</div>`;
+}
+
+function renderCanvas() {
+    const canvas = document.getElementById('slideCanvas');
+    const slide = currentPres.slides[currentSlideIndex];
+    canvas.style.background = slide.bg;
+    canvas.innerHTML = slide.elements.map((el, i) => {
+        if (el.type === 'text') {
+            return `<div class="slide-element text-element" data-index="${i}"
+                contenteditable="true"
+                style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
+                font-size:${el.fontSize}px;font-weight:${el.fontWeight};color:${el.color};
+                text-align:${el.align || 'center'};font-style:${el.fontStyle || 'normal'};"
+                onmousedown="startDrag(event,${i})"
+                onfocus="selectElement(${i})"
+                oninput="updateElementText(${i}, this.textContent)"
+                >${el.text}</div>`;
+        } else if (el.type === 'shape') {
+            return `<div class="slide-element image-element" data-index="${i}"
+                style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
+                font-size:${el.fontSize || 50}px;width:${el.width || 60}px;height:${el.height || 60}px;"
+                onmousedown="startDrag(event,${i})"
+                onclick="selectElement(${i})"
+                >${el.emoji}</div>`;
+        }
+        return '';
+    }).join('');
+    
+    selectedElement = null;
+}
+
+function renderBgPresets() {
+    const container = document.getElementById('bgPresets');
+    container.innerHTML = bgPresets.map((bg, i) => `
+        <div class="bg-preset" style="background:${bg};" onclick="changeSlideBgPreset(${i})"></div>
+    `).join('');
+}
+
+// ===== SLIDE MANAGEMENT =====
+function switchSlide(index) {
+    currentSlideIndex = index;
+    renderSlidePanel();
+    renderCanvas();
+    updateCounter();
+}
+
+function addSlide() {
+    const lastSlide = currentPres.slides[currentPres.slides.length - 1];
+    currentPres.slides.push({
+        bg: lastSlide.bg,
+        elements: [
+            { type: 'text', text: 'כותרת', x: 50, y: 35, fontSize: 40, fontWeight: 700, color: lastSlide.elements[0]?.color || '#fff', align: 'center' },
+            { type: 'text', text: 'תוכן', x: 50, y: 60, fontSize: 20, fontWeight: 400, color: lastSlide.elements[0]?.color || '#fff', align: 'center' }
+        ]
+    });
+    currentSlideIndex = currentPres.slides.length - 1;
+    savePres();
+    renderSlidePanel();
+    renderCanvas();
+    updateCounter();
+    showToast('➕ שקופית חדשה נוספה');
+}
+
+function deleteSlide(index, event) {
+    event.stopPropagation();
+    if (currentPres.slides.length <= 1) return;
+    currentPres.slides.splice(index, 1);
+    if (currentSlideIndex >= currentPres.slides.length) currentSlideIndex = currentPres.slides.length - 1;
+    savePres();
+    renderSlidePanel();
+    renderCanvas();
+    updateCounter();
+}
+
+function duplicateSlide() {
+    const copy = JSON.parse(JSON.stringify(currentPres.slides[currentSlideIndex]));
+    currentPres.slides.splice(currentSlideIndex + 1, 0, copy);
+    currentSlideIndex++;
+    savePres();
+    renderSlidePanel();
+    renderCanvas();
+    updateCounter();
+    showToast('📋 שקופית שוכפלה');
+}
+
+function updateCounter() {
+    document.getElementById('slideCounter').textContent = `שקופית ${currentSlideIndex + 1} מתוך ${currentPres.slides.length}`;
+}
+
+// ===== ELEMENT MANAGEMENT =====
+function addTextElement(text, fontSize, fontWeight) {
+    const slide = currentPres.slides[currentSlideIndex];
+    slide.elements.push({
+        type: 'text', text, x: 50, y: 50,
+        fontSize, fontWeight, color: '#fff', align: 'center', fontStyle: 'normal'
+    });
+    savePres();
+    renderCanvas();
+    renderSlidePanel();
+}
+
+function addShapeElement(shape) {
+    const shapeMap = { rect: '⬜', circle: '⭕', triangle: '🔺', star: '⭐', heart: '❤️', line: '➖' };
+    addEmojiElement(shapeMap[shape] || '⬜');
+}
+
+function addEmojiElement(emoji) {
+    const slide = currentPres.slides[currentSlideIndex];
+    slide.elements.push({
+        type: 'shape', emoji, x: 50, y: 50, fontSize: 50, width: 60, height: 60
+    });
+    savePres();
+    renderCanvas();
+    renderSlidePanel();
+}
+
+function selectElement(index) {
+    selectedElement = index;
+    document.querySelectorAll('.slide-element').forEach(el => el.classList.remove('selected'));
+    const el = document.querySelector(`[data-index="${index}"]`);
+    if (el) el.classList.add('selected');
+    
+    // Update toolbar to match element
+    const element = currentPres.slides[currentSlideIndex].elements[index];
+    if (element && element.type === 'text') {
+        document.getElementById('fontSizeSelect').value = element.fontSize;
+        document.getElementById('textColorPicker').value = element.color;
+    }
+}
+
+function deselectAll(event) {
+    if (event.target.classList.contains('canvas-area') || event.target.id === 'slideCanvas') {
+        selectedElement = null;
+        document.querySelectorAll('.slide-element').forEach(el => el.classList.remove('selected'));
+    }
+}
+
+function deleteSelected() {
+    if (selectedElement === null) return;
+    currentPres.slides[currentSlideIndex].elements.splice(selectedElement, 1);
+    selectedElement = null;
+    savePres();
+    renderCanvas();
+    renderSlidePanel();
+    showToast('🗑️ אלמנט נמחק');
+}
+
+function updateElementText(index, text) {
+    currentPres.slides[currentSlideIndex].elements[index].text = text;
+    savePres();
+    // Don't re-render canvas to keep cursor position
+    renderSlidePanel();
+}
+
+// ===== ELEMENT STYLING =====
+function changeFontSize(size) {
+    if (selectedElement === null) return;
+    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
+    if (el) { el.fontSize = parseInt(size); savePres(); renderCanvas(); renderSlidePanel(); }
+}
+
+function toggleBold() {
+    if (selectedElement === null) return;
+    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
+    if (el) { el.fontWeight = el.fontWeight === 700 ? 400 : 700; savePres(); renderCanvas(); renderSlidePanel(); }
+}
+
+function toggleItalic() {
+    if (selectedElement === null) return;
+    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
+    if (el) { el.fontStyle = el.fontStyle === 'italic' ? 'normal' : 'italic'; savePres(); renderCanvas(); renderSlidePanel(); }
+}
+
+function changeTextColor(color) {
+    if (selectedElement === null) return;
+    const el = currentPres.slides[currentSlideIndex].elements[selectedElement];
+    if (el) { el.color = color; savePres(); renderCanvas(); renderSlidePanel(); }
+}
+
+// ===== BACKGROUND =====
+function changeSlideBg(color) {
+    currentPres.slides[currentSlideIndex].bg = color;
+    savePres();
+    renderCanvas();
+    renderSlidePanel();
+}
+
+function changeSlideBgPreset(index) {
+    currentPres.slides[currentSlideIndex].bg = bgPresets[index];
+    savePres();
+    renderCanvas();
+    renderSlidePanel();
+}
+
+// ===== DRAG & DROP =====
+function startDrag(event, index) {
+    if (event.target.getAttribute('contenteditable') === 'true' && document.activeElement === event.target) return;
+    
+    const canvas = document.getElementById('slideCanvas');
+    const rect = canvas.getBoundingClientRect();
+    
+    dragState = {
+        index,
+        startX: event.clientX,
+        startY: event.clientY,
+        origX: currentPres.slides[currentSlideIndex].elements[index].x,
+        origY: currentPres.slides[currentSlideIndex].elements[index].y,
+        canvasW: rect.width,
+        canvasH: rect.height
+    };
+    
+    selectElement(index);
+    
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', stopDrag);
+    event.preventDefault();
+}
+
+function onDrag(event) {
+    if (!dragState) return;
+    const dx = event.clientX - dragState.startX;
+    const dy = event.clientY - dragState.startY;
+    
+    const newX = dragState.origX + (dx / dragState.canvasW) * 100;
+    const newY = dragState.origY + (dy / dragState.canvasH) * 100;
+    
+    const el = currentPres.slides[currentSlideIndex].elements[dragState.index];
+    el.x = Math.max(5, Math.min(95, newX));
+    el.y = Math.max(5, Math.min(95, newY));
+    
+    const domEl = document.querySelector(`[data-index="${dragState.index}"]`);
+    if (domEl) {
+        domEl.style.left = el.x + '%';
+        domEl.style.top = el.y + '%';
+    }
+}
+
+function stopDrag() {
+    if (dragState) {
+        savePres();
+        renderSlidePanel();
+    }
+    dragState = null;
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', stopDrag);
+}
+
+// ===== EMOJI PICKER =====
+function toggleEmojiPicker() {
+    const picker = document.getElementById('emojiPicker');
+    if (picker.classList.contains('open')) {
+        picker.classList.remove('open');
+        return;
+    }
+    picker.innerHTML = emojis.map(e => `<div class="emoji-item" onclick="insertEmoji('${e}')">${e}</div>`).join('');
+    picker.classList.add('open');
+    picker.style.top = '60px';
+    picker.style.right = '200px';
+}
+
+function insertEmoji(emoji) {
+    addEmojiElement(emoji);
+    document.getElementById('emojiPicker').classList.remove('open');
+}
+
+// ===== PRESENTATION MODE =====
+function startPresentation() {
+    presentIndex = 0;
+    showScreen('presentScreen');
+    renderPresentSlide();
+    document.addEventListener('keydown', presentKeyHandler);
+}
+
+function exitPresentation() {
+    showScreen('editorScreen');
+    document.removeEventListener('keydown', presentKeyHandler);
+}
+
+function presentKeyHandler(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') nextPresentSlide();
+    else if (e.key === 'ArrowLeft') prevPresentSlide();
+    else if (e.key === 'Escape') exitPresentation();
+}
+
+function renderPresentSlide() {
+    const slide = currentPres.slides[presentIndex];
+    const container = document.getElementById('presentSlide');
+    container.style.background = slide.bg;
+    container.innerHTML = slide.elements.map((el, i) => {
+        const delay = i * 0.15;
+        if (el.type === 'text') {
+            return `<div class="present-element" style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
+                font-family:'Heebo',sans-serif;font-size:${el.fontSize * 2}px;font-weight:${el.fontWeight};
+                color:${el.color};text-align:${el.align || 'center'};font-style:${el.fontStyle || 'normal'};
+                animation-delay:${delay}s;">${el.text}</div>`;
+        } else if (el.type === 'shape') {
+            return `<div class="present-element" style="left:${el.x}%;top:${el.y}%;transform:translate(-50%,-50%);
+                font-size:${(el.fontSize || 50) * 2}px;animation-delay:${delay}s;">${el.emoji}</div>`;
+        }
+        return '';
+    }).join('');
+    document.getElementById('presentCounter').textContent = `${presentIndex + 1} / ${currentPres.slides.length}`;
+}
+
+function nextPresentSlide() {
+    if (presentIndex < currentPres.slides.length - 1) { presentIndex++; renderPresentSlide(); }
+}
+
+function prevPresentSlide() {
+    if (presentIndex > 0) { presentIndex--; renderPresentSlide(); }
+}
+
+// ===== EXPORT =====
+function exportPresentation() {
+    const data = JSON.stringify(currentPres, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (currentPres.name || 'presentation') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('💾 מצגת יוצאה בהצלחה');
+}
+
+function saveState() {
+    if (currentPres) {
+        currentPres.name = document.getElementById('presTitle').value;
+        savePres();
+    }
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ===== KEYBOARD SHORTCUTS =====
+document.addEventListener('keydown', (e) => {
+    if (document.getElementById('editorScreen').classList.contains('active')) {
+        if (e.key === 'Delete' && selectedElement !== null && document.activeElement.getAttribute('contenteditable') !== 'true') {
+            deleteSelected();
+        }
+    }
+});
+
+// ===== INIT =====
+renderRecent();
+</script>
+</body>
+</html>
