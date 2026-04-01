@@ -150,6 +150,17 @@
         .splash{position:absolute;font-size:1.5em;pointer-events:none;animation:splashAnim 1s var(--ease) forwards}
         @keyframes splashAnim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-30px) scale(1.5)}}
 
+        /* Game harvest basket */
+        .game-basket{position:absolute;bottom:5%;right:3%;width:60px;height:40px;opacity:0;transition:opacity .5s;pointer-events:none;filter:drop-shadow(2px 3px 5px rgba(0,0,0,0.4))}
+        .game-basket.show{opacity:1}
+        .gb-body{width:60px;height:30px;background:linear-gradient(180deg,#D2691E,#A0522D);border-radius:0 0 12px 12px;position:absolute;bottom:0;overflow:hidden;box-shadow:inset -4px 0 8px rgba(0,0,0,0.15)}
+        .gb-body::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 5px,rgba(0,0,0,0.08) 5px,rgba(0,0,0,0.08) 6px)}
+        .gb-handle{width:36px;height:12px;border:3px solid #8B4513;border-bottom:none;border-radius:12px 12px 0 0;position:absolute;top:0;left:12px}
+        .gb-label{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:.6em;color:var(--t3);white-space:nowrap;font-weight:600}
+        .gb-count{color:var(--orange);font-weight:900}
+        /* Flying carrot to basket */
+        .flying-carrot{position:absolute;font-size:1.8em;pointer-events:none;z-index:50;transition:all 0.7s var(--ease)}
+
         /* Confetti */
         .confetti{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1000}
         .confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 3s ease-in forwards}
@@ -381,6 +392,12 @@
         <div class="game-canvas" id="gameCanvas">
             <div class="game-sun">☀️</div>
             <div style="position:absolute;top:10px;left:10px;font-size:.7em;color:rgba(255,255,255,0.5)">☁️ ☁️</div>
+            <!-- Harvest basket -->
+            <div class="game-basket" id="gameBasket">
+                <div class="gb-handle"></div>
+                <div class="gb-body"></div>
+                <div class="gb-label">סל: <span class="gb-count" id="basketCount">0</span>/9</div>
+            </div>
         </div>
         <div class="growth-bars" id="growthBars"></div>
         <div class="game-tools" id="gameTools">
@@ -650,7 +667,7 @@ function resetGame(){
     document.getElementById('toolWater').classList.remove('active');document.getElementById('toolWater').disabled=true;
     document.getElementById('toolFast').disabled=true;
     document.getElementById('toolHarvest').classList.remove('active');document.getElementById('toolHarvest').disabled=true;
-    document.getElementById('gameCanvas').innerHTML='<div class="game-sun">☀️</div><div style="position:absolute;top:10px;left:10px;font-size:.7em;color:rgba(255,255,255,0.5)">☁️ ☁️</div>';
+    document.getElementById('gameCanvas').innerHTML='<div class="game-sun">☀️</div><div style="position:absolute;top:10px;left:10px;font-size:.7em;color:rgba(255,255,255,0.5)">☁️ ☁️</div><div class="game-basket" id="gameBasket"><div class="gb-handle"></div><div class="gb-body"></div><div class="gb-label">סל: <span class="gb-count" id="basketCount">0</span>/9</div></div>';
     document.getElementById('growthBars').innerHTML='';
 }
 
@@ -823,7 +840,8 @@ function startGrowing(){
             document.getElementById('toolHarvest').disabled=false;
             setTool('harvest');
             document.getElementById('gameStage').textContent='קטיף!';
-            document.getElementById('gameMsg').textContent='🥕 הגזרים מוכנים! לחץ עליהם כדי לקטוף!';
+            document.getElementById('gameMsg').textContent='🥕 הגזרים מוכנים! לחץ עליהם כדי לקטוף לסל!';
+            document.getElementById('gameBasket').classList.add('show');
             growSound();
         }
     },500);
@@ -868,16 +886,51 @@ function doHarvest(x,y){
     });
     if(closest===null||minDist>15)return;
     const sprout=document.getElementById('sprout-'+closest);
+    const pos=HOLE_POSITIONS[seeds[closest].idx];
     sprout.dataset.harvested='1';
-    sprout.style.transition='all 0.5s';
-    sprout.style.transform='translateY(-40px) scale(1.5)';
+    
+    // Create flying carrot that goes to basket
+    const canvas=document.getElementById('gameCanvas');
+    const fc=document.createElement('div');
+    fc.className='flying-carrot';
+    fc.textContent='🥕';
+    fc.style.left=pos.x+'%';
+    fc.style.top=(pos.y-5)+'%';
+    fc.style.transform='scale(1)';
+    fc.style.opacity='1';
+    canvas.appendChild(fc);
+    
+    // Hide the sprout
+    sprout.style.transition='all 0.3s';
+    sprout.style.transform='translateY(-15px) scale(0.5)';
     sprout.style.opacity='0';
-    setTimeout(()=>sprout.remove(),500);
+    setTimeout(()=>sprout.remove(),300);
+    
+    // Animate flying carrot to basket position (bottom-right)
+    requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+            fc.style.left='92%';
+            fc.style.top='82%';
+            fc.style.transform='scale(0.6) rotate(360deg)';
+            fc.style.opacity='0.8';
+        });
+    });
+    
+    // Remove flying carrot after landing in basket
+    setTimeout(()=>{
+        fc.remove();
+        // Basket bounce effect
+        const basket=document.getElementById('gameBasket');
+        basket.style.transform='scale(1.15)';
+        setTimeout(()=>basket.style.transform='scale(1)',200);
+    },700);
+    
     harvestSound();
     harvested++;
     score+=15;
     document.getElementById('gameScore').textContent=score;
-    document.getElementById('gameMsg').textContent=`🥕 קטפת ${harvested}/9 גזרים!`;
+    document.getElementById('basketCount').textContent=harvested;
+    document.getElementById('gameMsg').textContent=`🥕 קטפת ${harvested}/9 גזרים לסל!`;
 
     if(harvested>=9){
         gamePhase='done';
