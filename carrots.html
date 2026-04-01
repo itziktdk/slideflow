@@ -237,6 +237,18 @@
         .screen-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .1s;z-index:5}
         .screen-flash.flash{opacity:0.6;animation:flashBang .4s ease-out forwards}
         @keyframes flashBang{0%{opacity:0.7}100%{opacity:0}}
+        /* Cracked screen overlay */
+        .screen-crack{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:0;transition:opacity .3s}
+        .screen-crack.show{opacity:1}
+        .crack-svg{width:100%;height:100%}
+        .crack-line{stroke:#fff;stroke-width:2;fill:none;opacity:0.9;filter:drop-shadow(0 0 3px rgba(255,255,255,0.5))}
+        .crack-line2{stroke:rgba(255,255,255,0.4);stroke-width:1;fill:none}
+        .crack-hole{fill:rgba(0,0,0,0.8);stroke:#fff;stroke-width:1.5}
+        .crack-chip{fill:rgba(0,0,0,0.5);stroke:rgba(255,255,255,0.3);stroke-width:0.5}
+        /* Glass shards falling */
+        .glass-shard{position:absolute;width:0;height:0;border-style:solid;opacity:0;pointer-events:none;filter:drop-shadow(0 0 2px rgba(255,255,255,0.3))}
+        .glass-shard.fall{animation:shardFall 2s ease-in forwards}
+        @keyframes shardFall{0%{opacity:0.8;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(150px) rotate(180deg)}}
         /* Hit marker */
         .hit-marker{position:absolute;font-size:3em;opacity:0;z-index:6;pointer-events:none}
         .hit-marker.show{opacity:1;animation:hitPop .8s var(--ease) forwards}
@@ -517,6 +529,36 @@
         </div>
         <!-- Effects -->
         <div class="screen-flash" id="screenFlash"></div>
+        <div class="screen-crack" id="screenCrack">
+            <svg class="crack-svg" viewBox="0 0 550 320">
+                <!-- Bullet hole -->
+                <circle class="crack-hole" cx="275" cy="160" r="8"/>
+                <circle class="crack-chip" cx="275" cy="160" r="14"/>
+                <!-- Main cracks radiating from center -->
+                <path class="crack-line" d="M275,160 L220,80 L200,40"/>
+                <path class="crack-line" d="M275,160 L340,70 L380,30"/>
+                <path class="crack-line" d="M275,160 L180,160 L100,140 L40,120"/>
+                <path class="crack-line" d="M275,160 L370,170 L450,190 L520,200"/>
+                <path class="crack-line" d="M275,160 L230,230 L190,280 L160,310"/>
+                <path class="crack-line" d="M275,160 L330,240 L370,290"/>
+                <path class="crack-line" d="M275,160 L260,100 L250,40"/>
+                <path class="crack-line" d="M275,160 L290,220 L300,290"/>
+                <!-- Secondary cracks (branches) -->
+                <path class="crack-line2" d="M220,80 L180,90 L140,85"/>
+                <path class="crack-line2" d="M340,70 L360,100 L390,95"/>
+                <path class="crack-line2" d="M180,160 L170,200 L140,220"/>
+                <path class="crack-line2" d="M370,170 L380,130 L420,120"/>
+                <path class="crack-line2" d="M230,230 L270,250 L280,270"/>
+                <path class="crack-line2" d="M330,240 L300,260 L310,280"/>
+                <path class="crack-line2" d="M260,100 L230,110 L210,100"/>
+                <path class="crack-line2" d="M290,220 L320,210 L340,220"/>
+                <!-- Small chips around hole -->
+                <circle class="crack-chip" cx="265" cy="150" r="3"/>
+                <circle class="crack-chip" cx="285" cy="148" r="2.5"/>
+                <circle class="crack-chip" cx="268" cy="172" r="2"/>
+                <circle class="crack-chip" cx="288" cy="168" r="3"/>
+            </svg>
+        </div>
         <div class="gun-flash" id="gunFlash" style="bottom:30%;right:20%"></div>
         <div class="hit-marker" id="hitMarker" style="top:30%;left:40%">💥</div>
     </div>
@@ -1061,6 +1103,7 @@ function startCutscene(){
     document.getElementById('gHat').style.display='';
     document.getElementById('gCarrotHair').classList.remove('show');
     document.getElementById('screenFlash').className='screen-flash';
+    document.getElementById('screenCrack').className='screen-crack';
     document.getElementById('gunFlash').className='gun-flash';
     document.getElementById('hitMarker').className='hit-marker';
     document.getElementById('nArmR').classList.remove('styling');
@@ -1161,7 +1204,7 @@ function startCutscene(){
             nurse.classList.remove('atnurse');nurse.classList.add('exit');
             document.getElementById('nArmR').classList.remove('styling');
         },14000);
-        // Step 13: Gardener shoots at YOU!
+        // Step 13: Gardener shoots at YOU — SCREEN CRACKS!
         setTimeout(()=>{
             laughBubble.textContent='קח את זה!';
             // Gun flash
@@ -1174,6 +1217,27 @@ function startCutscene(){
                 document.getElementById('hitMarker').classList.add('show');
                 beep(200,0.4,'sawtooth');
             },200);
+            // SCREEN CRACKS!
+            setTimeout(()=>{
+                document.getElementById('screenCrack').classList.add('show');
+                beep(60,0.5,'sawtooth');
+                // Spawn glass shards falling
+                const stage=document.getElementById('cutsceneStage');
+                for(let i=0;i<12;i++){
+                    const shard=document.createElement('div');
+                    shard.className='glass-shard';
+                    const size=4+Math.random()*10;
+                    const colors=['rgba(200,220,255,0.6)','rgba(255,255,255,0.5)','rgba(180,200,230,0.4)'];
+                    shard.style.borderColor=`transparent transparent ${colors[Math.floor(Math.random()*3)]} transparent`;
+                    shard.style.borderWidth=`0 ${size/2}px ${size}px ${size/2}px`;
+                    shard.style.left=(35+Math.random()*30)+'%';
+                    shard.style.top=(40+Math.random()*20)+'%';
+                    shard.style.animationDelay=(Math.random()*0.5)+'s';
+                    stage.appendChild(shard);
+                    setTimeout(()=>shard.classList.add('fall'),50);
+                    setTimeout(()=>shard.remove(),2500);
+                }
+            },400);
         },15500);
         // Step 14: Gardener exits laughing
         setTimeout(()=>{
@@ -1216,6 +1280,7 @@ function closeEnd(){
     document.getElementById('nurseWrap').className='nurse-wrap';
     document.getElementById('nArmR').classList.remove('styling');
     document.getElementById('screenFlash').className='screen-flash';
+    document.getElementById('screenCrack').className='screen-crack';
     document.getElementById('gunFlash').className='gun-flash';
     document.getElementById('hitMarker').className='hit-marker';
     // Reset gardener face
