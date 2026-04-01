@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlideFlow — מאסטר ההמבורגר 🍔</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--p:#7c3aed;--p2:#a78bfa;--p3:#5b21b6;--bg:#09090b;--s1:#18181b;--s2:#1e1e24;--s3:#27272a;--t1:#fafafa;--t2:#a1a1aa;--t3:#71717a;--brd:rgba(255,255,255,0.06);--r:12px;--ease:cubic-bezier(0.16,1,0.3,1);--orange:#f97316;--green:#10b981;--red:#ef4444}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--s1);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:100}
+.back-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;font-family:inherit;font-size:.85em;font-weight:500;transition:all .2s;text-decoration:none}
+.back-btn:hover{color:var(--t1);border-color:var(--p2)}
+.topbar h1{font-size:1.2em;font-weight:700;flex:1}
+.topbar h1 span{color:var(--orange)}
+
+/* Screens */
+.screen{display:none;padding:20px;max-width:700px;margin:0 auto}.screen.active{display:block}
+
+/* Menu */
+.menu-title{text-align:center;padding:40px 0 20px}
+.menu-title h2{font-size:2.5em;font-weight:900;background:linear-gradient(135deg,var(--orange),#ef4444,#eab308);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;line-height:1.3}
+.menu-title .burger-3d{font-size:5em;display:block;margin:20px 0;animation:menuFloat 3s ease-in-out infinite;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.5))}
+@keyframes menuFloat{0%,100%{transform:translateY(0) rotateY(0deg)}50%{transform:translateY(-10px) rotateY(10deg)}}
+.menu-btn{display:block;width:100%;max-width:300px;margin:15px auto;padding:16px 30px;border-radius:16px;border:none;font-family:inherit;font-size:1.1em;font-weight:700;cursor:pointer;transition:all .3s var(--ease)}
+.menu-btn.primary{background:linear-gradient(135deg,var(--orange),#ea580c);color:#fff;box-shadow:0 6px 25px rgba(249,115,22,0.3)}
+.menu-btn.primary:hover{transform:translateY(-3px);box-shadow:0 10px 35px rgba(249,115,22,0.4)}
+.menu-btn.secondary{background:var(--s2);color:var(--t1);border:1px solid var(--brd)}
+.best-score{text-align:center;margin-top:20px;color:var(--t3);font-size:.9em}
+.best-score span{color:var(--orange);font-weight:800;font-size:1.1em}
+
+/* HUD */
+.hud{display:flex;justify-content:space-around;padding:10px;background:var(--s1);border-radius:14px;border:1px solid var(--brd);margin-bottom:12px;flex-wrap:wrap;gap:6px}
+.hud-item{text-align:center;font-size:.85em;color:var(--t2)}
+.hud-val{font-weight:800;font-size:1.1em;color:var(--t1)}
+.hud-val.timer{color:var(--red)}
+
+/* Order screen */
+.order-wrap{text-align:center;padding:20px}
+.customer{display:inline-block;position:relative;margin-bottom:20px}
+.cust-body{width:60px;height:70px;border-radius:12px 12px 6px 6px;position:relative;margin:0 auto;box-shadow:2px 3px 8px rgba(0,0,0,0.3)}
+.cust-head{width:50px;height:50px;background:linear-gradient(135deg,#FFCC80,#FFB74D);border-radius:50%;position:absolute;top:-40px;left:5px;box-shadow:inset -4px -2px 8px rgba(0,0,0,0.1)}
+.cust-eyes{position:absolute;top:-28px;left:14px;display:flex;gap:12px}
+.cust-eye{width:6px;height:6px;background:#333;border-radius:50%}
+.cust-mouth{position:absolute;top:-18px;left:20px;width:14px;height:7px;border:2px solid #333;border-top:none;border-radius:0 0 8px 8px}
+.cust-hat{position:absolute;top:-55px;left:0;width:60px;height:16px;border-radius:16px 16px 4px 4px;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.cust-hat::after{content:'';position:absolute;bottom:-4px;left:-4px;width:68px;height:6px;background:inherit;filter:brightness(0.85);border-radius:3px}
+.speech-bubble{background:var(--s1);border:1px solid var(--brd);border-radius:16px;padding:16px;margin-top:15px;position:relative;box-shadow:0 8px 25px rgba(0,0,0,0.2)}
+.speech-bubble::before{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);border:8px solid transparent;border-bottom-color:var(--s1)}
+.order-label{font-weight:700;font-size:1em;margin-bottom:10px;color:var(--orange)}
+.order-preview{display:flex;flex-direction:column-reverse;align-items:center;gap:2px;padding:10px;min-height:100px}
+.memorize-timer{font-size:2em;font-weight:900;color:var(--red);margin-top:15px;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+/* Build area */
+.build-area{display:flex;gap:12px;min-height:400px}
+.ingredients-panel{width:140px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.ing-btn{padding:8px;border-radius:12px;background:var(--s1);border:1px solid var(--brd);cursor:pointer;transition:all .2s;text-align:center;font-family:inherit;font-size:.75em;font-weight:600;color:var(--t2)}
+.ing-btn:hover{border-color:var(--p2);transform:scale(1.05);background:var(--s2)}
+.ing-btn:active{transform:scale(0.95)}
+.ing-label{margin-top:4px;display:block}
+.build-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:20px;background:var(--s1);border-radius:16px;border:1px solid var(--brd);position:relative;overflow:hidden;min-height:350px}
+.plate{width:200px;height:16px;background:linear-gradient(180deg,#e0e0e0,#bbb);border-radius:50%;box-shadow:0 4px 15px rgba(0,0,0,0.3);margin-bottom:5px;flex-shrink:0}
+.stack{display:flex;flex-direction:column-reverse;align-items:center;transform:perspective(600px) rotateX(-8deg);transform-origin:bottom center;position:relative}
+.stack-item{transition:all .3s var(--ease);animation:stackIn .4s var(--ease)}
+@keyframes stackIn{0%{opacity:0;transform:translateY(-60px) scale(0.5) rotate(10deg)}60%{transform:translateY(5px) scale(1.05)}100%{transform:translateY(0) scale(1)}}
+.build-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.build-btn{padding:10px 20px;border-radius:12px;border:1px solid var(--brd);background:var(--s2);color:var(--t1);font-family:inherit;font-size:.9em;font-weight:600;cursor:pointer;transition:all .2s}
+.build-btn:hover{border-color:var(--p2);transform:translateY(-2px)}
+.build-btn.done{background:var(--green);border-color:var(--green);color:#fff}
+.build-btn.undo{background:var(--s3);color:var(--t2)}
+
+/* 3D Ingredients */
+.ing{border-radius:50%;position:relative;box-shadow:0 3px 8px rgba(0,0,0,0.3)}
+.ing-bun-bottom{width:140px;height:28px;background:linear-gradient(180deg,#D2891B,#B8741A,#A0621A);border-radius:8px 8px 50% 50%;box-shadow:inset 0 -4px 8px rgba(0,0,0,0.15),0 3px 8px rgba(0,0,0,0.3)}
+.ing-bun-top{width:140px;height:40px;background:linear-gradient(180deg,#E8A42E,#D2891B,#B8741A);border-radius:50% 50% 8px 8px;box-shadow:inset 0 4px 12px rgba(255,255,255,0.15),0 3px 8px rgba(0,0,0,0.3);position:relative}
+.sesame{position:absolute;width:6px;height:4px;background:#F5E6C8;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,0.2)}
+.ing-patty{width:135px;height:22px;background:linear-gradient(180deg,#5D3A1A,#4A2E15,#3D2512);border-radius:8px;box-shadow:inset 0 -3px 6px rgba(0,0,0,0.3),0 2px 6px rgba(0,0,0,0.3);position:relative}
+.grill-mark{position:absolute;height:2px;background:rgba(0,0,0,0.3);border-radius:1px;top:50%;transform:translateY(-50%)}
+.ing-cheese{width:142px;height:12px;background:linear-gradient(180deg,#FFD700,#FFC107);border-radius:2px;position:relative;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.cheese-drip{position:absolute;bottom:-8px;width:12px;height:10px;background:linear-gradient(180deg,#FFC107,#FFB300);border-radius:0 0 6px 6px}
+.ing-lettuce{width:145px;height:14px;background:linear-gradient(90deg,#4CAF50,#66BB6A,#43A047,#66BB6A,#4CAF50);border-radius:20px;box-shadow:0 2px 4px rgba(0,0,0,0.2);position:relative}
+.lettuce-wave{position:absolute;top:-3px;width:100%;height:6px;background:linear-gradient(90deg,transparent,#81C784 15%,transparent 30%,#81C784 45%,transparent 60%,#81C784 75%,transparent);border-radius:10px}
+.ing-tomato{width:130px;height:10px;background:linear-gradient(180deg,#EF5350,#E53935);border-radius:5px;box-shadow:inset 0 2px 4px rgba(255,255,255,0.2),0 2px 4px rgba(0,0,0,0.2);position:relative}
+.tomato-seed{position:absolute;width:3px;height:3px;background:rgba(255,255,255,0.4);border-radius:50%;top:3px}
+.ing-onion{width:125px;height:10px;background:transparent;border:2px solid rgba(200,160,220,0.8);border-radius:50%;box-shadow:0 2px 3px rgba(0,0,0,0.15)}
+.ing-pickle{width:120px;height:8px;display:flex;gap:8px;justify-content:center}
+.pickle-slice{width:14px;height:14px;background:radial-gradient(circle,#8BC34A,#689F38);border-radius:50%;border:1px solid #558B2F;box-shadow:0 1px 3px rgba(0,0,0,0.2);margin-top:-3px}
+.ing-ketchup{width:120px;height:6px;background:linear-gradient(90deg,transparent,#D32F2F 20%,#C62828 50%,#D32F2F 80%,transparent);border-radius:3px}
+.ing-mustard{width:120px;height:6px;background:linear-gradient(90deg,transparent,#FBC02D 20%,#F9A825 50%,#FBC02D 80%,transparent);border-radius:3px}
+
+/* Mini ingredients for preview */
+.mini .ing-bun-bottom,.mini .ing-bun-top{width:60px;height:12px}
+.mini .ing-bun-top{height:18px}
+.mini .ing-patty{width:58px;height:10px}
+.mini .ing-cheese{width:62px;height:6px}
+.mini .ing-lettuce{width:63px;height:7px}
+.mini .ing-tomato{width:56px;height:5px}
+.mini .ing-onion{width:54px;height:5px}
+.mini .ing-pickle{width:50px;height:5px}
+.mini .ing-pickle .pickle-slice{width:7px;height:7px;margin-top:-1px}
+.mini .ing-ketchup,.mini .ing-mustard{width:50px;height:3px}
+.mini .sesame{width:3px;height:2px}
+.mini .cheese-drip{width:6px;height:5px;bottom:-4px}
+
+/* Scoring */
+.score-screen{text-align:center;padding:20px}
+.compare{display:flex;justify-content:center;gap:30px;margin:20px 0;flex-wrap:wrap}
+.compare-col{text-align:center}
+.compare-col h4{font-size:.85em;color:var(--t3);margin-bottom:8px}
+.stars{font-size:2.5em;margin:15px 0}
+.score-pct{font-size:2em;font-weight:900}
+.score-pct.perfect{color:var(--green)}
+.score-pct.good{color:var(--orange)}
+.score-pct.bad{color:var(--red)}
+.score-msg{font-size:1.1em;color:var(--t2);margin:10px 0}
+
+/* Confetti */
+.confetti{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1000}
+.confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 3s ease-in forwards}
+@keyframes confettiFall{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* Shake */
+.shake{animation:shakeIt .5s ease}
+@keyframes shakeIt{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* Steam */
+.steam-wrap{position:absolute;top:-15px;left:50%;transform:translateX(-50%);pointer-events:none}
+.steam{width:4px;height:20px;background:rgba(255,255,255,0.15);border-radius:2px;position:absolute;animation:steamRise 2s ease-out infinite;filter:blur(2px)}
+@keyframes steamRise{0%{opacity:0.4;transform:translateY(0) scaleX(1)}100%{opacity:0;transform:translateY(-30px) scaleX(2)}}
+
+@media(max-width:600px){
+    .build-area{flex-direction:column}
+    .ingredients-panel{width:100%;flex-direction:row;flex-wrap:wrap;justify-content:center}
+    .ing-btn{flex:0 0 auto;padding:6px 10px}
+    .menu-title h2{font-size:1.8em}
+    .compare{gap:15px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <a href="index.html" class="back-btn">→ חזרה ל-SlideFlow</a>
+    <h1>🍔 מאסטר <span>ההמבורגר</span></h1>
+</div>
+
+<!-- Menu -->
+<div class="screen active" id="menuScreen">
+    <div class="menu-title">
+        <h2>מאסטר ההמבורגר</h2>
+        <span class="burger-3d">🍔</span>
+        <p style="color:var(--t3)">בנה המבורגרים מושלמים לפי ההזמנה!</p>
+    </div>
+    <button class="menu-btn primary" onclick="startGame()">התחל משחק</button>
+    <div class="best-score">שיא: <span id="bestScore">0</span> נקודות</div>
+</div>
+
+<!-- Order -->
+<div class="screen" id="orderScreen">
+    <div class="hud" id="hud1">
+        <div class="hud-item">סיבוב<br><span class="hud-val" id="roundNum">1</span></div>
+        <div class="hud-item">ניקוד<br><span class="hud-val" id="scoreVal">0</span></div>
+        <div class="hud-item">רצף<br><span class="hud-val" id="streakVal">0</span></div>
+    </div>
+    <div class="order-wrap">
+        <div class="customer" id="customer"></div>
+        <div class="speech-bubble">
+            <div class="order-label">ההזמנה שלי:</div>
+            <div class="order-preview mini" id="orderPreview"></div>
+        </div>
+        <div class="memorize-timer" id="memTimer">3</div>
+    </div>
+</div>
+
+<!-- Build -->
+<div class="screen" id="buildScreen">
+    <div class="hud">
+        <div class="hud-item">סיבוב<br><span class="hud-val" id="roundNum2">1</span></div>
+        <div class="hud-item">ניקוד<br><span class="hud-val" id="scoreVal2">0</span></div>
+        <div class="hud-item">שכבות<br><span class="hud-val" id="layerCount">0</span></div>
+    </div>
+    <div class="build-area">
+        <div class="ingredients-panel">
+            <div class="ing-btn" onclick="addIng('bun-bottom')"><div class="ing-bun-bottom" style="width:60px;height:12px;margin:0 auto"></div><span class="ing-label">לחמנייה ⬇</span></div>
+            <div class="ing-btn" onclick="addIng('lettuce')"><div class="ing-lettuce" style="width:60px;height:7px;margin:0 auto"></div><span class="ing-label">חסה</span></div>
+            <div class="ing-btn" onclick="addIng('patty')"><div class="ing-patty" style="width:58px;height:10px;margin:0 auto"></div><span class="ing-label">קציצה</span></div>
+            <div class="ing-btn" onclick="addIng('cheese')"><div class="ing-cheese" style="width:60px;height:6px;margin:0 auto"></div><span class="ing-label">גבינה</span></div>
+            <div class="ing-btn" onclick="addIng('tomato')"><div class="ing-tomato" style="width:56px;height:5px;margin:0 auto"></div><span class="ing-label">עגבנייה</span></div>
+            <div class="ing-btn" onclick="addIng('onion')"><div class="ing-onion" style="width:54px;height:5px;margin:0 auto"></div><span class="ing-label">בצל</span></div>
+            <div class="ing-btn" onclick="addIng('pickle')"><div style="display:flex;gap:3px;justify-content:center"><div class="pickle-slice" style="width:8px;height:8px"></div><div class="pickle-slice" style="width:8px;height:8px"></div></div><span class="ing-label">מלפפון</span></div>
+            <div class="ing-btn" onclick="addIng('ketchup')"><div style="width:50px;height:4px;background:linear-gradient(90deg,transparent,#D32F2F 30%,#C62828 70%,transparent);border-radius:2px;margin:4px auto"></div><span class="ing-label">קטשופ</span></div>
+            <div class="ing-btn" onclick="addIng('mustard')"><div style="width:50px;height:4px;background:linear-gradient(90deg,transparent,#FBC02D 30%,#F9A825 70%,transparent);border-radius:2px;margin:4px auto"></div><span class="ing-label">חרדל</span></div>
+            <div class="ing-btn" onclick="addIng('bun-top')"><div class="ing-bun-top" style="width:60px;height:18px;margin:0 auto"></div><span class="ing-label">לחמנייה ⬆</span></div>
+        </div>
+        <div class="build-stage" id="buildStage">
+            <div class="stack" id="stack"></div>
+            <div class="plate"></div>
+        </div>
+    </div>
+    <div class="build-actions">
+        <button class="build-btn undo" onclick="undoIng()">↩ בטל</button>
+        <button class="build-btn done" onclick="submitBurger()">סיימתי! ✅</button>
+    </div>
+</div>
+
+<!-- Score -->
+<div class="screen" id="scoreScreen">
+    <div class="score-screen">
+        <h3 style="font-size:1.3em;margin-bottom:10px">תוצאה:</h3>
+        <div class="compare">
+            <div class="compare-col">
+                <h4>ההזמנה</h4>
+                <div class="order-preview mini" id="orderCompare"></div>
+            </div>
+            <div class="compare-col">
+                <h4>שלך</h4>
+                <div class="order-preview mini" id="playerCompare"></div>
+            </div>
+        </div>
+        <div class="stars" id="stars"></div>
+        <div class="score-pct" id="scorePct"></div>
+        <div class="score-msg" id="scoreMsg"></div>
+        <button class="menu-btn primary" onclick="nextRound()" style="margin-top:15px" id="nextBtn">הזמנה הבאה →</button>
+    </div>
+</div>
+
+<script>
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let audioCtx;
+function beep(f,d,t='sine'){if(!audioCtx)audioCtx=new AudioCtx();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(0.12,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+d)}
+function placeSound(){beep(400,0.1);setTimeout(()=>beep(500,0.08),50)}
+function successSound(){[0,80,160,240,320].forEach((d,i)=>setTimeout(()=>beep(500+i*80,0.15,'triangle'),d))}
+function failSound(){beep(200,0.4,'sawtooth');setTimeout(()=>beep(150,0.3,'sawtooth'),200)}
+
+const INGS=['bun-bottom','lettuce','patty','cheese','tomato','onion','pickle','ketchup','mustard','bun-top'];
+const ING_NAMES={'bun-bottom':'לחמנייה ⬇','lettuce':'חסה','patty':'קציצה','cheese':'גבינה','tomato':'עגבנייה','onion':'בצל','pickle':'מלפפון','ketchup':'קטשופ','mustard':'חרדל','bun-top':'לחמנייה ⬆'};
+
+const CUSTOMERS=[
+    {color:'#e53935',hat:'#e53935',name:'דני'},
+    {color:'#7c3aed',hat:'#7c3aed',name:'מיכל'},
+    {color:'#0288d1',hat:'#0288d1',name:'עומר'},
+    {color:'#43a047',hat:'#43a047',name:'נועה'},
+    {color:'#f57c00',hat:'#f57c00',name:'יובל'},
+];
+
+let round=0,score=0,streak=0,bestScore=+(localStorage.getItem('burger_best')||0);
+let currentOrder=[],playerStack=[];
+
+document.getElementById('bestScore').textContent=bestScore;
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+
+function startGame(){round=0;score=0;streak=0;nextRound();}
+
+function nextRound(){
+    round++;playerStack=[];
+    currentOrder=generateOrder();
+    document.getElementById('roundNum').textContent=round;
+    document.getElementById('roundNum2').textContent=round;
+    document.getElementById('scoreVal').textContent=score;
+    document.getElementById('scoreVal2').textContent=score;
+    document.getElementById('streakVal').textContent=streak;
+    showScreen('orderScreen');
+    renderCustomer();
+    renderOrderPreview('orderPreview',currentOrder);
+    startMemorizeTimer();
+}
+
+function generateOrder(){
+    const o=['bun-bottom'];
+    const fillings=['lettuce','patty','cheese','tomato','onion','pickle','ketchup','mustard'];
+    let count=2+Math.min(round,6); // more ingredients as rounds progress
+    if(count>7)count=7;
+    // Always has patty
+    o.push('patty');count--;
+    const shuffled=fillings.filter(f=>f!=='patty').sort(()=>Math.random()-0.5);
+    for(let i=0;i<count&&i<shuffled.length;i++)o.push(shuffled[i]);
+    o.push('bun-top');
+    return o;
+}
+
+function renderCustomer(){
+    const c=CUSTOMERS[round%CUSTOMERS.length];
+    document.getElementById('customer').innerHTML=`
+        <div class="cust-body" style="background:linear-gradient(180deg,${c.color},${c.color}dd)">
+            <div class="cust-hat" style="background:${c.hat}"></div>
+            <div class="cust-head"></div>
+            <div class="cust-eyes"><div class="cust-eye"></div><div class="cust-eye"></div></div>
+            <div class="cust-mouth"></div>
+        </div>
+        <div style="font-weight:700;margin-top:8px;font-size:.9em">${c.name}</div>`;
+}
+
+function renderIngHTML(type,mini){
+    switch(type){
+        case 'bun-bottom':return `<div class="ing-bun-bottom"></div>`;
+        case 'bun-top':return `<div class="ing-bun-top"><div class="sesame" style="top:6px;left:25px"></div><div class="sesame" style="top:10px;left:55px"></div><div class="sesame" style="top:5px;left:80px"></div><div class="sesame" style="top:14px;left:40px"></div><div class="sesame" style="top:8px;left:100px"></div></div>`;
+        case 'patty':return `<div class="ing-patty"><div class="grill-mark" style="left:15%;width:20%"></div><div class="grill-mark" style="left:45%;width:25%"></div><div class="grill-mark" style="left:75%;width:15%"></div>${!mini?'<div class="steam-wrap"><div class="steam" style="left:-5px;animation-delay:0s"></div><div class="steam" style="left:5px;animation-delay:0.5s"></div><div class="steam" style="left:15px;animation-delay:1s"></div></div>':''}</div>`;
+        case 'cheese':return `<div class="ing-cheese"><div class="cheese-drip" style="left:15px"></div><div class="cheese-drip" style="right:25px"></div></div>`;
+        case 'lettuce':return `<div class="ing-lettuce"><div class="lettuce-wave"></div></div>`;
+        case 'tomato':return `<div class="ing-tomato"><div class="tomato-seed" style="left:20%"></div><div class="tomato-seed" style="left:50%"></div><div class="tomato-seed" style="left:75%"></div></div>`;
+        case 'onion':return `<div class="ing-onion"></div>`;
+        case 'pickle':return `<div class="ing-pickle"><div class="pickle-slice"></div><div class="pickle-slice"></div><div class="pickle-slice"></div></div>`;
+        case 'ketchup':return `<div class="ing-ketchup"></div>`;
+        case 'mustard':return `<div class="ing-mustard"></div>`;
+        default:return '';
+    }
+}
+
+function renderOrderPreview(elId,order){
+    const el=document.getElementById(elId);
+    el.innerHTML=order.map(i=>renderIngHTML(i,true)).join('');
+}
+
+function renderStack(){
+    const el=document.getElementById('stack');
+    el.innerHTML=playerStack.map(i=>`<div class="stack-item">${renderIngHTML(i,false)}</div>`).join('');
+    document.getElementById('layerCount').textContent=playerStack.length;
+}
+
+let memTimerInterval;
+function startMemorizeTimer(){
+    let t=round<=2?4:round<=5?3:2;
+    document.getElementById('memTimer').textContent=t;
+    clearInterval(memTimerInterval);
+    memTimerInterval=setInterval(()=>{
+        t--;
+        document.getElementById('memTimer').textContent=t;
+        beep(300,0.05);
+        if(t<=0){
+            clearInterval(memTimerInterval);
+            showScreen('buildScreen');
+            renderStack();
+        }
+    },1000);
+}
+
+function addIng(type){
+    playerStack.push(type);
+    placeSound();
+    renderStack();
+    // Wobble effect
+    const stage=document.getElementById('buildStage');
+    stage.style.animation='none';
+    stage.offsetHeight;
+    stage.style.animation='';
+}
+
+function undoIng(){
+    if(!playerStack.length)return;
+    playerStack.pop();
+    beep(200,0.1,'square');
+    renderStack();
+}
+
+function submitBurger(){
+    showScreen('scoreScreen');
+    renderOrderPreview('orderCompare',currentOrder);
+    renderOrderPreview('playerCompare',playerStack);
+
+    // Score calculation
+    let match=0;
+    const maxLen=Math.max(currentOrder.length,playerStack.length);
+    for(let i=0;i<maxLen;i++){
+        if(i<currentOrder.length&&i<playerStack.length&&currentOrder[i]===playerStack[i])match++;
+    }
+    const pct=maxLen>0?Math.round(match/currentOrder.length*100):0;
+    const pts=pct>=100?100:pct>=70?50:pct>=50?20:0;
+    const streakBonus=pct===100?(streak*10):0;
+    score+=pts+streakBonus;
+    if(pct===100)streak++;else streak=0;
+
+    // Update best
+    if(score>bestScore){bestScore=score;localStorage.setItem('burger_best',bestScore);document.getElementById('bestScore').textContent=bestScore}
+
+    // Display
+    const pctEl=document.getElementById('scorePct');
+    pctEl.textContent=pct+'%';
+    pctEl.className='score-pct '+(pct>=90?'perfect':pct>=50?'good':'bad');
+
+    const starsEl=document.getElementById('stars');
+    starsEl.textContent=pct>=100?'⭐⭐⭐':pct>=70?'⭐⭐':pct>=50?'⭐':'💀';
+
+    const msgEl=document.getElementById('scoreMsg');
+    if(pct>=100){msgEl.textContent='שף מושלם! 👨‍🍳🔥'+(streakBonus?` (+${streakBonus} בונוס רצף!)`:'')}
+    else if(pct>=70)msgEl.textContent='כמעט! טוב מאוד! 👍';
+    else if(pct>=50)msgEl.textContent='לא רע, אבל אפשר יותר טוב 🤔';
+    else{msgEl.textContent='אוי... הלקוח לא מרוצה 😤';document.getElementById('scoreScreen').querySelector('.score-screen').classList.add('shake');setTimeout(()=>document.getElementById('scoreScreen').querySelector('.score-screen').classList.remove('shake'),600)}
+
+    if(pct>=100){successSound();launchConfetti()}
+    else if(pct<50)failSound();
+    else beep(500,0.2,'triangle');
+}
+
+function launchConfetti(){
+    const div=document.createElement('div');div.className='confetti';document.body.appendChild(div);
+    const colors=['#f97316','#7c3aed','#10b981','#ef4444','#06b6d4','#eab308','#ec4899'];
+    for(let i=0;i<50;i++){const p=document.createElement('div');p.className='confetti-piece';p.style.left=Math.random()*100+'%';p.style.background=colors[Math.floor(Math.random()*7)];p.style.animationDelay=Math.random()*2+'s';p.style.animationDuration=(2+Math.random()*2)+'s';p.style.width=(6+Math.random()*8)+'px';p.style.height=(6+Math.random()*8)+'px';div.appendChild(p)}
+    setTimeout(()=>div.remove(),5000);
+}
+</script>
+</body>
+</html>
