@@ -155,6 +155,46 @@
         .confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 3s ease-in forwards}
         @keyframes confettiFall{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
+        /* Gardener Cutscene */
+        .cutscene-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;opacity:0;transition:opacity .5s;pointer-events:none}
+        .cutscene-overlay.show{opacity:1;pointer-events:all}
+        .cutscene-stage{width:90%;max-width:550px;height:320px;background:linear-gradient(180deg,#87CEEB 0%,#87CEEB 50%,#8B6914 50%,#6B4E12 100%);border-radius:20px;position:relative;overflow:hidden;border:3px solid var(--p);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+        .gardener{position:absolute;bottom:20%;font-size:4em;transition:all 1.5s var(--ease);right:-15%}
+        .gardener.enter{right:25%}
+        .gardener.grab{right:40%}
+        .gardener.togoal{right:5%}
+        .gardener.exit{right:-20%}
+        .basket{position:absolute;bottom:18%;font-size:2em;right:45%;opacity:0;transition:all 1.2s var(--ease)}
+        .basket.show{opacity:1}
+        .basket.grabbed{right:38%;bottom:25%}
+        .basket.atgoal{right:8%;bottom:25%}
+        .goal-posts{position:absolute;bottom:0;left:3%;width:60px;height:45%;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;transition:opacity .5s}
+        .goal-posts.show{opacity:1}
+        .goal-post-bar{background:#fff;border-radius:3px}
+        .goal-top{height:4px;width:60px}
+        .goal-left{width:4px;height:100%}
+        .goal-right{position:absolute;left:56px;width:4px;height:100%;bottom:0}
+        .goal-net{position:absolute;bottom:0;left:4px;width:52px;height:calc(100% - 4px);background:repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(255,255,255,0.15) 5px,rgba(255,255,255,0.15) 6px),repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(255,255,255,0.15) 5px,rgba(255,255,255,0.15) 6px)}
+        .laugh-bubble{position:absolute;top:8%;right:15%;background:#fff;color:#333;padding:12px 20px;border-radius:20px;font-size:1.5em;font-weight:900;opacity:0;transition:all .5s;box-shadow:0 4px 15px rgba(0,0,0,0.2)}
+        .laugh-bubble.show{opacity:1;animation:laughShake .4s ease-in-out infinite}
+        .laugh-bubble::after{content:'';position:absolute;bottom:-10px;right:30px;border-width:10px 10px 0;border-style:solid;border-color:#fff transparent transparent}
+        @keyframes laughShake{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+        .result-screen{display:none;flex-direction:column;align-items:center;gap:16px;text-align:center;padding:0 20px}
+        .result-screen.show{display:flex}
+        .result-title{font-size:2.8em;font-weight:900;text-shadow:0 4px 20px rgba(0,0,0,0.3)}
+        .result-title.win{color:#10b981}
+        .result-title.lose{color:#ef4444}
+        .result-sub{font-size:1.1em;color:var(--t2)}
+        .continue-btn{padding:14px 36px;border-radius:14px;background:var(--p);border:none;color:#fff;font-family:inherit;font-size:1.1em;font-weight:700;cursor:pointer;transition:all .3s var(--ease)}
+        .continue-btn:hover{background:var(--p3);transform:scale(1.08);box-shadow:0 8px 30px rgba(124,58,237,0.4)}
+
+        /* End Screen */
+        .end-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:3000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:15px}
+        .end-screen.show{display:flex}
+        .end-text{font-size:6em;font-weight:900;background:linear-gradient(135deg,var(--p),var(--orange),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:endPulse 2s ease-in-out infinite}
+        @keyframes endPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+        .end-sub{color:var(--t3);font-size:1.2em;font-weight:500}
+
         /* Growth bar */
         .growth-bars{display:flex;gap:6px;padding:10px 20px;background:var(--s2);border-top:1px solid var(--brd);flex-wrap:wrap;justify-content:center}
         .growth-item{display:flex;align-items:center;gap:4px;font-size:.75em;color:var(--t3)}
@@ -320,6 +360,33 @@
         </div>
         <div class="game-msg" id="gameMsg">⛏️ לחץ על האדמה כדי לחפור חורים לגזרים!</div>
     </div>
+</div>
+
+<!-- Gardener Cutscene -->
+<div class="cutscene-overlay" id="cutscene">
+    <div class="cutscene-stage" id="cutsceneStage">
+        <div class="goal-posts" id="goalPosts">
+            <div class="goal-post-bar goal-top"></div>
+            <div class="goal-post-bar goal-left"></div>
+            <div class="goal-post-bar goal-right"></div>
+            <div class="goal-net"></div>
+        </div>
+        <div class="basket" id="basket">🧺🥕🥕🥕</div>
+        <div class="gardener" id="gardener">🧑‍🌾</div>
+        <div class="laugh-bubble" id="laughBubble">😂 ההההה!</div>
+    </div>
+    <div class="result-screen" id="resultScreen">
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-sub" id="resultMsg"></div>
+        <button class="continue-btn" onclick="showEnd()">Continue ▶</button>
+    </div>
+</div>
+
+<!-- End Screen -->
+<div class="end-screen" id="endScreen">
+    <div class="end-text">END</div>
+    <div class="end-sub">🥕 תודה ששיחקת! 🥕</div>
+    <button class="continue-btn" style="margin-top:20px" onclick="closeEnd()">🔄 שחק שוב</button>
 </div>
 
 <script>
@@ -761,11 +828,10 @@ function doHarvest(x,y){
         gamePhase='done';
         score+=50;
         document.getElementById('gameScore').textContent=score;
-        document.getElementById('gameStage').textContent='ניצחון! 🏆';
-        document.getElementById('gameMsg').textContent=`🎉🥕 מדהים! קטפת את כל הגזרים! ניקוד סופי: ${score} נקודות!`;
+        document.getElementById('gameStage').textContent='קאטסצנה!';
+        document.getElementById('gameMsg').textContent='🧑‍🌾 רגע... מי זה בא?!';
         document.getElementById('toolHarvest').disabled=true;
-        winSound();
-        launchConfetti();
+        setTimeout(()=>startCutscene(),1200);
     }
 }
 
@@ -786,6 +852,113 @@ function launchConfetti(){
         div.appendChild(p);
     }
     setTimeout(()=>div.remove(),5000);
+}
+
+// === Gardener Cutscene ===
+function startCutscene(){
+    const overlay=document.getElementById('cutscene');
+    overlay.classList.add('show');
+    const gardener=document.getElementById('gardener');
+    const basket=document.getElementById('basket');
+    const goalPosts=document.getElementById('goalPosts');
+    const laughBubble=document.getElementById('laughBubble');
+
+    // Reset positions
+    gardener.className='gardener';
+    basket.className='basket';
+    goalPosts.className='goal-posts';
+    laughBubble.className='laugh-bubble';
+
+    // Step 1: Gardener enters from right
+    setTimeout(()=>{
+        gardener.classList.add('enter');
+        beep(250,0.3,'square');
+    },600);
+
+    // Step 2: Basket of carrots appears in the middle
+    setTimeout(()=>{
+        basket.classList.add('show');
+        beep(350,0.2);
+    },2200);
+
+    // Step 3: Gardener grabs the basket
+    setTimeout(()=>{
+        gardener.classList.remove('enter');
+        gardener.classList.add('grab');
+        basket.classList.add('grabbed');
+        beep(400,0.15);
+    },3500);
+
+    // Step 4: Goal appears on left side
+    setTimeout(()=>{
+        goalPosts.classList.add('show');
+    },4500);
+
+    // Step 5: Gardener carries basket to the goal
+    setTimeout(()=>{
+        gardener.classList.remove('grab');
+        gardener.classList.add('togoal');
+        basket.classList.remove('grabbed');
+        basket.classList.add('atgoal');
+        beep(500,0.2);
+    },5500);
+
+    // Step 6: Gardener laughs!
+    setTimeout(()=>{
+        laughBubble.classList.add('show');
+        beep(600,0.1);setTimeout(()=>beep(800,0.1),100);setTimeout(()=>beep(600,0.12),200);setTimeout(()=>beep(900,0.15),350);
+    },7000);
+
+    // Step 7: Gardener exits
+    setTimeout(()=>{
+        gardener.classList.remove('togoal');
+        gardener.classList.add('exit');
+        laughBubble.classList.remove('show');
+    },9000);
+
+    // Step 8: Show win/lose result
+    setTimeout(()=>{
+        const win=Math.random()>0.35; // 65% chance to win
+        const resultScreen=document.getElementById('resultScreen');
+        const resultTitle=document.getElementById('resultTitle');
+        const resultMsg=document.getElementById('resultMsg');
+        resultScreen.classList.add('show');
+
+        if(win){
+            resultTitle.textContent='🏆 YOU WIN! 🏆';
+            resultTitle.className='result-title win';
+            resultMsg.textContent='הצלחת להציל חלק מהגזרים מהגנן המתוחכם! ניקוד: '+score;
+            winSound();
+            launchConfetti();
+        }else{
+            resultTitle.textContent='💀 YOU LOSE 💀';
+            resultTitle.className='result-title lose';
+            resultMsg.textContent='הגנן גנב את כל הגזרים שלך ושם אותם כשער! 😭🥅';
+            beep(150,0.6,'sawtooth');
+        }
+    },10500);
+}
+
+function showEnd(){
+    document.getElementById('cutscene').classList.remove('show');
+    const endScreen=document.getElementById('endScreen');
+    endScreen.classList.add('show');
+    beep(500,0.3,'triangle');
+    setTimeout(()=>beep(700,0.3,'triangle'),200);
+    setTimeout(()=>beep(900,0.4,'triangle'),400);
+}
+
+function closeEnd(){
+    document.getElementById('endScreen').classList.remove('show');
+    // Reset cutscene
+    document.getElementById('gardener').className='gardener';
+    document.getElementById('basket').className='basket';
+    document.getElementById('goalPosts').className='goal-posts';
+    document.getElementById('laughBubble').className='laugh-bubble';
+    document.getElementById('resultScreen').className='result-screen';
+    harvested=0;
+    waterClicks=0;
+    resetGame();
 }
 
 // Init
