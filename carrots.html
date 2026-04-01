@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideFlow — שתילת גזרים 🥕</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#7c3aed;--p2:#a78bfa;--p3:#5b21b6;--bg:#09090b;--s1:#18181b;--s2:#1e1e24;--s3:#27272a;--t1:#fafafa;--t2:#a1a1aa;--t3:#71717a;--brd:rgba(255,255,255,0.06);--r:12px;--ease:cubic-bezier(0.16,1,0.3,1);--orange:#f97316;--green:#10b981;--brown:#92400e}
+        body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
+
+        /* Top Bar */
+        .topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--s1);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:100}
+        .back-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;font-family:inherit;font-size:.85em;font-weight:500;transition:all .2s;text-decoration:none}
+        .back-btn:hover{color:var(--t1);border-color:var(--p2)}
+        .topbar h1{font-size:1.2em;font-weight:700;flex:1}
+        .topbar h1 span{color:var(--orange)}
+
+        /* Tabs */
+        .tabs{display:flex;gap:8px;padding:16px 20px;background:var(--s1);border-bottom:1px solid var(--brd);overflow-x:auto}
+        .tab{padding:10px 20px;border-radius:12px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;font-family:inherit;font-size:.9em;font-weight:600;transition:all .3s var(--ease);white-space:nowrap}
+        .tab:hover{border-color:var(--p2);color:var(--t1)}
+        .tab.active{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+
+        /* Sections */
+        .section{display:none;padding:20px;max-width:900px;margin:0 auto}
+        .section.active{display:block}
+
+        /* ====== TAB 1: ANIMATION ====== */
+        .anim-stage{background:var(--s1);border-radius:20px;overflow:hidden;border:1px solid var(--brd);margin-bottom:20px}
+        .anim-canvas{width:100%;height:400px;position:relative;overflow:hidden;background:linear-gradient(180deg,#87CEEB 0%,#87CEEB 55%,#8B6914 55%,#6B4E12 100%)}
+        .anim-sky{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,#1a1a4e,#87CEEB)}
+        .anim-ground{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(180deg,#8B6914,#5C3D0E)}
+
+        /* Sun */
+        .sun{position:absolute;top:30px;right:50px;width:70px;height:70px;background:radial-gradient(circle,#FFD700,#FFA500);border-radius:50%;box-shadow:0 0 40px #FFD700;opacity:0;transition:opacity 1s}
+        .sun.show{opacity:1;animation:sunPulse 3s ease-in-out infinite}
+        @keyframes sunPulse{0%,100%{box-shadow:0 0 40px #FFD700}50%{box-shadow:0 0 70px #FFD700}}
+
+        /* Clouds */
+        .cloud{position:absolute;background:#fff;border-radius:50px;opacity:0.7}
+        .cloud1{top:40px;left:20%;width:100px;height:35px;animation:cloudMove 20s linear infinite}
+        .cloud2{top:70px;left:60%;width:70px;height:25px;animation:cloudMove 25s linear infinite reverse}
+        @keyframes cloudMove{0%{transform:translateX(-100px)}100%{transform:translateX(100px)}}
+
+        /* Soil rows */
+        .soil-rows{position:absolute;bottom:20%;left:10%;right:10%;height:30%;display:flex;flex-direction:column;gap:8px;justify-content:center}
+        .soil-row{height:12px;background:#5C3D0E;border-radius:6px;transform:scaleX(0);transition:transform 0.8s var(--ease)}
+        .soil-row.show{transform:scaleX(1)}
+
+        /* Seeds */
+        .seed-container{position:absolute;bottom:20%;left:10%;right:10%;height:30%;display:flex;flex-direction:column;gap:8px;justify-content:center}
+        .seed-row{display:flex;gap:20px;justify-content:center}
+        .seed{width:8px;height:8px;background:#D2691E;border-radius:50%;opacity:0;transform:translateY(-50px);transition:all 0.5s var(--ease)}
+        .seed.show{opacity:1;transform:translateY(0)}
+
+        /* Water drops */
+        .water-container{position:absolute;top:50%;left:10%;right:10%;height:30%}
+        .water-drop{position:absolute;width:6px;height:10px;background:linear-gradient(180deg,#87CEEB,#4169E1);border-radius:0 0 50% 50%;opacity:0}
+        .water-drop.show{animation:waterFall 1s ease-in forwards}
+        @keyframes waterFall{0%{opacity:1;transform:translateY(-30px)}100%{opacity:0;transform:translateY(80px)}}
+
+        /* Carrot sprouts */
+        .sprout-container{position:absolute;bottom:25%;left:10%;right:10%;height:35%}
+        .sprout{position:absolute;bottom:0;display:flex;flex-direction:column;align-items:center}
+        .sprout-leaf{width:4px;background:#228B22;border-radius:2px;transform-origin:bottom;opacity:0;transition:all 1s var(--ease)}
+        .sprout-leaf.show{opacity:1}
+        .carrot-body{width:16px;background:linear-gradient(180deg,#FF8C00,#FF6600);border-radius:0 0 8px 8px;opacity:0;transition:all 1s var(--ease);transform-origin:top}
+        .carrot-body.show{opacity:1}
+
+        /* Harvest carrots */
+        .harvest-carrot{position:absolute;font-size:3em;opacity:0;transition:all 0.8s var(--ease)}
+        .harvest-carrot.show{opacity:1;animation:harvestBounce 0.8s var(--ease)}
+        @keyframes harvestBounce{0%{transform:translateY(20px) scale(0.5)}60%{transform:translateY(-10px) scale(1.1)}100%{transform:translateY(0) scale(1)}}
+
+        .anim-controls{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--s2)}
+        .play-btn{display:flex;align-items:center;gap:8px;padding:12px 28px;border-radius:14px;background:var(--p);border:none;color:#fff;font-family:inherit;font-size:1em;font-weight:700;cursor:pointer;transition:all .3s var(--ease)}
+        .play-btn:hover{background:var(--p3);transform:scale(1.05);box-shadow:0 8px 30px rgba(124,58,237,0.3)}
+        .play-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+        .step-text{flex:1;font-size:1em;color:var(--t2);text-align:center;font-weight:500;min-height:1.5em}
+        .progress-bar{width:100%;height:6px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:8px}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--orange));border-radius:3px;transition:width 0.5s var(--ease);width:0}
+
+        /* ====== TAB 2: GUIDE ====== */
+        .guide-intro{text-align:center;padding:30px 20px;margin-bottom:20px}
+        .guide-intro h2{font-size:1.8em;font-weight:900;margin-bottom:8px}
+        .guide-intro h2 span{color:var(--orange)}
+        .guide-intro p{color:var(--t2);font-size:1em}
+
+        .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:30px}
+        .guide-card{background:var(--s1);border:1px solid var(--brd);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .3s var(--ease)}
+        .guide-card:hover{transform:translateY(-5px);box-shadow:0 12px 30px rgba(0,0,0,0.3);border-color:var(--p2)}
+        .card-emoji{font-size:3.5em;text-align:center;padding:25px 15px 10px;background:var(--s2)}
+        .card-body{padding:16px}
+        .card-body h3{font-size:1.05em;font-weight:700;margin-bottom:6px}
+        .card-body p{font-size:.85em;color:var(--t2);line-height:1.6}
+        .card-detail{max-height:0;overflow:hidden;transition:max-height .5s var(--ease);padding:0 16px}
+        .card-detail.open{max-height:300px;padding:0 16px 16px}
+        .card-detail p{font-size:.82em;color:var(--t3);line-height:1.7;border-top:1px solid var(--brd);padding-top:12px}
+        .card-tap{text-align:center;font-size:.7em;color:var(--t3);padding-bottom:12px}
+
+        .fun-facts{background:linear-gradient(135deg,var(--p3),#4338ca);border-radius:16px;padding:24px;margin-top:10px}
+        .fun-facts h3{font-size:1.1em;font-weight:700;margin-bottom:14px;color:#fff}
+        .fact{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+        .fact-emoji{font-size:1.3em;flex-shrink:0}
+        .fact p{font-size:.88em;color:rgba(255,255,255,0.85);line-height:1.5}
+
+        /* ====== TAB 3: GAME ====== */
+        .game-hud{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--s1);border-radius:14px;margin-bottom:16px;border:1px solid var(--brd)}
+        .hud-item{display:flex;align-items:center;gap:6px;font-weight:600;font-size:.95em}
+        .hud-item .emoji{font-size:1.3em}
+        .score-val{color:var(--orange);font-size:1.1em;font-weight:900}
+
+        .game-area{background:var(--s1);border-radius:20px;overflow:hidden;border:1px solid var(--brd);position:relative}
+        .game-canvas{width:100%;height:420px;position:relative;overflow:hidden;background:linear-gradient(180deg,#87CEEB 0%,#87CEEB 40%,#8B6914 40%,#6B4E12 100%);cursor:default}
+        .game-canvas.dig-mode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E⛏️%3C/text%3E%3C/svg%3E") 16 16, crosshair}
+        .game-canvas.water-mode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E🚿%3C/text%3E%3C/svg%3E") 16 16, pointer}
+        .game-canvas.harvest-mode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E✋%3C/text%3E%3C/svg%3E") 16 16, grab}
+
+        .game-sun{position:absolute;top:15px;right:30px;font-size:3em;animation:sunSpin 10s linear infinite}
+        @keyframes sunSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+        .game-tools{display:flex;gap:10px;padding:14px 20px;background:var(--s2);justify-content:center;flex-wrap:wrap}
+        .tool-btn{display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:var(--s3);border:2px solid var(--brd);color:var(--t1);font-family:inherit;font-size:.9em;font-weight:600;cursor:pointer;transition:all .3s var(--ease)}
+        .tool-btn:hover{border-color:var(--p2);transform:scale(1.05)}
+        .tool-btn.active{border-color:var(--p);background:rgba(124,58,237,0.2);box-shadow:0 0 20px rgba(124,58,237,0.2)}
+        .tool-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none}
+        .tool-btn .t-emoji{font-size:1.3em}
+
+        .game-msg{text-align:center;padding:14px;font-size:1em;color:var(--t2);font-weight:500;background:var(--s1);border-top:1px solid var(--brd)}
+
+        /* Game soil holes */
+        .hole{position:absolute;width:50px;height:20px;background:#5C3D0E;border-radius:10px;border:2px solid #4A3008;transition:all .3s;opacity:0}
+        .hole.dug{opacity:1;animation:digPop .4s var(--ease)}
+        @keyframes digPop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+
+        /* Game seeds */
+        .game-seed{position:absolute;width:10px;height:10px;background:#D2691E;border-radius:50%;opacity:0;transition:all .3s}
+        .game-seed.planted{opacity:1;animation:seedDrop .5s var(--ease)}
+        @keyframes seedDrop{0%{transform:translateY(-20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+
+        /* Game sprouts */
+        .game-sprout{position:absolute;font-size:0;transition:font-size 1s var(--ease)}
+        .game-sprout.growing{font-size:1.5em}
+        .game-sprout.ready{font-size:2.5em;cursor:pointer;animation:readyBounce 1s infinite}
+        @keyframes readyBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+        /* Water splash */
+        .splash{position:absolute;font-size:1.5em;pointer-events:none;animation:splashAnim 1s var(--ease) forwards}
+        @keyframes splashAnim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-30px) scale(1.5)}}
+
+        /* Confetti */
+        .confetti{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1000}
+        .confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 3s ease-in forwards}
+        @keyframes confettiFall{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+        /* Growth bar */
+        .growth-bars{display:flex;gap:6px;padding:10px 20px;background:var(--s2);border-top:1px solid var(--brd);flex-wrap:wrap;justify-content:center}
+        .growth-item{display:flex;align-items:center;gap:4px;font-size:.75em;color:var(--t3)}
+        .growth-bar-mini{width:40px;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+        .growth-fill{height:100%;background:var(--green);border-radius:3px;transition:width 0.5s;width:0}
+
+        /* Responsive */
+        @media(max-width:600px){
+            .anim-canvas,.game-canvas{height:300px}
+            .cards-grid{grid-template-columns:1fr}
+            .tabs{gap:6px;padding:12px}
+            .tab{padding:8px 14px;font-size:.82em}
+            .guide-intro h2{font-size:1.4em}
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <a href="index.html" class="back-btn">→ חזרה ל-SlideFlow</a>
+    <h1>🥕 איך שותלים <span>גזרים</span>?</h1>
+</div>
+
+<div class="tabs">
+    <button class="tab active" onclick="switchTab(0)">🎬 סרטון אנימציה</button>
+    <button class="tab" onclick="switchTab(1)">📸 מדריך אינטראקטיבי</button>
+    <button class="tab" onclick="switchTab(2)">🎮 משחק שתילת גזרים</button>
+</div>
+
+<!-- ====== TAB 1: ANIMATION ====== -->
+<div class="section active" id="sec0">
+    <div class="anim-stage">
+        <div class="anim-canvas" id="animCanvas">
+            <div class="anim-sky"></div>
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="sun" id="animSun"></div>
+            <div class="anim-ground"></div>
+            <div class="soil-rows" id="soilRows"></div>
+            <div class="seed-container" id="seedContainer"></div>
+            <div class="water-container" id="waterContainer"></div>
+            <div class="sprout-container" id="sproutContainer"></div>
+        </div>
+        <div class="anim-controls">
+            <button class="play-btn" id="playBtn" onclick="playAnimation()">▶️ הפעל</button>
+            <div style="flex:1">
+                <div class="step-text" id="stepText">לחץ על הפעל כדי לראות איך שותלים גזרים! 🥕</div>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== TAB 2: GUIDE ====== -->
+<div class="section" id="sec1">
+    <div class="guide-intro">
+        <h2>🌱 המדריך המלא ל<span>שתילת גזרים</span></h2>
+        <p>לחץ על כל כרטיס כדי לגלות עוד מידע!</p>
+    </div>
+    <div class="cards-grid">
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🌤️</div>
+            <div class="card-body">
+                <h3>שלב 1: בחירת העונה</h3>
+                <p>הזמן הכי טוב לשתול גזרים הוא באביב או בסתיו, כשהטמפרטורה נעימה.</p>
+            </div>
+            <div class="card-detail"><p>🌡️ הטמפרטורה האידיאלית היא 15-20 מעלות. גזרים לא אוהבים חום קיצוני! באביב שותלים מפברואר עד אפריל, ובסתיו מספטמבר עד נובמבר. בישראל, הסתיו הוא זמן מושלם!</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🪴</div>
+            <div class="card-body">
+                <h3>שלב 2: הכנת האדמה</h3>
+                <p>חפרו את האדמה לעומק 30 ס"מ ופררו אותה היטב. גזרים אוהבים אדמה רכה!</p>
+            </div>
+            <div class="card-detail"><p>⛏️ הסירו אבנים וגושים — הם יגרמו לגזר לגדול עקום! הוסיפו קומפוסט להעשרת האדמה. אדמה חולית היא הכי טובה לגזרים כי היא מנקזת מים ומאפשרת לשורש לגדול ישר למטה.</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🌱</div>
+            <div class="card-body">
+                <h3>שלב 3: שתילת הזרעים</h3>
+                <p>שתלו את הזרעים בעומק 1-2 ס"מ, במרחק 5 ס"מ אחד מהשני.</p>
+            </div>
+            <div class="card-detail"><p>📏 צרו שורות במרחק 20-30 ס"מ אחת מהשנייה. הזרעים ממש קטנטנים! אפשר לערבב אותם עם חול כדי שיהיה קל לפזר אותם באופן אחיד. כסו בשכבה דקה של אדמה.</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">💧</div>
+            <div class="card-body">
+                <h3>שלב 4: השקיה</h3>
+                <p>השקו בעדינות כל יום-יומיים. האדמה צריכה להיות לחה אבל לא טובענית!</p>
+            </div>
+            <div class="card-detail"><p>🚿 השקיה עדינה היא המפתח! אל תשטפו את הזרעים עם זרם חזק. השתמשו בממטרה עדינה או טפטוף. בקיץ — השקו כל יום. בסתיו/אביב — כל יומיים-שלושה. תמיד בבוקר או בערב, לא בשמש הקופחת!</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">☀️</div>
+            <div class="card-body">
+                <h3>שלב 5: סבלנות וטיפול</h3>
+                <p>הגזרים צריכים 70-80 ימים לגדול. בינתיים — נכשו עשבים שוטים!</p>
+            </div>
+            <div class="card-detail"><p>⏰ אחרי 2-3 שבועות תראו עלים ירוקים קטנים מציצים מהאדמה! זה הסימן שהכל עובד. תנו להם שקט, שמרו על ניקיון מעשבים, והמשיכו להשקות באופן קבוע. אחרי חודש, דללו (הוציאו) צמחים שקרובים מדי.</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🥕</div>
+            <div class="card-body">
+                <h3>שלב 6: קטיף!</h3>
+                <p>כשהחלק העליון של הגזר בולט מהאדמה ורוחבו כ-2 ס"מ — הגיע הזמן!</p>
+            </div>
+            <div class="card-detail"><p>🎉 תפסו את העלים הירוקים קרוב לאדמה ומשכו בעדינות כלפי מעלה. אם האדמה קשה, השקו קצת לפני הקטיף. גזרים טריים מהגינה טעימים פי מיליון מגזרים מהסופר! שטפו ותיהנו! 🥕✨</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+    </div>
+
+    <div class="fun-facts">
+        <h3>🤯 עובדות מטורפות על גזרים!</h3>
+        <div class="fact">
+            <div class="fact-emoji">🟣</div>
+            <div><p>גזרים לא תמיד היו כתומים! במקור הם היו סגולים, אדומים, צהובים ולבנים. ההולנדים פיתחו את הגזר הכתום במאה ה-17 לכבוד בית המלוכה!</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">👁️</div>
+            <div><p>הגזר באמת טוב לעיניים! הוא מכיל בטא-קרוטן שהגוף הופך לויטמין A, שחשוב לראייה בלילה.</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">🏆</div>
+            <div><p>הגזר הכי ארוך שנמדד אי פעם היה 6.245 מטר! גדל בבריטניה ב-2016.</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">🐰</div>
+            <div><p>בניגוד למה שחושבים, ארנבים לא אמורים לאכול הרבה גזרים! יש בהם יותר מדי סוכר לארנבים. זה הכל בגלל באגס באני! 🤣</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">🌍</div>
+            <div><p>סין היא המדינה שמגדלת הכי הרבה גזרים בעולם — כמעט חצי מכל הגזרים על פני כדור הארץ!</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== TAB 3: GAME ====== -->
+<div class="section" id="sec2">
+    <div class="game-hud">
+        <div class="hud-item"><span class="emoji">🥕</span> ניקוד: <span class="score-val" id="gameScore">0</span></div>
+        <div class="hud-item"><span class="emoji">🌱</span> גזרים: <span id="carrotCount">0</span>/9</div>
+        <div class="hud-item"><span class="emoji">📊</span> שלב: <span id="gameStage">חפירה</span></div>
+    </div>
+
+    <div class="game-area">
+        <div class="game-canvas" id="gameCanvas">
+            <div class="game-sun">☀️</div>
+            <div style="position:absolute;top:10px;left:10px;font-size:.7em;color:rgba(255,255,255,0.5)">☁️ ☁️</div>
+        </div>
+        <div class="growth-bars" id="growthBars"></div>
+        <div class="game-tools" id="gameTools">
+            <button class="tool-btn active" id="toolDig" onclick="setTool('dig')"><span class="t-emoji">⛏️</span> חפור</button>
+            <button class="tool-btn" id="toolSeed" onclick="setTool('seed')" disabled><span class="t-emoji">🌱</span> שתול</button>
+            <button class="tool-btn" id="toolWater" onclick="setTool('water')" disabled><span class="t-emoji">💧</span> השקה</button>
+            <button class="tool-btn" id="toolFast" onclick="fastForward()" disabled><span class="t-emoji">⏩</span> הרצה קדימה</button>
+            <button class="tool-btn" id="toolHarvest" onclick="setTool('harvest')" disabled><span class="t-emoji">✋</span> קטיף</button>
+            <button class="tool-btn" onclick="resetGame()"><span class="t-emoji">🔄</span> מחדש</button>
+        </div>
+        <div class="game-msg" id="gameMsg">⛏️ לחץ על האדמה כדי לחפור חורים לגזרים!</div>
+    </div>
+</div>
+
+<script>
+// === Tabs ===
+function switchTab(i){
+    document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+    document.querySelectorAll('.section').forEach((s,j)=>s.classList.toggle('active',j===i));
+}
+
+// === Guide Cards ===
+function toggleCard(card){
+    const det=card.querySelector('.card-detail');
+    det.classList.toggle('open');
+    const tap=card.querySelector('.card-tap');
+    tap.textContent=det.classList.contains('open')?'👆 לחץ לסגור':'👆 לחץ לעוד מידע';
+}
+
+// === Audio ===
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let audioCtx;
+function beep(freq,dur,type='sine'){
+    if(!audioCtx)audioCtx=new AudioCtx();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(0.15,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();o.stop(audioCtx.currentTime+dur);
+}
+function digSound(){beep(150,0.15,'square')}
+function seedSound(){beep(600,0.1,'sine')}
+function waterSound(){beep(400,0.3,'sine')}
+function growSound(){beep(500,0.2,'triangle')}
+function harvestSound(){beep(800,0.15);setTimeout(()=>beep(1000,0.15),100);setTimeout(()=>beep(1200,0.2),200)}
+function winSound(){[0,100,200,300,400].forEach((d,i)=>setTimeout(()=>beep(600+i*100,0.2,'triangle'),d))}
+
+// === Animation (Tab 1) ===
+let animPlaying=false;
+const STEPS=[
+    {text:'🌱 שלב 1: מכינים את האדמה — חופרים ומפררים!',fn:animStep1},
+    {text:'📏 שלב 2: יוצרים תלמים באדמה',fn:animStep2},
+    {text:'🌱 שלב 3: שותלים את הזרעים בתלמים!',fn:animStep3},
+    {text:'💧 שלב 4: משקים בעדינות',fn:animStep4},
+    {text:'☀️ שלב 5: שמש, מים וסבלנות!',fn:animStep5},
+    {text:'🌿 שלב 6: הגזרים גדלים!',fn:animStep6},
+    {text:'🥕 שלב 7: קטיף! אוספים את הגזרים!',fn:animStep7},
+];
+function playAnimation(){
+    if(animPlaying)return;
+    animPlaying=true;
+    document.getElementById('playBtn').disabled=true;
+    document.getElementById('playBtn').textContent='⏳ מריץ...';
+    resetAnim();
+    runStep(0);
+}
+function runStep(i){
+    if(i>=STEPS.length){
+        document.getElementById('stepText').textContent='🎉 סיימנו! עכשיו אתה יודע איך שותלים גזרים!';
+        document.getElementById('progressFill').style.width='100%';
+        document.getElementById('playBtn').disabled=false;
+        document.getElementById('playBtn').textContent='🔄 הפעל שוב';
+        animPlaying=false;
+        return;
+    }
+    document.getElementById('stepText').textContent=STEPS[i].text;
+    document.getElementById('progressFill').style.width=((i+1)/STEPS.length*100)+'%';
+    STEPS[i].fn(()=>setTimeout(()=>runStep(i+1),800));
+}
+function resetAnim(){
+    document.getElementById('soilRows').innerHTML='';
+    document.getElementById('seedContainer').innerHTML='';
+    document.getElementById('waterContainer').innerHTML='';
+    document.getElementById('sproutContainer').innerHTML='';
+    document.getElementById('animSun').classList.remove('show');
+    document.querySelectorAll('.harvest-carrot').forEach(e=>e.remove());
+}
+function animStep1(cb){
+    const g=document.getElementById('anim-canvas');
+    // Shake the ground a bit
+    const ground=document.querySelector('.anim-ground');
+    ground.style.transition='transform 0.1s';
+    let shakes=0;
+    const si=setInterval(()=>{
+        ground.style.transform=`translateX(${shakes%2?3:-3}px)`;
+        shakes++;
+        if(shakes>8){clearInterval(si);ground.style.transform='';digSound();cb();}
+    },100);
+}
+function animStep2(cb){
+    const sr=document.getElementById('soilRows');
+    sr.innerHTML='';
+    for(let i=0;i<4;i++){
+        const row=document.createElement('div');
+        row.className='soil-row';
+        sr.appendChild(row);
+        setTimeout(()=>{row.classList.add('show');digSound()},i*300);
+    }
+    setTimeout(cb,1500);
+}
+function animStep3(cb){
+    const sc=document.getElementById('seedContainer');
+    sc.innerHTML='';
+    for(let r=0;r<4;r++){
+        const row=document.createElement('div');
+        row.className='seed-row';
+        for(let s=0;s<6;s++){
+            const seed=document.createElement('div');
+            seed.className='seed';
+            row.appendChild(seed);
+            setTimeout(()=>{seed.classList.add('show');seedSound()},r*300+s*100);
+        }
+        sc.appendChild(row);
+    }
+    setTimeout(cb,2500);
+}
+function animStep4(cb){
+    const wc=document.getElementById('waterContainer');
+    wc.innerHTML='';
+    for(let i=0;i<20;i++){
+        const drop=document.createElement('div');
+        drop.className='water-drop';
+        drop.style.left=Math.random()*90+'%';
+        drop.style.top=Math.random()*20+'%';
+        wc.appendChild(drop);
+        setTimeout(()=>{drop.classList.add('show');if(i%4===0)waterSound()},i*150);
+    }
+    setTimeout(cb,3500);
+}
+function animStep5(cb){
+    document.getElementById('animSun').classList.add('show');
+    setTimeout(cb,2000);
+}
+function animStep6(cb){
+    const sc=document.getElementById('sproutContainer');
+    sc.innerHTML='';
+    const positions=[15,25,35,45,55,65,75,85];
+    positions.forEach((x,i)=>{
+        const s=document.createElement('div');
+        s.className='sprout';
+        s.style.left=x+'%';
+        const leaf=document.createElement('div');
+        leaf.className='sprout-leaf';
+        leaf.style.height='0px';
+        s.appendChild(leaf);
+        const carrot=document.createElement('div');
+        carrot.className='carrot-body';
+        carrot.style.height='0px';
+        s.appendChild(carrot);
+        sc.appendChild(s);
+        setTimeout(()=>{
+            leaf.classList.add('show');
+            leaf.style.height='30px';
+            growSound();
+        },i*200);
+        setTimeout(()=>{
+            carrot.classList.add('show');
+            carrot.style.height='25px';
+        },i*200+500);
+    });
+    setTimeout(cb,3000);
+}
+function animStep7(cb){
+    const canvas=document.getElementById('animCanvas');
+    const positions=[15,25,35,45,55,65,75,85];
+    positions.forEach((x,i)=>{
+        setTimeout(()=>{
+            const c=document.createElement('div');
+            c.className='harvest-carrot';
+            c.textContent='🥕';
+            c.style.left=x+'%';
+            c.style.bottom=(30+Math.random()*20)+'%';
+            canvas.appendChild(c);
+            setTimeout(()=>c.classList.add('show'),50);
+            harvestSound();
+        },i*200);
+    });
+    setTimeout(cb,2500);
+}
+
+// === Game (Tab 3) ===
+let gameTool='dig';
+let holes=[];
+let seeds=[];
+let watered=false;
+let growing=false;
+let growthProgress=[];
+let score=0;
+let gamePhase='dig'; // dig, seed, water, grow, harvest, done
+
+const HOLE_POSITIONS=[
+    {x:15,y:55},{x:30,y:55},{x:45,y:55},
+    {x:60,y:55},{x:75,y:55},{x:90,y:55},
+    {x:22,y:70},{x:52,y:70},{x:82,y:70}
+];
+
+function resetGame(){
+    holes=[];seeds=[];watered=false;growing=false;growthProgress=[];score=0;gamePhase='dig';gameTool='dig';
+    document.getElementById('gameScore').textContent='0';
+    document.getElementById('carrotCount').textContent='0';
+    document.getElementById('gameStage').textContent='חפירה';
+    document.getElementById('gameMsg').textContent='⛏️ לחץ על האדמה כדי לחפור חורים לגזרים!';
+    document.getElementById('gameCanvas').className='game-canvas dig-mode';
+    document.getElementById('toolDig').classList.add('active');
+    document.getElementById('toolDig').disabled=false;
+    document.getElementById('toolSeed').classList.remove('active');document.getElementById('toolSeed').disabled=true;
+    document.getElementById('toolWater').classList.remove('active');document.getElementById('toolWater').disabled=true;
+    document.getElementById('toolFast').disabled=true;
+    document.getElementById('toolHarvest').classList.remove('active');document.getElementById('toolHarvest').disabled=true;
+    document.getElementById('gameCanvas').innerHTML='<div class="game-sun">☀️</div><div style="position:absolute;top:10px;left:10px;font-size:.7em;color:rgba(255,255,255,0.5)">☁️ ☁️</div>';
+    document.getElementById('growthBars').innerHTML='';
+}
+
+function setTool(t){
+    gameTool=t;
+    document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+    const btn=document.getElementById('tool'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn)btn.classList.add('active');
+    const canvas=document.getElementById('gameCanvas');
+    canvas.className='game-canvas';
+    if(t==='dig')canvas.classList.add('dig-mode');
+    if(t==='water')canvas.classList.add('water-mode');
+    if(t==='harvest')canvas.classList.add('harvest-mode');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('gameCanvas').addEventListener('click',onGameClick);
+});
+
+function onGameClick(e){
+    const rect=e.currentTarget.getBoundingClientRect();
+    const xPct=(e.clientX-rect.left)/rect.width*100;
+    const yPct=(e.clientY-rect.top)/rect.height*100;
+
+    if(yPct<40)return; // clicked sky
+
+    if(gameTool==='dig'&&gamePhase==='dig'){
+        doDig(xPct,yPct);
+    }else if(gameTool==='seed'&&gamePhase==='seed'){
+        doSeed(xPct,yPct);
+    }else if(gameTool==='water'&&gamePhase==='water'){
+        doWater(xPct,yPct);
+    }else if(gameTool==='harvest'&&gamePhase==='harvest'){
+        doHarvest(xPct,yPct);
+    }
+}
+
+function doDig(x,y){
+    if(holes.length>=9)return;
+    // Snap to closest position
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(holes.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>20)return;
+    const pos=HOLE_POSITIONS[closest];
+    const hole=document.createElement('div');
+    hole.className='hole';
+    hole.style.left=(pos.x-3)+'%';
+    hole.style.top=(pos.y-1)+'%';
+    document.getElementById('gameCanvas').appendChild(hole);
+    setTimeout(()=>hole.classList.add('dug'),50);
+    holes.push({idx:closest,el:hole});
+    digSound();
+    score+=5;
+    document.getElementById('gameScore').textContent=score;
+
+    if(holes.length>=9){
+        gamePhase='seed';
+        document.getElementById('toolDig').disabled=true;
+        document.getElementById('toolSeed').disabled=false;
+        setTool('seed');
+        document.getElementById('gameStage').textContent='שתילה';
+        document.getElementById('gameMsg').textContent='🌱 מעולה! עכשיו לחץ על החורים כדי לשתול זרעים!';
+    }else{
+        document.getElementById('gameMsg').textContent=`⛏️ חפרת ${holes.length}/9 חורים! המשך לחפור!`;
+    }
+}
+
+function doSeed(x,y){
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(seeds.find(s=>s.idx===i))return;
+        if(!holes.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const pos=HOLE_POSITIONS[closest];
+    const seed=document.createElement('div');
+    seed.className='game-seed';
+    seed.style.left=(pos.x-0.5)+'%';
+    seed.style.top=(pos.y)+'%';
+    document.getElementById('gameCanvas').appendChild(seed);
+    setTimeout(()=>seed.classList.add('planted'),50);
+    seeds.push({idx:closest,el:seed});
+    seedSound();
+    score+=5;
+    document.getElementById('gameScore').textContent=score;
+
+    if(seeds.length>=9){
+        gamePhase='water';
+        document.getElementById('toolSeed').disabled=true;
+        document.getElementById('toolWater').disabled=false;
+        setTool('water');
+        document.getElementById('gameStage').textContent='השקיה';
+        document.getElementById('gameMsg').textContent='💧 יופי! עכשיו לחץ כדי להשקות את הגזרים!';
+    }else{
+        document.getElementById('gameMsg').textContent=`🌱 שתלת ${seeds.length}/9 זרעים!`;
+    }
+    document.getElementById('carrotCount').textContent=seeds.length;
+}
+
+let waterClicks=0;
+function doWater(x,y){
+    // Add splash
+    const splash=document.createElement('div');
+    splash.className='splash';
+    splash.textContent='💧';
+    splash.style.left=x+'%';
+    splash.style.top=y+'%';
+    document.getElementById('gameCanvas').appendChild(splash);
+    setTimeout(()=>splash.remove(),1000);
+    waterSound();
+    waterClicks++;
+
+    if(waterClicks>=5){
+        gamePhase='grow';
+        document.getElementById('toolWater').disabled=true;
+        document.getElementById('toolFast').disabled=false;
+        document.getElementById('gameStage').textContent='גדילה';
+        document.getElementById('gameMsg').textContent='⏩ הגזרים גדלים! לחץ "הרצה קדימה" כדי להאיץ!';
+        score+=10;
+        document.getElementById('gameScore').textContent=score;
+        startGrowing();
+        waterClicks=0;
+    }else{
+        document.getElementById('gameMsg').textContent=`💧 השקית ${waterClicks}/5 פעמים! המשך להשקות!`;
+    }
+}
+
+function startGrowing(){
+    growthProgress=seeds.map(()=>0);
+    renderGrowthBars();
+    seeds.forEach((s,i)=>{
+        const pos=HOLE_POSITIONS[s.idx];
+        const sprout=document.createElement('div');
+        sprout.className='game-sprout';
+        sprout.textContent='🌱';
+        sprout.id='sprout-'+i;
+        sprout.style.left=(pos.x-1)+'%';
+        sprout.style.top=(pos.y-5)+'%';
+        document.getElementById('gameCanvas').appendChild(sprout);
+        setTimeout(()=>sprout.classList.add('growing'),100);
+    });
+    growInterval=setInterval(()=>{
+        let allDone=true;
+        growthProgress=growthProgress.map((g,i)=>{
+            const newG=Math.min(100,g+Math.random()*3+1);
+            if(newG<100)allDone=false;
+            const sprout=document.getElementById('sprout-'+i);
+            if(sprout){
+                if(newG>=100){
+                    sprout.textContent='🥕';
+                    sprout.classList.remove('growing');
+                    sprout.classList.add('ready');
+                }else if(newG>=60){
+                    sprout.textContent='🌿';
+                }
+            }
+            return newG;
+        });
+        renderGrowthBars();
+        if(allDone){
+            clearInterval(growInterval);
+            gamePhase='harvest';
+            document.getElementById('toolFast').disabled=true;
+            document.getElementById('toolHarvest').disabled=false;
+            setTool('harvest');
+            document.getElementById('gameStage').textContent='קטיף!';
+            document.getElementById('gameMsg').textContent='🥕 הגזרים מוכנים! לחץ עליהם כדי לקטוף!';
+            growSound();
+        }
+    },500);
+}
+
+let growInterval;
+function fastForward(){
+    if(gamePhase!=='grow')return;
+    growthProgress=growthProgress.map((g,i)=>{
+        const newG=Math.min(100,g+25);
+        const sprout=document.getElementById('sprout-'+i);
+        if(sprout){
+            if(newG>=100){sprout.textContent='🥕';sprout.classList.remove('growing');sprout.classList.add('ready')}
+            else if(newG>=60){sprout.textContent='🌿'}
+        }
+        return newG;
+    });
+    renderGrowthBars();
+    growSound();
+    score+=5;
+    document.getElementById('gameScore').textContent=score;
+}
+
+function renderGrowthBars(){
+    const gb=document.getElementById('growthBars');
+    gb.innerHTML=growthProgress.map((g,i)=>`
+        <div class="growth-item">🥕${i+1} <div class="growth-bar-mini"><div class="growth-fill" style="width:${g}%"></div></div> ${Math.round(g)}%</div>
+    `).join('');
+}
+
+let harvested=0;
+function doHarvest(x,y){
+    // Find closest ready sprout
+    let closest=null,minDist=999;
+    seeds.forEach((s,i)=>{
+        if(growthProgress[i]<100)return;
+        const sprout=document.getElementById('sprout-'+i);
+        if(!sprout||sprout.dataset.harvested)return;
+        const pos=HOLE_POSITIONS[s.idx];
+        const d=Math.sqrt((pos.x-x)**2+(pos.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const sprout=document.getElementById('sprout-'+closest);
+    sprout.dataset.harvested='1';
+    sprout.style.transition='all 0.5s';
+    sprout.style.transform='translateY(-40px) scale(1.5)';
+    sprout.style.opacity='0';
+    setTimeout(()=>sprout.remove(),500);
+    harvestSound();
+    harvested++;
+    score+=15;
+    document.getElementById('gameScore').textContent=score;
+    document.getElementById('gameMsg').textContent=`🥕 קטפת ${harvested}/9 גזרים!`;
+
+    if(harvested>=9){
+        gamePhase='done';
+        score+=50;
+        document.getElementById('gameScore').textContent=score;
+        document.getElementById('gameStage').textContent='ניצחון! 🏆';
+        document.getElementById('gameMsg').textContent=`🎉🥕 מדהים! קטפת את כל הגזרים! ניקוד סופי: ${score} נקודות!`;
+        document.getElementById('toolHarvest').disabled=true;
+        winSound();
+        launchConfetti();
+    }
+}
+
+function launchConfetti(){
+    const div=document.createElement('div');
+    div.className='confetti';
+    document.body.appendChild(div);
+    const colors=['#f97316','#7c3aed','#10b981','#ef4444','#06b6d4','#eab308','#ec4899'];
+    for(let i=0;i<60;i++){
+        const p=document.createElement('div');
+        p.className='confetti-piece';
+        p.style.left=Math.random()*100+'%';
+        p.style.background=colors[Math.floor(Math.random()*colors.length)];
+        p.style.animationDelay=Math.random()*2+'s';
+        p.style.animationDuration=(2+Math.random()*2)+'s';
+        p.style.width=(6+Math.random()*8)+'px';
+        p.style.height=(6+Math.random()*8)+'px';
+        div.appendChild(p);
+    }
+    setTimeout(()=>div.remove(),5000);
+}
+
+// Init
+resetGame();
+</script>
+</body>
+</html>
