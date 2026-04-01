@@ -158,24 +158,57 @@
         /* Gardener Cutscene */
         .cutscene-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;opacity:0;transition:opacity .5s;pointer-events:none}
         .cutscene-overlay.show{opacity:1;pointer-events:all}
-        .cutscene-stage{width:90%;max-width:550px;height:320px;background:linear-gradient(180deg,#87CEEB 0%,#87CEEB 50%,#8B6914 50%,#6B4E12 100%);border-radius:20px;position:relative;overflow:hidden;border:3px solid var(--p);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
-        .gardener{position:absolute;bottom:20%;font-size:4em;transition:all 1.5s var(--ease);right:-15%}
-        .gardener.enter{right:25%}
-        .gardener.grab{right:40%}
-        .gardener.togoal{right:5%}
-        .gardener.exit{right:-20%}
-        .basket{position:absolute;bottom:18%;font-size:2em;right:45%;opacity:0;transition:all 1.2s var(--ease)}
-        .basket.show{opacity:1}
-        .basket.grabbed{right:38%;bottom:25%}
-        .basket.atgoal{right:8%;bottom:25%}
-        .goal-posts{position:absolute;bottom:0;left:3%;width:60px;height:45%;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;transition:opacity .5s}
-        .goal-posts.show{opacity:1}
-        .goal-post-bar{background:#fff;border-radius:3px}
-        .goal-top{height:4px;width:60px}
-        .goal-left{width:4px;height:100%}
-        .goal-right{position:absolute;left:56px;width:4px;height:100%;bottom:0}
-        .goal-net{position:absolute;bottom:0;left:4px;width:52px;height:calc(100% - 4px);background:repeating-linear-gradient(45deg,transparent,transparent 5px,rgba(255,255,255,0.15) 5px,rgba(255,255,255,0.15) 6px),repeating-linear-gradient(-45deg,transparent,transparent 5px,rgba(255,255,255,0.15) 5px,rgba(255,255,255,0.15) 6px)}
-        .laugh-bubble{position:absolute;top:8%;right:15%;background:#fff;color:#333;padding:12px 20px;border-radius:20px;font-size:1.5em;font-weight:900;opacity:0;transition:all .5s;box-shadow:0 4px 15px rgba(0,0,0,0.2)}
+        .cutscene-stage{width:90%;max-width:550px;height:320px;background:linear-gradient(180deg,#5BA3E6 0%,#87CEEB 40%,#7CB342 40%,#558B2F 42%,#8B6914 42%,#6B4E12 100%);border-radius:20px;position:relative;overflow:hidden;border:3px solid var(--p);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+
+        /* CSS Gardener - 3D style */
+        .gardener-wrap{position:absolute;bottom:15%;right:-18%;transition:all 1.5s var(--ease);transform:perspective(600px) rotateY(-5deg);filter:drop-shadow(4px 4px 8px rgba(0,0,0,0.4))}
+        .gardener-wrap.enter{right:22%}
+        .gardener-wrap.grab{right:38%}
+        .gardener-wrap.togoal{right:2%}
+        .gardener-wrap.exit{right:-20%}
+        .g-body{width:40px;height:50px;background:linear-gradient(180deg,#4CAF50,#388E3C);border-radius:8px 8px 4px 4px;position:relative;box-shadow:inset -5px 0 10px rgba(0,0,0,0.15),2px 2px 6px rgba(0,0,0,0.3)}
+        .g-head{width:32px;height:32px;background:linear-gradient(135deg,#FFCC80,#FFB74D);border-radius:50%;position:absolute;top:-28px;left:4px;box-shadow:inset -4px -2px 8px rgba(0,0,0,0.1),2px 1px 4px rgba(0,0,0,0.2)}
+        .g-hat{width:40px;height:14px;background:linear-gradient(180deg,#795548,#5D4037);border-radius:20px 20px 4px 4px;position:absolute;top:-38px;left:0;box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+        .g-hat::after{content:'';position:absolute;bottom:-4px;left:-6px;width:52px;height:6px;background:linear-gradient(180deg,#6D4C41,#4E342E);border-radius:3px;box-shadow:0 2px 3px rgba(0,0,0,0.2)}
+        .g-eyes{position:absolute;top:-20px;left:10px;display:flex;gap:8px}
+        .g-eye{width:5px;height:5px;background:#333;border-radius:50%}
+        .g-smile{position:absolute;top:-13px;left:13px;width:12px;height:6px;border:2px solid #333;border-top:none;border-radius:0 0 8px 8px}
+        .g-laugh .g-smile{border-radius:0 0 10px 10px;height:8px;background:#fff;border-color:#333}
+        .g-arm{width:8px;height:30px;background:linear-gradient(180deg,#4CAF50,#388E3C);border-radius:4px;position:absolute;top:5px;transform-origin:top center;box-shadow:1px 1px 3px rgba(0,0,0,0.2)}
+        .g-arm-l{left:-8px;transform:rotate(15deg)}
+        .g-arm-r{right:-8px;transform:rotate(-15deg)}
+        .g-arm-r.grab-arm{transform:rotate(-45deg)}
+        .g-leg{width:10px;height:22px;background:linear-gradient(180deg,#5D4037,#4E342E);border-radius:3px 3px 5px 5px;position:absolute;bottom:-20px;box-shadow:1px 2px 3px rgba(0,0,0,0.3)}
+        .g-leg-l{left:6px}
+        .g-leg-r{right:6px}
+        .g-hand{width:10px;height:10px;background:#FFCC80;border-radius:50%;position:absolute;bottom:-3px;left:-1px;box-shadow:1px 1px 2px rgba(0,0,0,0.2)}
+
+        /* CSS Basket - 3D style */
+        .basket-wrap{position:absolute;bottom:12%;right:42%;opacity:0;transition:all 1.2s var(--ease);filter:drop-shadow(3px 3px 6px rgba(0,0,0,0.4))}
+        .basket-wrap.show{opacity:1}
+        .basket-wrap.grabbed{right:35%;bottom:18%}
+        .basket-wrap.atgoal{right:5%;bottom:18%}
+        .bsk-body{width:50px;height:30px;background:linear-gradient(180deg,#D2691E,#A0522D);border-radius:0 0 10px 10px;position:relative;box-shadow:inset -4px 0 8px rgba(0,0,0,0.15),2px 3px 6px rgba(0,0,0,0.3);overflow:hidden}
+        .bsk-body::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 5px,rgba(0,0,0,0.1) 5px,rgba(0,0,0,0.1) 6px)}
+        .bsk-handle{width:34px;height:14px;border:3px solid #8B4513;border-bottom:none;border-radius:14px 14px 0 0;position:absolute;top:-12px;left:8px}
+        .bsk-carrot{position:absolute;top:-8px;transform-origin:bottom center}
+        .bsk-carrot-shape{width:8px;height:20px;background:linear-gradient(180deg,#FF8C00,#FF6600,#E65100);border-radius:2px 2px 4px 4px;position:relative;box-shadow:1px 1px 2px rgba(0,0,0,0.2)}
+        .bsk-carrot-leaf{width:10px;height:8px;background:#4CAF50;border-radius:50%;position:absolute;top:-6px;left:-1px}
+        .bsk-c1{left:8px;transform:rotate(-10deg)}
+        .bsk-c2{left:20px;transform:rotate(5deg)}
+        .bsk-c3{left:32px;transform:rotate(12deg)}
+
+        /* CSS Goal - 3D perspective */
+        .goal-wrap{position:absolute;bottom:5%;left:2%;width:70px;height:55%;opacity:0;transition:opacity .5s;transform:perspective(400px) rotateY(10deg);filter:drop-shadow(3px 3px 8px rgba(0,0,0,0.4))}
+        .goal-wrap.show{opacity:1}
+        .goal-frame{width:100%;height:100%;position:relative}
+        .goal-crossbar{position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(180deg,#fff,#ddd);border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+        .goal-pole-l{position:absolute;top:0;left:0;width:6px;height:100%;background:linear-gradient(90deg,#fff,#ccc);border-radius:3px;box-shadow:2px 0 4px rgba(0,0,0,0.2)}
+        .goal-pole-r{position:absolute;top:0;right:0;width:6px;height:100%;background:linear-gradient(90deg,#ccc,#fff);border-radius:3px;box-shadow:-2px 0 4px rgba(0,0,0,0.2)}
+        .goal-net-mesh{position:absolute;top:6px;left:6px;right:6px;bottom:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,0.12) 4px,rgba(255,255,255,0.12) 5px),repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,0.12) 4px,rgba(255,255,255,0.12) 5px);border-radius:0 0 4px 4px}
+        .goal-depth{position:absolute;top:0;right:-15px;width:15px;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0.05),transparent);border-top:6px solid rgba(200,200,200,0.5);transform:perspective(200px) rotateY(-25deg);transform-origin:left}
+
+        .laugh-bubble{position:absolute;top:6%;right:12%;background:linear-gradient(135deg,#fff,#f0f0f0);color:#333;padding:12px 20px;border-radius:20px;font-size:1.3em;font-weight:900;opacity:0;transition:all .5s;box-shadow:0 6px 20px rgba(0,0,0,0.3)}
         .laugh-bubble.show{opacity:1;animation:laughShake .4s ease-in-out infinite}
         .laugh-bubble::after{content:'';position:absolute;bottom:-10px;right:30px;border-width:10px 10px 0;border-style:solid;border-color:#fff transparent transparent}
         @keyframes laughShake{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
@@ -362,18 +395,40 @@
     </div>
 </div>
 
-<!-- Gardener Cutscene -->
+<!-- Gardener Cutscene (CSS 3D) -->
 <div class="cutscene-overlay" id="cutscene">
     <div class="cutscene-stage" id="cutsceneStage">
-        <div class="goal-posts" id="goalPosts">
-            <div class="goal-post-bar goal-top"></div>
-            <div class="goal-post-bar goal-left"></div>
-            <div class="goal-post-bar goal-right"></div>
-            <div class="goal-net"></div>
+        <!-- 3D Goal -->
+        <div class="goal-wrap" id="goalWrap">
+            <div class="goal-frame">
+                <div class="goal-crossbar"></div>
+                <div class="goal-pole-l"></div>
+                <div class="goal-pole-r"></div>
+                <div class="goal-net-mesh"></div>
+                <div class="goal-depth"></div>
+            </div>
         </div>
-        <div class="basket" id="basket">🧺🥕🥕🥕</div>
-        <div class="gardener" id="gardener">🧑‍🌾</div>
-        <div class="laugh-bubble" id="laughBubble">😂 ההההה!</div>
+        <!-- 3D Basket with carrots -->
+        <div class="basket-wrap" id="basketWrap">
+            <div class="bsk-carrot bsk-c1"><div class="bsk-carrot-shape"><div class="bsk-carrot-leaf"></div></div></div>
+            <div class="bsk-carrot bsk-c2"><div class="bsk-carrot-shape"><div class="bsk-carrot-leaf"></div></div></div>
+            <div class="bsk-carrot bsk-c3"><div class="bsk-carrot-shape"><div class="bsk-carrot-leaf"></div></div></div>
+            <div class="bsk-body"><div class="bsk-handle"></div></div>
+        </div>
+        <!-- 3D Gardener -->
+        <div class="gardener-wrap" id="gardenerWrap">
+            <div class="g-body">
+                <div class="g-hat"></div>
+                <div class="g-head"></div>
+                <div class="g-eyes"><div class="g-eye"></div><div class="g-eye"></div></div>
+                <div class="g-smile"></div>
+                <div class="g-arm g-arm-l"><div class="g-hand"></div></div>
+                <div class="g-arm g-arm-r" id="gArmR"><div class="g-hand"></div></div>
+                <div class="g-leg g-leg-l"></div>
+                <div class="g-leg g-leg-r"></div>
+            </div>
+        </div>
+        <div class="laugh-bubble" id="laughBubble">ההההה!</div>
     </div>
     <div class="result-screen" id="resultScreen">
         <div class="result-title" id="resultTitle"></div>
@@ -385,8 +440,8 @@
 <!-- End Screen -->
 <div class="end-screen" id="endScreen">
     <div class="end-text">END</div>
-    <div class="end-sub">🥕 תודה ששיחקת! 🥕</div>
-    <button class="continue-btn" style="margin-top:20px" onclick="closeEnd()">🔄 שחק שוב</button>
+    <div class="end-sub">תודה ששיחקת!</div>
+    <button class="continue-btn" style="margin-top:20px" onclick="closeEnd()">שחק שוב</button>
 </div>
 
 <script>
@@ -854,20 +909,23 @@ function launchConfetti(){
     setTimeout(()=>div.remove(),5000);
 }
 
-// === Gardener Cutscene ===
+// === Gardener Cutscene (3D CSS) ===
 function startCutscene(){
     const overlay=document.getElementById('cutscene');
     overlay.classList.add('show');
-    const gardener=document.getElementById('gardener');
-    const basket=document.getElementById('basket');
-    const goalPosts=document.getElementById('goalPosts');
+    const gardener=document.getElementById('gardenerWrap');
+    const basket=document.getElementById('basketWrap');
+    const goalWrap=document.getElementById('goalWrap');
     const laughBubble=document.getElementById('laughBubble');
+    const armR=document.getElementById('gArmR');
 
     // Reset positions
-    gardener.className='gardener';
-    basket.className='basket';
-    goalPosts.className='goal-posts';
+    gardener.className='gardener-wrap';
+    basket.className='basket-wrap';
+    goalWrap.className='goal-wrap';
     laughBubble.className='laugh-bubble';
+    armR.classList.remove('grab-arm');
+    gardener.querySelector('.g-body').classList.remove('g-laugh');
 
     // Step 1: Gardener enters from right
     setTimeout(()=>{
@@ -886,12 +944,13 @@ function startCutscene(){
         gardener.classList.remove('enter');
         gardener.classList.add('grab');
         basket.classList.add('grabbed');
+        armR.classList.add('grab-arm');
         beep(400,0.15);
     },3500);
 
     // Step 4: Goal appears on left side
     setTimeout(()=>{
-        goalPosts.classList.add('show');
+        goalWrap.classList.add('show');
     },4500);
 
     // Step 5: Gardener carries basket to the goal
@@ -906,6 +965,7 @@ function startCutscene(){
     // Step 6: Gardener laughs!
     setTimeout(()=>{
         laughBubble.classList.add('show');
+        gardener.querySelector('.g-body').classList.add('g-laugh');
         beep(600,0.1);setTimeout(()=>beep(800,0.1),100);setTimeout(()=>beep(600,0.12),200);setTimeout(()=>beep(900,0.15),350);
     },7000);
 
@@ -925,15 +985,15 @@ function startCutscene(){
         resultScreen.classList.add('show');
 
         if(win){
-            resultTitle.textContent='🏆 YOU WIN! 🏆';
+            resultTitle.textContent='YOU WIN!';
             resultTitle.className='result-title win';
             resultMsg.textContent='הצלחת להציל חלק מהגזרים מהגנן המתוחכם! ניקוד: '+score;
             winSound();
             launchConfetti();
         }else{
-            resultTitle.textContent='💀 YOU LOSE 💀';
+            resultTitle.textContent='YOU LOSE';
             resultTitle.className='result-title lose';
-            resultMsg.textContent='הגנן גנב את כל הגזרים שלך ושם אותם כשער! 😭🥅';
+            resultMsg.textContent='הגנן גנב את כל הגזרים שלך ושם אותם כשער!';
             beep(150,0.6,'sawtooth');
         }
     },10500);
@@ -951,11 +1011,12 @@ function showEnd(){
 function closeEnd(){
     document.getElementById('endScreen').classList.remove('show');
     // Reset cutscene
-    document.getElementById('gardener').className='gardener';
-    document.getElementById('basket').className='basket';
-    document.getElementById('goalPosts').className='goal-posts';
+    document.getElementById('gardenerWrap').className='gardener-wrap';
+    document.getElementById('basketWrap').className='basket-wrap';
+    document.getElementById('goalWrap').className='goal-wrap';
     document.getElementById('laughBubble').className='laugh-bubble';
     document.getElementById('resultScreen').className='result-screen';
+    document.getElementById('gArmR').classList.remove('grab-arm');
     harvested=0;
     waterClicks=0;
     resetGame();
