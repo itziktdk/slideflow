@@ -79,6 +79,20 @@
         .play-btn:hover{background:var(--p3);transform:scale(1.05);box-shadow:0 8px 30px rgba(124,58,237,0.3)}
         .play-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
         .step-text{flex:1;font-size:1em;color:var(--t2);text-align:center;font-weight:500;min-height:1.5em}
+
+        /* Animation choice menu */
+        .anim-choice{position:absolute;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:10;border-radius:inherit}
+        .anim-choice.show{display:flex}
+        .anim-choice h3{color:#fff;font-size:1.3em;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
+        .choice-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+        .choice-btn{padding:14px 24px;border-radius:14px;border:2px solid var(--brd);background:var(--s2);color:var(--t1);font-family:inherit;font-size:1em;font-weight:700;cursor:pointer;transition:all .3s var(--ease);min-width:120px}
+        .choice-btn:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.3)}
+        .choice-btn.ch-guide{border-color:#10b981;background:rgba(16,185,129,0.15)}
+        .choice-btn.ch-guide:hover{background:rgba(16,185,129,0.3);box-shadow:0 8px 25px rgba(16,185,129,0.2)}
+        .choice-btn.ch-win{border-color:#7c3aed;background:rgba(124,58,237,0.15)}
+        .choice-btn.ch-win:hover{background:rgba(124,58,237,0.3);box-shadow:0 8px 25px rgba(124,58,237,0.2)}
+        .choice-btn.ch-lose{border-color:#ef4444;background:rgba(239,68,68,0.15)}
+        .choice-btn.ch-lose:hover{background:rgba(239,68,68,0.3);box-shadow:0 8px 25px rgba(239,68,68,0.2)}
         .progress-bar{width:100%;height:6px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:8px}
         .progress-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--orange));border-radius:3px;transition:width 0.5s var(--ease);width:0}
 
@@ -332,6 +346,14 @@
 <div class="section active" id="sec0">
     <div class="anim-stage">
         <div class="anim-canvas" id="animCanvas">
+            <div class="anim-choice" id="animChoice">
+                <h3>🎬 מה תרצה לראות?</h3>
+                <div class="choice-btns">
+                    <button class="choice-btn ch-guide" onclick="startAnimMode('guide')">🌱 מדריך שתילה</button>
+                    <button class="choice-btn ch-win" onclick="startAnimMode('win')">🏆 סיום ניצחון</button>
+                    <button class="choice-btn ch-lose" onclick="startAnimMode('lose')">💀 סיום הפסד</button>
+                </div>
+            </div>
             <div class="anim-sky"></div>
             <div class="cloud cloud1"></div>
             <div class="cloud cloud2"></div>
@@ -612,6 +634,7 @@ function winSound(){[0,100,200,300,400].forEach((d,i)=>setTimeout(()=>beep(600+i
 
 // === Animation (Tab 1) ===
 let animPlaying=false;
+let animMode='guide'; // guide, win, lose
 const STEPS=[
     {text:'🌱 שלב 1: מכינים את האדמה — חופרים ומפררים!',fn:animStep1},
     {text:'📏 שלב 2: יוצרים תלמים באדמה',fn:animStep2},
@@ -623,11 +646,45 @@ const STEPS=[
 ];
 function playAnimation(){
     if(animPlaying)return;
-    animPlaying=true;
+    // Show choice menu
+    document.getElementById('animChoice').classList.add('show');
     document.getElementById('playBtn').disabled=true;
+}
+function startAnimMode(mode){
+    animMode=mode;
+    document.getElementById('animChoice').classList.remove('show');
+    animPlaying=true;
     document.getElementById('playBtn').textContent='⏳ מריץ...';
     resetAnim();
-    runStep(0);
+    if(mode==='guide'){
+        runStep(0);
+    }else{
+        // For win/lose: play quick planting animation then cutscene
+        document.getElementById('stepText').textContent='🌱 שותלים גזרים...';
+        document.getElementById('progressFill').style.width='20%';
+        animStep2(()=>{
+            document.getElementById('stepText').textContent='💧 משקים...';
+            document.getElementById('progressFill').style.width='40%';
+            animStep4(()=>{
+                document.getElementById('stepText').textContent='🌿 הגזרים גדלים...';
+                document.getElementById('progressFill').style.width='60%';
+                animStep6(()=>{
+                    document.getElementById('stepText').textContent='🥕 קוטפים!';
+                    document.getElementById('progressFill').style.width='80%';
+                    animStep7(()=>{
+                        document.getElementById('stepText').textContent=mode==='win'?'🏆 וזה מה שקורה כשמנצחים...':'💀 וזה מה שקורה כשמפסידים...';
+                        document.getElementById('progressFill').style.width='100%';
+                        setTimeout(()=>{
+                            startCutsceneForced(mode==='win');
+                            animPlaying=false;
+                            document.getElementById('playBtn').disabled=false;
+                            document.getElementById('playBtn').textContent='▶️ הפעל';
+                        },1500);
+                    });
+                });
+            });
+        });
+    }
 }
 function runStep(i){
     if(i>=STEPS.length){
@@ -1079,6 +1136,15 @@ function launchConfetti(){
 
 // === Gardener Cutscene (3D CSS) ===
 function startCutscene(){
+    // Random win/lose from game
+    const willWin=Math.random()>0.35;
+    runCutscene(willWin);
+}
+function startCutsceneForced(willWin){
+    // Forced win/lose from animation viewer
+    runCutscene(willWin);
+}
+function runCutscene(willWin){
     const overlay=document.getElementById('cutscene');
     overlay.classList.add('show');
     const gardener=document.getElementById('gardenerWrap');
@@ -1108,8 +1174,6 @@ function startCutscene(){
     document.getElementById('hitMarker').className='hit-marker';
     document.getElementById('nArmR').classList.remove('styling');
     laughBubble.textContent='ההההה!';
-
-    const willWin=Math.random()>0.35;
 
     // === SHARED: Steps 1-5 (gardener enters, grabs basket, goes to goal) ===
     setTimeout(()=>{gardener.classList.add('enter');beep(250,0.3,'square')},600);
