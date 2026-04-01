@@ -39,12 +39,11 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-hei
 @media(max-width:700px){.game-wrap{flex-direction:column;height:auto;overflow:auto}}
 
 /* Order panel */
-.order-panel{width:160px;background:var(--s1);border-radius:14px;border:1px solid var(--brd);padding:10px;flex-shrink:0;overflow-y:auto}
-@media(max-width:700px){.order-panel{width:100%;max-height:140px;flex-direction:row;display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}}
-.order-title{font-size:.75em;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.order-list{display:flex;flex-direction:column;gap:3px}
-.order-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:8px;background:var(--s2);font-size:.72em;color:var(--t2);border:1px solid var(--brd)}
-.order-item .oi-color{width:14px;height:10px;border-radius:3px;flex-shrink:0}
+.order-panel{width:160px;background:var(--s1);border-radius:14px;border:1px solid var(--brd);padding:10px;flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center}
+@media(max-width:700px){.order-panel{width:100%;max-height:180px}}
+.order-title{font-size:.75em;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:center}
+.order-burger{display:flex;flex-direction:column-reverse;align-items:center;transform:perspective(400px) rotateX(-10deg) scale(0.45);transform-origin:bottom center;filter:drop-shadow(0 6px 15px rgba(0,0,0,0.5));margin-top:-10px}
+.order-burger .b-layer{margin-bottom:-2px}
 
 /* Build area */
 .build-area{flex:1;display:flex;flex-direction:column;position:relative}
@@ -209,8 +208,8 @@ body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-hei
 <div class="game-wrap" style="margin-top:36px">
     <!-- Order panel (always visible!) -->
     <div class="order-panel">
-        <div class="order-title">הזמנה:</div>
-        <div class="order-list" id="orderList"></div>
+        <div class="order-title">ההזמנה:</div>
+        <div class="order-burger" id="orderBurger"></div>
     </div>
     <!-- Build -->
     <div class="build-area">
@@ -314,7 +313,7 @@ function genOrder(){
 }
 
 function renderOrder(){
-    document.getElementById('orderList').innerHTML=order.map((ing,i)=>`<div class="order-item"><div class="oi-color" style="background:${ING_DATA[ing].color}"></div>${i+1}. ${ING_DATA[ing].name}</div>`).join('');
+    document.getElementById('orderBurger').innerHTML=order.map(ing=>`<div class="b-layer">${ingHTML(ing)}</div>`).join('');
 }
 
 function ingHTML(type){
