@@ -320,29 +320,11 @@
         .growth-fill{height:100%;background:var(--green);border-radius:3px;transition:width 0.5s;width:0}
 
         /* Race Mode */
-        .race-hud{text-align:center;padding:12px;background:var(--s1);border-radius:14px;border:1px solid var(--brd);margin-bottom:12px}
-        .race-timer{font-size:1.5em;font-weight:900;color:var(--orange)}
-        .race-lanes{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-        .race-lane{background:var(--s1);border:1px solid var(--brd);border-radius:14px;padding:12px;transition:all .3s}
-        .race-lane.winner{border-color:#10b981;box-shadow:0 0 20px rgba(16,185,129,0.3)}
-        .player-lane{border-color:var(--p2);background:rgba(124,58,237,0.05)}
-        .lane-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-        .lane-name{font-weight:700;font-size:.95em}
-        .lane-progress{font-weight:800;color:var(--orange);font-size:.9em}
-        .lane-field{display:flex;gap:6px;justify-content:center;margin-bottom:8px;min-height:36px;align-items:center;flex-wrap:wrap}
-        .lane-slot{width:36px;height:36px;border-radius:10px;background:var(--s2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:1.2em;transition:all .3s var(--ease)}
-        .lane-slot.done{background:rgba(16,185,129,0.15);border-color:#10b981}
-        .lane-bar{width:100%;height:8px;background:var(--s3);border-radius:4px;overflow:hidden}
-        .lane-fill{height:100%;background:var(--p);border-radius:4px;transition:width .3s;width:0}
-        .bot1-fill{background:var(--orange)}
-        .bot2-fill{background:#ef4444}
-        .race-tools{display:flex;gap:10px;justify-content:center;padding:10px;flex-wrap:wrap}
-        .race-tools .tool-btn{padding:14px 28px;font-size:1.05em}
-        .race-result{text-align:center;padding:20px;display:none}
-        .race-result.show{display:block}
-        .race-result h2{font-size:1.8em;font-weight:900;margin-bottom:8px}
-        .race-result.won h2{color:#10b981}
-        .race-result.lost h2{color:#ef4444}
+        .race-bots-hud{display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--s1);border-radius:14px;border:1px solid var(--brd);margin-bottom:12px}
+        .bot-bar-wrap{display:flex;align-items:center;gap:8px;padding:4px 0}
+        .bot-bar-name{font-size:.85em;font-weight:700;min-width:70px}
+        .bot-bar-pct{font-size:.8em;font-weight:800;color:var(--t2);min-width:35px;text-align:left}
+        .race-canvas{border:2px solid #ef4444!important;box-shadow:0 0 20px rgba(239,68,68,0.15)!important}
 
         /* Responsive */
         @media(max-width:600px){
@@ -525,36 +507,46 @@
     <!-- Race phase (hidden until tutorial complete) -->
     <div id="racePhase" style="display:none">
         <div style="text-align:center;padding:10px 0;margin-bottom:10px">
-            <span style="background:rgba(239,68,68,0.2);border:1px solid #ef4444;padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:600;color:#fca5a5">שלב 2: מרוץ! מי שותל הכי מהר?</span>
+            <span style="background:rgba(239,68,68,0.2);border:1px solid #ef4444;padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:600;color:#fca5a5">שלב 2: מרוץ שתילה! מי מסיים ראשון?</span>
         </div>
-        <div class="race-hud" id="raceHud">
-            <div class="race-timer">⏱️ <span id="raceTimer">00:00</span></div>
-        </div>
-        <div class="race-lanes" id="raceLanes">
-            <!-- Player lane -->
-            <div class="race-lane player-lane" id="playerLane">
-                <div class="lane-header"><span class="lane-name">🧑 אתה</span><span class="lane-progress" id="playerProgress">0/6</span></div>
-                <div class="lane-field" id="playerField"></div>
-                <div class="lane-bar"><div class="lane-fill" id="playerFill"></div></div>
+        <!-- Bot progress bars -->
+        <div class="race-bots-hud" id="raceBotsHud">
+            <div class="bot-bar-wrap">
+                <span class="bot-bar-name">🤖 דני:</span>
+                <div class="lane-bar" style="flex:1"><div class="lane-fill bot1-fill" id="rBot1Fill" style="width:0"></div></div>
+                <span class="bot-bar-pct" id="rBot1Pct">0%</span>
             </div>
-            <!-- Bot 1 -->
-            <div class="race-lane bot-lane">
-                <div class="lane-header"><span class="lane-name">🤖 בוט דני</span><span class="lane-progress" id="bot1Progress">0/6</span></div>
-                <div class="lane-field" id="bot1Field"></div>
-                <div class="lane-bar"><div class="lane-fill bot1-fill" id="bot1Fill"></div></div>
+            <div class="bot-bar-wrap">
+                <span class="bot-bar-name">🤖 שרה:</span>
+                <div class="lane-bar" style="flex:1"><div class="lane-fill bot2-fill" id="rBot2Fill" style="width:0"></div></div>
+                <span class="bot-bar-pct" id="rBot2Pct">0%</span>
             </div>
-            <!-- Bot 2 -->
-            <div class="race-lane bot-lane">
-                <div class="lane-header"><span class="lane-name">🤖 בוט שרה</span><span class="lane-progress" id="bot2Progress">0/6</span></div>
-                <div class="lane-field" id="bot2Field"></div>
-                <div class="lane-bar"><div class="lane-fill bot2-fill" id="bot2Fill"></div></div>
+            <div class="bot-bar-wrap" style="border-color:var(--p2)">
+                <span class="bot-bar-name">🧑 אתה:</span>
+                <div class="lane-bar" style="flex:1"><div class="lane-fill" id="rPlayerFill" style="width:0"></div></div>
+                <span class="bot-bar-pct" id="rPlayerPct">0%</span>
             </div>
         </div>
-        <div class="race-tools">
-            <button class="tool-btn" id="raceDigBtn" onclick="raceAction()"><span class="t-emoji">⛏️</span> <span id="raceActionLabel">חפור!</span></button>
-            <button class="tool-btn" onclick="resetRace()"><span class="t-emoji">🔄</span> מרוץ חדש</button>
+        <!-- Same game canvas as tutorial -->
+        <div class="game-area">
+            <div class="game-canvas race-canvas" id="raceCanvas">
+                <div class="game-sun">☀️</div>
+                <div class="game-basket" id="raceBasket">
+                    <div class="gb-handle"></div>
+                    <div class="gb-body"></div>
+                    <div class="gb-label">סל: <span class="gb-count" id="raceBasketCount">0</span>/9</div>
+                </div>
+            </div>
+            <div class="growth-bars" id="raceGrowthBars"></div>
+            <div class="game-tools">
+                <button class="tool-btn active" id="rToolDig" onclick="rSetTool('dig')"><span class="t-emoji">⛏️</span> חפור</button>
+                <button class="tool-btn" id="rToolSeed" onclick="rSetTool('seed')" disabled><span class="t-emoji">🌱</span> שתול</button>
+                <button class="tool-btn" id="rToolWater" onclick="rSetTool('water')" disabled><span class="t-emoji">💧</span> השקה</button>
+                <button class="tool-btn" id="rToolFast" onclick="rFastForward()" disabled><span class="t-emoji">⏩</span> הרצה קדימה</button>
+                <button class="tool-btn" id="rToolHarvest" onclick="rSetTool('harvest')" disabled><span class="t-emoji">✋</span> קטיף</button>
+            </div>
+            <div class="game-msg" id="raceMsg">⛏️ מהר! לחץ על האדמה כדי לחפור!</div>
         </div>
-        <div class="game-msg" id="raceMsg">⛏️ לחץ מהר כדי לחפור, לשתול, להשקות ולקטוף!</div>
     </div>
 </div>
 
@@ -1432,18 +1424,12 @@ function closeEnd(){
     resetGame();
 }
 
-// === Race Mode ===
-const RACE_STEPS=['⛏️','🌱','💧','☀️','🥕','✅'];
-const RACE_LABELS=['חפור!','שתול!','השקה!','חכה...','קטוף!','סיימת!'];
-const RACE_TOTAL=6; // 6 slots per player
-let raceActive=false;
-let playerStep=0; // which slot we're working on
-let playerPhase=0; // 0=dig,1=seed,2=water,3=grow,4=harvest,5=done per slot
-let playerClicks=0;
-let bot1Step=0,bot2Step=0;
-let raceStartTime=0;
-let raceTimerInterval;
-let botIntervals=[];
+// === Race Mode (same mechanics as tutorial, vs bots) ===
+let rActive=false, rTool='dig', rPhase='dig';
+let rHoles=[], rSeeds=[], rGrowth=[], rHarvested=0, rWaterClicks=0;
+let rBot1=0, rBot2=0; // bot progress 0-100%
+let botTimers=[];
+const R_TOTAL=9; // same as tutorial
 
 function showRacePhase(){
     document.getElementById('tutorialPhase').style.display='none';
@@ -1452,136 +1438,265 @@ function showRacePhase(){
 }
 
 function resetRace(){
-    raceActive=true;
-    playerStep=0;playerPhase=0;playerClicks=0;
-    bot1Step=0;bot2Step=0;
-    raceStartTime=Date.now();
-    clearInterval(raceTimerInterval);
-    botIntervals.forEach(b=>clearInterval(b));botIntervals=[];
-    document.getElementById('raceTimer').textContent='00:00';
-    document.getElementById('raceMsg').textContent='⛏️ לחץ מהר כדי לחפור, לשתול, להשקות ולקטוף!';
-    document.getElementById('raceActionLabel').textContent=RACE_LABELS[0];
-    document.getElementById('raceDigBtn').querySelector('.t-emoji').textContent=RACE_STEPS[0];
-    document.getElementById('raceDigBtn').disabled=false;
-    // Init fields
-    ['player','bot1','bot2'].forEach(id=>{
-        const field=document.getElementById(id+'Field');
-        field.innerHTML='';
-        for(let i=0;i<RACE_TOTAL;i++){
-            const slot=document.createElement('div');
-            slot.className='lane-slot';
-            slot.id=id+'Slot'+i;
-            slot.textContent='🟫';
-            field.appendChild(slot);
-        }
-        document.getElementById(id+'Progress').textContent='0/'+RACE_TOTAL;
-        document.getElementById(id+'Fill').style.width='0%';
-    });
-    // Start timer
-    raceTimerInterval=setInterval(()=>{
-        if(!raceActive)return;
-        const elapsed=Math.floor((Date.now()-raceStartTime)/1000);
-        const m=String(Math.floor(elapsed/60)).padStart(2,'0');
-        const s=String(elapsed%60).padStart(2,'0');
-        document.getElementById('raceTimer').textContent=m+':'+s;
-    },500);
+    rActive=true; rTool='dig'; rPhase='dig';
+    rHoles=[]; rSeeds=[]; rGrowth=[]; rHarvested=0; rWaterClicks=0;
+    rBot1=0; rBot2=0;
+    botTimers.forEach(t=>clearInterval(t)); botTimers=[];
+    // Reset canvas
+    const cv=document.getElementById('raceCanvas');
+    cv.innerHTML='<div class="game-sun">☀️</div><div class="game-basket" id="raceBasket"><div class="gb-handle"></div><div class="gb-body"></div><div class="gb-label">סל: <span class="gb-count" id="raceBasketCount">0</span>/9</div></div>';
+    cv.className='game-canvas race-canvas dig-mode';
+    document.getElementById('raceGrowthBars').innerHTML='';
+    document.getElementById('raceMsg').textContent='⛏️ מהר! לחץ על האדמה כדי לחפור!';
+    // Reset tools
+    document.getElementById('rToolDig').classList.add('active'); document.getElementById('rToolDig').disabled=false;
+    document.getElementById('rToolSeed').classList.remove('active'); document.getElementById('rToolSeed').disabled=true;
+    document.getElementById('rToolWater').classList.remove('active'); document.getElementById('rToolWater').disabled=true;
+    document.getElementById('rToolFast').disabled=true;
+    document.getElementById('rToolHarvest').classList.remove('active'); document.getElementById('rToolHarvest').disabled=true;
+    // Reset progress bars
+    document.getElementById('rBot1Fill').style.width='0';
+    document.getElementById('rBot2Fill').style.width='0';
+    document.getElementById('rPlayerFill').style.width='0';
+    document.getElementById('rBot1Pct').textContent='0%';
+    document.getElementById('rBot2Pct').textContent='0%';
+    document.getElementById('rPlayerPct').textContent='0%';
+    // Add click listener
+    cv.onclick=onRaceClick;
     // Start bots
-    startBots();
+    startRaceBots();
 }
 
-function startBots(){
-    // Bot 1 (medium speed)
-    let b1phase=0,b1clicks=0;
-    const b1interval=setInterval(()=>{
-        if(!raceActive||bot1Step>=RACE_TOTAL){clearInterval(b1interval);return}
-        b1clicks++;
-        const needed=b1phase===3?1:[3,2,2,1,2][b1phase]; // clicks needed per phase
-        if(b1clicks>=needed){
-            b1clicks=0;
-            const slot=document.getElementById('bot1Slot'+bot1Step);
-            slot.textContent=RACE_STEPS[b1phase];
-            b1phase++;
-            if(b1phase>=5){
-                slot.textContent='🥕';slot.classList.add('done');
-                bot1Step++;b1phase=0;
-                document.getElementById('bot1Progress').textContent=bot1Step+'/'+RACE_TOTAL;
-                document.getElementById('bot1Fill').style.width=(bot1Step/RACE_TOTAL*100)+'%';
-                if(bot1Step>=RACE_TOTAL)checkRaceEnd('בוט דני');
-            }
-        }
-    },600+Math.random()*400);
-    botIntervals.push(b1interval);
-
-    // Bot 2 (fast speed)
-    let b2phase=0,b2clicks=0;
-    const b2interval=setInterval(()=>{
-        if(!raceActive||bot2Step>=RACE_TOTAL){clearInterval(b2interval);return}
-        b2clicks++;
-        const needed=b2phase===3?1:[2,2,2,1,2][b2phase];
-        if(b2clicks>=needed){
-            b2clicks=0;
-            const slot=document.getElementById('bot2Slot'+bot2Step);
-            slot.textContent=RACE_STEPS[b2phase];
-            b2phase++;
-            if(b2phase>=5){
-                slot.textContent='🥕';slot.classList.add('done');
-                bot2Step++;b2phase=0;
-                document.getElementById('bot2Progress').textContent=bot2Step+'/'+RACE_TOTAL;
-                document.getElementById('bot2Fill').style.width=(bot2Step/RACE_TOTAL*100)+'%';
-                if(bot2Step>=RACE_TOTAL)checkRaceEnd('בוט שרה');
-            }
-        }
-    },500+Math.random()*300);
-    botIntervals.push(b2interval);
+function rSetTool(t){
+    rTool=t;
+    document.querySelectorAll('#racePhase .tool-btn').forEach(b=>b.classList.remove('active'));
+    const btn=document.getElementById('rTool'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn)btn.classList.add('active');
+    const cv=document.getElementById('raceCanvas');
+    cv.className='game-canvas race-canvas';
+    if(t==='dig')cv.classList.add('dig-mode');
+    if(t==='water')cv.classList.add('water-mode');
+    if(t==='harvest')cv.classList.add('harvest-mode');
 }
 
-function raceAction(){
-    if(!raceActive||playerStep>=RACE_TOTAL)return;
-    playerClicks++;
-    beep(300+playerPhase*100,0.08);
-    const slot=document.getElementById('playerSlot'+playerStep);
-    // Each phase needs different clicks
-    const needed=[3,3,3,1,2][playerPhase]; // dig=3,seed=3,water=3,grow=1,harvest=2
-    if(playerClicks>=needed){
-        playerClicks=0;
-        slot.textContent=RACE_STEPS[playerPhase];
-        playerPhase++;
-        // Update button
-        if(playerPhase<5){
-            document.getElementById('raceActionLabel').textContent=RACE_LABELS[playerPhase];
-            document.getElementById('raceDigBtn').querySelector('.t-emoji').textContent=RACE_STEPS[playerPhase];
-        }
-        if(playerPhase>=5){
-            slot.textContent='🥕';slot.classList.add('done');
-            playerStep++;playerPhase=0;playerClicks=0;
-            document.getElementById('playerProgress').textContent=playerStep+'/'+RACE_TOTAL;
-            document.getElementById('playerFill').style.width=(playerStep/RACE_TOTAL*100)+'%';
-            harvestSound();
-            if(playerStep>=RACE_TOTAL){
-                checkRaceEnd('אתה');
-            }else{
-                document.getElementById('raceActionLabel').textContent=RACE_LABELS[0];
-                document.getElementById('raceDigBtn').querySelector('.t-emoji').textContent=RACE_STEPS[0];
-            }
-        }
-    }
-    document.getElementById('raceMsg').textContent=`${RACE_STEPS[playerPhase]} גזר ${playerStep+1}/${RACE_TOTAL} — ${RACE_LABELS[playerPhase]} (${playerClicks}/${[3,3,3,1,2][playerPhase]||0} לחיצות)`;
+function onRaceClick(e){
+    if(!rActive)return;
+    const rect=e.currentTarget.getBoundingClientRect();
+    const x=(e.clientX-rect.left)/rect.width*100;
+    const y=(e.clientY-rect.top)/rect.height*100;
+    if(y<40)return;
+    if(rTool==='dig'&&rPhase==='dig') rDoDig(x,y);
+    else if(rTool==='seed'&&rPhase==='seed') rDoSeed(x,y);
+    else if(rTool==='water'&&rPhase==='water') rDoWater(x,y);
+    else if(rTool==='harvest'&&rPhase==='harvest') rDoHarvest(x,y);
 }
 
-function checkRaceEnd(winner){
-    if(!raceActive)return;
-    raceActive=false;
-    clearInterval(raceTimerInterval);
-    botIntervals.forEach(b=>clearInterval(b));
-    document.getElementById('raceDigBtn').disabled=true;
-    const elapsed=Math.floor((Date.now()-raceStartTime)/1000);
-    if(winner==='אתה'){
-        document.getElementById('raceMsg').textContent=`🏆 ניצחת! סיימת ב-${elapsed} שניות! כל הכבוד!`;
-        document.getElementById('playerLane').classList.add('winner');
-        winSound();launchConfetti();
+function rDoDig(x,y){
+    if(rHoles.length>=R_TOTAL)return;
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(rHoles.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>20)return;
+    const pos=HOLE_POSITIONS[closest];
+    const hole=document.createElement('div');
+    hole.className='hole';hole.style.left=(pos.x-3)+'%';hole.style.top=(pos.y-1)+'%';
+    document.getElementById('raceCanvas').appendChild(hole);
+    setTimeout(()=>hole.classList.add('dug'),50);
+    rHoles.push({idx:closest});digSound();
+    updateRacePlayerProgress();
+    if(rHoles.length>=R_TOTAL){
+        rPhase='seed';
+        document.getElementById('rToolDig').disabled=true;document.getElementById('rToolSeed').disabled=false;
+        rSetTool('seed');
+        document.getElementById('raceMsg').textContent='🌱 מהר! שתול זרעים!';
     }else{
-        document.getElementById('raceMsg').textContent=`💀 ${winner} ניצח/ה! את/ה צריך/ה להיות יותר מהיר/ה!`;
-        beep(150,0.5,'sawtooth');
+        document.getElementById('raceMsg').textContent=`⛏️ חפרת ${rHoles.length}/${R_TOTAL}! מהר!`;
+    }
+}
+
+function rDoSeed(x,y){
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(rSeeds.find(s=>s.idx===i))return;
+        if(!rHoles.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const pos=HOLE_POSITIONS[closest];
+    const seed=document.createElement('div');
+    seed.className='game-seed';seed.style.left=(pos.x-0.5)+'%';seed.style.top=pos.y+'%';
+    document.getElementById('raceCanvas').appendChild(seed);
+    setTimeout(()=>seed.classList.add('planted'),50);
+    rSeeds.push({idx:closest});seedSound();
+    updateRacePlayerProgress();
+    if(rSeeds.length>=R_TOTAL){
+        rPhase='water';
+        document.getElementById('rToolSeed').disabled=true;document.getElementById('rToolWater').disabled=false;
+        rSetTool('water');
+        document.getElementById('raceMsg').textContent='💧 מהר! השקה!';
+    }else{
+        document.getElementById('raceMsg').textContent=`🌱 שתלת ${rSeeds.length}/${R_TOTAL}!`;
+    }
+}
+
+function rDoWater(x,y){
+    const splash=document.createElement('div');
+    splash.className='splash';splash.textContent='💧';splash.style.left=x+'%';splash.style.top=y+'%';
+    document.getElementById('raceCanvas').appendChild(splash);
+    setTimeout(()=>splash.remove(),1000);waterSound();
+    rWaterClicks++;
+    updateRacePlayerProgress();
+    if(rWaterClicks>=5){
+        rPhase='grow';
+        document.getElementById('rToolWater').disabled=true;document.getElementById('rToolFast').disabled=false;
+        document.getElementById('raceMsg').textContent='⏩ לחץ הרצה קדימה!';
+        rStartGrowing();rWaterClicks=0;
+    }else{
+        document.getElementById('raceMsg').textContent=`💧 ${rWaterClicks}/5 השקיות!`;
+    }
+}
+
+let rGrowInterval;
+function rStartGrowing(){
+    rGrowth=rSeeds.map(()=>0);
+    rSeeds.forEach((s,i)=>{
+        const pos=HOLE_POSITIONS[s.idx];
+        const sp=document.createElement('div');
+        sp.className='game-sprout';sp.textContent='🌱';sp.id='rsprout-'+i;
+        sp.style.left=(pos.x-1)+'%';sp.style.top=(pos.y-5)+'%';
+        document.getElementById('raceCanvas').appendChild(sp);
+        setTimeout(()=>sp.classList.add('growing'),100);
+    });
+    rGrowInterval=setInterval(()=>{
+        let allDone=true;
+        rGrowth=rGrowth.map((g,i)=>{
+            const nG=Math.min(100,g+Math.random()*3+1);
+            if(nG<100)allDone=false;
+            const sp=document.getElementById('rsprout-'+i);
+            if(sp){
+                if(nG>=100){sp.textContent='🥕';sp.classList.remove('growing');sp.classList.add('ready')}
+                else if(nG>=60)sp.textContent='🌿';
+            }
+            return nG;
+        });
+        rRenderGrowthBars();
+        updateRacePlayerProgress();
+        if(allDone){
+            clearInterval(rGrowInterval);
+            rPhase='harvest';
+            document.getElementById('rToolFast').disabled=true;document.getElementById('rToolHarvest').disabled=false;
+            rSetTool('harvest');
+            document.getElementById('raceBasket').classList.add('show');
+            document.getElementById('raceMsg').textContent='🥕 מהר! קטוף הכל!';
+            growSound();
+        }
+    },500);
+}
+
+function rFastForward(){
+    if(rPhase!=='grow')return;
+    rGrowth=rGrowth.map((g,i)=>{
+        const nG=Math.min(100,g+25);
+        const sp=document.getElementById('rsprout-'+i);
+        if(sp){if(nG>=100){sp.textContent='🥕';sp.classList.remove('growing');sp.classList.add('ready')}else if(nG>=60)sp.textContent='🌿'}
+        return nG;
+    });
+    rRenderGrowthBars();growSound();updateRacePlayerProgress();
+}
+
+function rRenderGrowthBars(){
+    const gb=document.getElementById('raceGrowthBars');
+    gb.innerHTML=rGrowth.map((g,i)=>`<div class="growth-item">🥕${i+1} <div class="growth-bar-mini"><div class="growth-fill" style="width:${g}%"></div></div></div>`).join('');
+}
+
+function rDoHarvest(x,y){
+    let closest=null,minDist=999;
+    rSeeds.forEach((s,i)=>{
+        if(rGrowth[i]<100)return;
+        const sp=document.getElementById('rsprout-'+i);
+        if(!sp||sp.dataset.harvested)return;
+        const pos=HOLE_POSITIONS[s.idx];
+        const d=Math.sqrt((pos.x-x)**2+(pos.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const sp=document.getElementById('rsprout-'+closest);
+    const pos=HOLE_POSITIONS[rSeeds[closest].idx];
+    sp.dataset.harvested='1';
+    // Flying carrot to basket
+    const cv=document.getElementById('raceCanvas');
+    const fc=document.createElement('div');fc.className='flying-carrot';fc.textContent='🥕';
+    fc.style.left=pos.x+'%';fc.style.top=(pos.y-5)+'%';fc.style.opacity='1';
+    cv.appendChild(fc);
+    sp.style.transition='all 0.3s';sp.style.transform='translateY(-15px) scale(0.5)';sp.style.opacity='0';
+    setTimeout(()=>sp.remove(),300);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        fc.style.left='92%';fc.style.top='82%';fc.style.transform='scale(0.6) rotate(360deg)';fc.style.opacity='0.8';
+    }));
+    setTimeout(()=>fc.remove(),700);
+    harvestSound();rHarvested++;
+    document.getElementById('raceBasketCount').textContent=rHarvested;
+    updateRacePlayerProgress();
+    document.getElementById('raceMsg').textContent=`🥕 ${rHarvested}/${R_TOTAL} בסל!`;
+    if(rHarvested>=R_TOTAL) raceFinish(true);
+}
+
+function updateRacePlayerProgress(){
+    // Player: dig=20%, seed=20%, water=10%, grow=25%, harvest=25%
+    let pct=0;
+    pct+=(rHoles.length/R_TOTAL)*20;
+    pct+=(rSeeds.length/R_TOTAL)*20;
+    pct+=Math.min(rWaterClicks,5)/5*10;
+    if(rGrowth.length){const avg=rGrowth.reduce((a,b)=>a+b,0)/rGrowth.length; pct+=avg/100*25;}
+    pct+=(rHarvested/R_TOTAL)*25;
+    pct=Math.min(100,Math.round(pct));
+    document.getElementById('rPlayerFill').style.width=pct+'%';
+    document.getElementById('rPlayerPct').textContent=pct+'%';
+}
+
+function startRaceBots(){
+    // Bot 1: medium (finishes ~50-70 seconds)
+    const b1=setInterval(()=>{
+        if(!rActive){clearInterval(b1);return}
+        rBot1+=0.8+Math.random()*0.6;
+        if(rBot1>=100){rBot1=100;clearInterval(b1);raceFinish(false,'דני');}
+        document.getElementById('rBot1Fill').style.width=rBot1+'%';
+        document.getElementById('rBot1Pct').textContent=Math.round(rBot1)+'%';
+    },800);
+    botTimers.push(b1);
+    // Bot 2: faster (finishes ~40-55 seconds)
+    const b2=setInterval(()=>{
+        if(!rActive){clearInterval(b2);return}
+        rBot2+=1+Math.random()*0.7;
+        if(rBot2>=100){rBot2=100;clearInterval(b2);raceFinish(false,'שרה');}
+        document.getElementById('rBot2Fill').style.width=rBot2+'%';
+        document.getElementById('rBot2Pct').textContent=Math.round(rBot2)+'%';
+    },700);
+    botTimers.push(b2);
+}
+
+function raceFinish(playerWon, botName){
+    if(!rActive)return;
+    rActive=false;
+    clearInterval(rGrowInterval);
+    botTimers.forEach(t=>clearInterval(t));
+    document.getElementById('rToolDig').disabled=true;
+    document.getElementById('rToolSeed').disabled=true;
+    document.getElementById('rToolWater').disabled=true;
+    document.getElementById('rToolFast').disabled=true;
+    document.getElementById('rToolHarvest').disabled=true;
+    if(playerWon){
+        document.getElementById('raceMsg').textContent='🏆 ניצחת! צפה בסיום...';
+        // Play WIN cutscene (gardener eats carrot and dies)
+        setTimeout(()=>startCutsceneForced(true),1500);
+    }else{
+        document.getElementById('raceMsg').textContent=`💀 בוט ${botName} ניצח! צפה בסיום...`;
+        // Play LOSE cutscene (nurse + shooting + broken screen)
+        setTimeout(()=>startCutsceneForced(false),1500);
     }
 }
 
