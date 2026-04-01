@@ -201,6 +201,46 @@
         .g-hair-carrot:nth-child(2){height:22px;top:-3px}
         .g-hair-carrot:nth-child(4){height:20px;top:-2px}
         .g-hair-leaf{width:8px;height:6px;background:#4CAF50;border-radius:50%;position:absolute;top:-4px;left:-1px}
+        /* Dead gardener */
+        .gardener-wrap.dead{transform:perspective(600px) rotate(90deg) translateY(20px);opacity:0.7}
+        .g-dead-eyes .g-eye{width:7px;height:7px;background:none;border:none;position:relative}
+        .g-dead-eyes .g-eye::before,.g-dead-eyes .g-eye::after{content:'';position:absolute;width:7px;height:2px;background:#333;top:2px;left:0}
+        .g-dead-eyes .g-eye::before{transform:rotate(45deg)}
+        .g-dead-eyes .g-eye::after{transform:rotate(-45deg)}
+        /* Eating animation */
+        .g-eating .g-smile{width:8px;height:8px;background:#333;border-radius:50%;border:none}
+        /* Nurse/Caretaker */
+        .nurse-wrap{position:absolute;bottom:15%;left:-18%;transition:all 1.5s var(--ease);transform:perspective(600px) rotateY(5deg);filter:drop-shadow(4px 4px 8px rgba(0,0,0,0.4))}
+        .nurse-wrap.enter{left:20%}
+        .nurse-wrap.atnurse{left:35%}
+        .nurse-wrap.exit{left:-20%}
+        .n-body{width:36px;height:48px;background:linear-gradient(180deg,#fff,#e0e0e0);border-radius:8px 8px 4px 4px;position:relative;box-shadow:inset -4px 0 8px rgba(0,0,0,0.1),2px 2px 6px rgba(0,0,0,0.2)}
+        .n-head{width:28px;height:28px;background:linear-gradient(135deg,#FFCC80,#FFB74D);border-radius:50%;position:absolute;top:-24px;left:4px;box-shadow:inset -3px -2px 6px rgba(0,0,0,0.1)}
+        .n-cap{width:32px;height:10px;background:#fff;border-radius:10px 10px 0 0;position:absolute;top:-30px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+        .n-cross{position:absolute;top:-28px;left:13px;color:#ef4444;font-size:10px;font-weight:900}
+        .n-eyes{position:absolute;top:-17px;left:9px;display:flex;gap:6px}
+        .n-eye{width:4px;height:4px;background:#333;border-radius:50%}
+        .n-smile{position:absolute;top:-11px;left:12px;width:10px;height:5px;border:2px solid #333;border-top:none;border-radius:0 0 6px 6px}
+        .n-arm{width:7px;height:26px;background:linear-gradient(180deg,#fff,#e0e0e0);border-radius:4px;position:absolute;top:5px;transform-origin:top center;box-shadow:1px 1px 2px rgba(0,0,0,0.15)}
+        .n-arm-l{left:-7px;transform:rotate(15deg)}
+        .n-arm-r{right:-7px;transform:rotate(-15deg)}
+        .n-arm-r.styling{transform:rotate(-50deg)}
+        .n-leg{width:9px;height:20px;background:linear-gradient(180deg,#fff,#e0e0e0);border-radius:3px 3px 5px 5px;position:absolute;bottom:-18px}
+        .n-leg-l{left:5px}
+        .n-leg-r{right:5px}
+        .n-hand{width:9px;height:9px;background:#FFCC80;border-radius:50%;position:absolute;bottom:-2px;left:-1px}
+        /* Gun flash */
+        .gun-flash{position:absolute;width:30px;height:6px;background:linear-gradient(90deg,#FFD700,#FF6600,transparent);border-radius:3px;opacity:0;filter:blur(1px)}
+        .gun-flash.fire{opacity:1;animation:gunFlash .3s ease-out forwards}
+        @keyframes gunFlash{0%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(2)}}
+        /* Screen flash for shooting */
+        .screen-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .1s;z-index:5}
+        .screen-flash.flash{opacity:0.6;animation:flashBang .4s ease-out forwards}
+        @keyframes flashBang{0%{opacity:0.7}100%{opacity:0}}
+        /* Hit marker */
+        .hit-marker{position:absolute;font-size:3em;opacity:0;z-index:6;pointer-events:none}
+        .hit-marker.show{opacity:1;animation:hitPop .8s var(--ease) forwards}
+        @keyframes hitPop{0%{transform:scale(0) rotate(-20deg);opacity:0}30%{transform:scale(1.3) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:0}}
 
         /* CSS Basket - 3D style */
         .basket-wrap{position:absolute;bottom:12%;right:42%;opacity:0;transition:all 1.2s var(--ease);filter:drop-shadow(3px 3px 6px rgba(0,0,0,0.4))}
@@ -461,6 +501,24 @@
             </div>
         </div>
         <div class="laugh-bubble" id="laughBubble">ההההה!</div>
+        <!-- Nurse -->
+        <div class="nurse-wrap" id="nurseWrap">
+            <div class="n-body">
+                <div class="n-cap"></div>
+                <div class="n-cross">+</div>
+                <div class="n-head"></div>
+                <div class="n-eyes"><div class="n-eye"></div><div class="n-eye"></div></div>
+                <div class="n-smile"></div>
+                <div class="n-arm n-arm-l"><div class="n-hand"></div></div>
+                <div class="n-arm n-arm-r" id="nArmR"><div class="n-hand"></div></div>
+                <div class="n-leg n-leg-l"></div>
+                <div class="n-leg n-leg-r"></div>
+            </div>
+        </div>
+        <!-- Effects -->
+        <div class="screen-flash" id="screenFlash"></div>
+        <div class="gun-flash" id="gunFlash" style="bottom:30%;right:20%"></div>
+        <div class="hit-marker" id="hitMarker" style="top:30%;left:40%">💥</div>
     </div>
     <div class="result-screen" id="resultScreen">
         <div class="result-title" id="resultTitle"></div>
@@ -986,110 +1044,155 @@ function startCutscene(){
     const goalWrap=document.getElementById('goalWrap');
     const laughBubble=document.getElementById('laughBubble');
     const armR=document.getElementById('gArmR');
+    const nurse=document.getElementById('nurseWrap');
 
-    // Reset positions
+    // Reset everything
     gardener.className='gardener-wrap';
     basket.className='basket-wrap';
     goalWrap.className='goal-wrap';
     laughBubble.className='laugh-bubble';
+    nurse.className='nurse-wrap';
     armR.classList.remove('grab-arm');
-    gardener.querySelector('.g-body').classList.remove('g-laugh');
+    gardener.querySelector('.g-body').classList.remove('g-laugh','g-eating');
+    gardener.querySelector('.g-eyes').classList.remove('g-dead-eyes');
+    document.getElementById('gHat').style.transform='';
+    document.getElementById('gHat').style.opacity='';
+    document.getElementById('gHat').style.transition='';
     document.getElementById('gHat').style.display='';
     document.getElementById('gCarrotHair').classList.remove('show');
+    document.getElementById('screenFlash').className='screen-flash';
+    document.getElementById('gunFlash').className='gun-flash';
+    document.getElementById('hitMarker').className='hit-marker';
+    document.getElementById('nArmR').classList.remove('styling');
+    laughBubble.textContent='ההההה!';
 
-    // Step 1: Gardener enters from right
-    setTimeout(()=>{
-        gardener.classList.add('enter');
-        beep(250,0.3,'square');
-    },600);
+    const willWin=Math.random()>0.35;
 
-    // Step 2: Basket of carrots appears in the middle
+    // === SHARED: Steps 1-5 (gardener enters, grabs basket, goes to goal) ===
+    setTimeout(()=>{gardener.classList.add('enter');beep(250,0.3,'square')},600);
+    setTimeout(()=>{basket.classList.add('show');beep(350,0.2)},2200);
     setTimeout(()=>{
-        basket.classList.add('show');
-        beep(350,0.2);
-    },2200);
-
-    // Step 3: Gardener grabs the basket
-    setTimeout(()=>{
-        gardener.classList.remove('enter');
-        gardener.classList.add('grab');
-        basket.classList.add('grabbed');
-        armR.classList.add('grab-arm');
-        beep(400,0.15);
+        gardener.classList.remove('enter');gardener.classList.add('grab');
+        basket.classList.add('grabbed');armR.classList.add('grab-arm');beep(400,0.15);
     },3500);
-
-    // Step 4: Goal appears on left side
+    setTimeout(()=>{goalWrap.classList.add('show')},4500);
     setTimeout(()=>{
-        goalWrap.classList.add('show');
-    },4500);
-
-    // Step 5: Gardener carries basket to the goal
-    setTimeout(()=>{
-        gardener.classList.remove('grab');
-        gardener.classList.add('togoal');
-        basket.classList.remove('grabbed');
-        basket.classList.add('atgoal');
-        beep(500,0.2);
+        gardener.classList.remove('grab');gardener.classList.add('togoal');
+        basket.classList.remove('grabbed');basket.classList.add('atgoal');beep(500,0.2);
     },5500);
 
-    // Step 6: Gardener laughs!
+    // Step 6: Gardener laughs
     setTimeout(()=>{
         laughBubble.classList.add('show');
         gardener.querySelector('.g-body').classList.add('g-laugh');
-        beep(600,0.1);setTimeout(()=>beep(800,0.1),100);setTimeout(()=>beep(600,0.12),200);setTimeout(()=>beep(900,0.15),350);
+        beep(600,0.1);setTimeout(()=>beep(800,0.1),100);setTimeout(()=>beep(600,0.12),200);
     },7000);
 
-    // Step 6.5: On lose path — hide basket, hat flies off, carrots become hair!
-    const willWin=Math.random()>0.35;
-    if(!willWin){
-        // Basket disappears (gardener ate/hid them)
+    if(willWin){
+        // === WIN PATH: Gardener eats a carrot and DIES ===
+        // Step 7: Gardener picks up carrot to eat
+        setTimeout(()=>{
+            laughBubble.classList.remove('show');
+            gardener.querySelector('.g-body').classList.remove('g-laugh');
+            gardener.querySelector('.g-body').classList.add('g-eating');
+            laughBubble.textContent='*אוכל גזר*';
+            laughBubble.classList.add('show');
+            beep(300,0.2);
+        },8500);
+        // Step 8: Gardener chokes/dies
+        setTimeout(()=>{
+            laughBubble.textContent='🤢 אוי...';
+            beep(150,0.4,'sawtooth');
+        },10000);
+        setTimeout(()=>{
+            laughBubble.classList.remove('show');
+            gardener.querySelector('.g-body').classList.remove('g-eating');
+            gardener.querySelector('.g-eyes').classList.add('g-dead-eyes');
+            gardener.classList.remove('togoal');
+            gardener.classList.add('dead');
+            beep(80,0.8,'sawtooth');
+        },11000);
+        // Step 9: Show WIN
+        setTimeout(()=>{
+            const resultScreen=document.getElementById('resultScreen');
+            const resultTitle=document.getElementById('resultTitle');
+            const resultMsg=document.getElementById('resultMsg');
+            resultScreen.classList.add('show');
+            resultTitle.textContent='YOU WIN!';
+            resultTitle.className='result-title win';
+            resultMsg.textContent='הגנן אכל גזר מורעל ומת! הגזרים שלך בטוחים! ניקוד: '+score;
+            winSound();launchConfetti();
+        },12500);
+    }else{
+        // === LOSE PATH: Nurse comes, changes hair to carrots, gardener shoots you ===
+        // Step 7: Basket disappears
         setTimeout(()=>{
             basket.style.transition='all 0.5s';
-            basket.style.opacity='0';
-            basket.style.transform='scale(0)';
-        },8000);
-        // Hat flies off
+            basket.style.opacity='0';basket.style.transform='scale(0)';
+        },8500);
+        // Step 8: Hat flies off
         setTimeout(()=>{
+            laughBubble.classList.remove('show');
             const hat=document.getElementById('gHat');
             hat.style.transition='all 0.6s var(--ease)';
-            hat.style.transform='translateY(-30px) rotate(40deg)';
-            hat.style.opacity='0';
+            hat.style.transform='translateY(-30px) rotate(40deg)';hat.style.opacity='0';
             beep(300,0.2,'square');
-        },8500);
-        // Carrot hair appears!
+        },9000);
+        // Step 9: Nurse enters
+        setTimeout(()=>{
+            nurse.classList.add('enter');
+            beep(400,0.15);
+        },10000);
+        // Step 10: Nurse goes to gardener and styles hair
+        setTimeout(()=>{
+            nurse.classList.remove('enter');nurse.classList.add('atnurse');
+            document.getElementById('nArmR').classList.add('styling');
+            beep(500,0.1);
+        },11500);
+        // Step 11: Carrot hair appears!
         setTimeout(()=>{
             document.getElementById('gCarrotHair').classList.add('show');
             beep(800,0.15);setTimeout(()=>beep(1000,0.1),100);
-        },9200);
-    }
-
-    // Step 7: Gardener exits
-    setTimeout(()=>{
-        gardener.classList.remove('togoal');
-        gardener.classList.add('exit');
-        laughBubble.classList.remove('show');
-    },10000);
-
-    // Step 8: Show win/lose result
-    setTimeout(()=>{
-        const resultScreen=document.getElementById('resultScreen');
-        const resultTitle=document.getElementById('resultTitle');
-        const resultMsg=document.getElementById('resultMsg');
-        resultScreen.classList.add('show');
-
-        if(willWin){
-            resultTitle.textContent='YOU WIN!';
-            resultTitle.className='result-title win';
-            resultMsg.textContent='הצלחת להציל חלק מהגזרים מהגנן המתוחכם! ניקוד: '+score;
-            winSound();
-            launchConfetti();
-        }else{
+            laughBubble.textContent='שיער חדש!';
+            laughBubble.classList.add('show');
+        },12500);
+        // Step 12: Nurse exits
+        setTimeout(()=>{
+            nurse.classList.remove('atnurse');nurse.classList.add('exit');
+            document.getElementById('nArmR').classList.remove('styling');
+        },14000);
+        // Step 13: Gardener shoots at YOU!
+        setTimeout(()=>{
+            laughBubble.textContent='קח את זה!';
+            // Gun flash
+            document.getElementById('gunFlash').classList.add('fire');
+            beep(100,0.3,'square');setTimeout(()=>beep(80,0.2,'sawtooth'),100);
+            // Screen flash
+            document.getElementById('screenFlash').classList.add('flash');
+            // Hit marker
+            setTimeout(()=>{
+                document.getElementById('hitMarker').classList.add('show');
+                beep(200,0.4,'sawtooth');
+            },200);
+        },15500);
+        // Step 14: Gardener exits laughing
+        setTimeout(()=>{
+            laughBubble.textContent='ביי ביי!';
+            gardener.classList.remove('togoal');gardener.classList.add('exit');
+        },17000);
+        // Step 15: Show LOSE
+        setTimeout(()=>{
+            laughBubble.classList.remove('show');
+            const resultScreen=document.getElementById('resultScreen');
+            const resultTitle=document.getElementById('resultTitle');
+            const resultMsg=document.getElementById('resultMsg');
+            resultScreen.classList.add('show');
             resultTitle.textContent='YOU LOSE';
             resultTitle.className='result-title lose';
-            resultMsg.textContent='הגנן גנב את כל הגזרים ושם אותם על הראש שלו בתור שיער! 🤯';
+            resultMsg.textContent='המטפלת החליפה לגנן שיער לגזרים, והוא ירה בך! אאוץ!';
             beep(150,0.6,'sawtooth');
-        }
-    },11500);
+        },18500);
+    }
 }
 
 function showEnd(){
@@ -1110,6 +1213,15 @@ function closeEnd(){
     document.getElementById('laughBubble').className='laugh-bubble';
     document.getElementById('resultScreen').className='result-screen';
     document.getElementById('gArmR').classList.remove('grab-arm');
+    document.getElementById('nurseWrap').className='nurse-wrap';
+    document.getElementById('nArmR').classList.remove('styling');
+    document.getElementById('screenFlash').className='screen-flash';
+    document.getElementById('gunFlash').className='gun-flash';
+    document.getElementById('hitMarker').className='hit-marker';
+    // Reset gardener face
+    const gBody=document.getElementById('gardenerWrap').querySelector('.g-body');
+    gBody.classList.remove('g-laugh','g-eating');
+    document.getElementById('gardenerWrap').querySelector('.g-eyes').classList.remove('g-dead-eyes');
     // Reset hat and carrot hair
     const hat=document.getElementById('gHat');
     hat.style.transform='';hat.style.opacity='';hat.style.transition='';hat.style.display='';
