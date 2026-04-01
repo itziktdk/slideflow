@@ -193,6 +193,14 @@
         .g-leg-l{left:6px}
         .g-leg-r{right:6px}
         .g-hand{width:10px;height:10px;background:#FFCC80;border-radius:50%;position:absolute;bottom:-3px;left:-1px;box-shadow:1px 1px 2px rgba(0,0,0,0.2)}
+        /* Carrot hair (hidden by default) */
+        .g-carrot-hair{position:absolute;top:-48px;left:-2px;display:flex;gap:2px;opacity:0;transition:all .6s var(--ease)}
+        .g-carrot-hair.show{opacity:1;animation:hairBounce .6s var(--ease)}
+        @keyframes hairBounce{0%{transform:scale(0) rotate(-10deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0deg)}}
+        .g-hair-carrot{width:7px;height:18px;background:linear-gradient(180deg,#FF8C00,#FF6600,#E65100);border-radius:2px 2px 4px 4px;position:relative;box-shadow:1px 1px 2px rgba(0,0,0,0.2)}
+        .g-hair-carrot:nth-child(2){height:22px;top:-3px}
+        .g-hair-carrot:nth-child(4){height:20px;top:-2px}
+        .g-hair-leaf{width:8px;height:6px;background:#4CAF50;border-radius:50%;position:absolute;top:-4px;left:-1px}
 
         /* CSS Basket - 3D style */
         .basket-wrap{position:absolute;bottom:12%;right:42%;opacity:0;transition:all 1.2s var(--ease);filter:drop-shadow(3px 3px 6px rgba(0,0,0,0.4))}
@@ -435,7 +443,14 @@
         <!-- 3D Gardener -->
         <div class="gardener-wrap" id="gardenerWrap">
             <div class="g-body">
-                <div class="g-hat"></div>
+                <div class="g-hat" id="gHat"></div>
+                <div class="g-carrot-hair" id="gCarrotHair">
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                </div>
                 <div class="g-head"></div>
                 <div class="g-eyes"><div class="g-eye"></div><div class="g-eye"></div></div>
                 <div class="g-smile"></div>
@@ -979,6 +994,8 @@ function startCutscene(){
     laughBubble.className='laugh-bubble';
     armR.classList.remove('grab-arm');
     gardener.querySelector('.g-body').classList.remove('g-laugh');
+    document.getElementById('gHat').style.display='';
+    document.getElementById('gCarrotHair').classList.remove('show');
 
     // Step 1: Gardener enters from right
     setTimeout(()=>{
@@ -1022,22 +1039,45 @@ function startCutscene(){
         beep(600,0.1);setTimeout(()=>beep(800,0.1),100);setTimeout(()=>beep(600,0.12),200);setTimeout(()=>beep(900,0.15),350);
     },7000);
 
+    // Step 6.5: On lose path — hide basket, hat flies off, carrots become hair!
+    const willWin=Math.random()>0.35;
+    if(!willWin){
+        // Basket disappears (gardener ate/hid them)
+        setTimeout(()=>{
+            basket.style.transition='all 0.5s';
+            basket.style.opacity='0';
+            basket.style.transform='scale(0)';
+        },8000);
+        // Hat flies off
+        setTimeout(()=>{
+            const hat=document.getElementById('gHat');
+            hat.style.transition='all 0.6s var(--ease)';
+            hat.style.transform='translateY(-30px) rotate(40deg)';
+            hat.style.opacity='0';
+            beep(300,0.2,'square');
+        },8500);
+        // Carrot hair appears!
+        setTimeout(()=>{
+            document.getElementById('gCarrotHair').classList.add('show');
+            beep(800,0.15);setTimeout(()=>beep(1000,0.1),100);
+        },9200);
+    }
+
     // Step 7: Gardener exits
     setTimeout(()=>{
         gardener.classList.remove('togoal');
         gardener.classList.add('exit');
         laughBubble.classList.remove('show');
-    },9000);
+    },10000);
 
     // Step 8: Show win/lose result
     setTimeout(()=>{
-        const win=Math.random()>0.35; // 65% chance to win
         const resultScreen=document.getElementById('resultScreen');
         const resultTitle=document.getElementById('resultTitle');
         const resultMsg=document.getElementById('resultMsg');
         resultScreen.classList.add('show');
 
-        if(win){
+        if(willWin){
             resultTitle.textContent='YOU WIN!';
             resultTitle.className='result-title win';
             resultMsg.textContent='הצלחת להציל חלק מהגזרים מהגנן המתוחכם! ניקוד: '+score;
@@ -1046,10 +1086,10 @@ function startCutscene(){
         }else{
             resultTitle.textContent='YOU LOSE';
             resultTitle.className='result-title lose';
-            resultMsg.textContent='הגנן גנב את כל הגזרים שלך ושם אותם כשער!';
+            resultMsg.textContent='הגנן גנב את כל הגזרים ושם אותם על הראש שלו בתור שיער! 🤯';
             beep(150,0.6,'sawtooth');
         }
-    },10500);
+    },11500);
 }
 
 function showEnd(){
@@ -1070,6 +1110,13 @@ function closeEnd(){
     document.getElementById('laughBubble').className='laugh-bubble';
     document.getElementById('resultScreen').className='result-screen';
     document.getElementById('gArmR').classList.remove('grab-arm');
+    // Reset hat and carrot hair
+    const hat=document.getElementById('gHat');
+    hat.style.transform='';hat.style.opacity='';hat.style.transition='';hat.style.display='';
+    document.getElementById('gCarrotHair').classList.remove('show');
+    // Reset basket style
+    const bw=document.getElementById('basketWrap');
+    bw.style.transition='';bw.style.opacity='';bw.style.transform='';
     harvested=0;
     waterClicks=0;
     resetGame();
