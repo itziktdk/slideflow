@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlideFlow — שתילת גזרים 🥕</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--p:#7c3aed;--p2:#a78bfa;--p3:#5b21b6;--bg:#09090b;--s1:#18181b;--s2:#1e1e24;--s3:#27272a;--t1:#fafafa;--t2:#a1a1aa;--t3:#71717a;--brd:rgba(255,255,255,0.06);--r:12px;--ease:cubic-bezier(0.16,1,0.3,1);--orange:#f97316;--green:#10b981;--brown:#92400e}
+        body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
+
+        /* Top Bar */
+        .topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--s1);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:100}
+        .back-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;font-family:inherit;font-size:.85em;font-weight:500;transition:all .2s;text-decoration:none}
+        .back-btn:hover{color:var(--t1);border-color:var(--p2)}
+        .topbar h1{font-size:1.2em;font-weight:700;flex:1}
+        .topbar h1 span{color:var(--orange)}
+
+        /* Tabs */
+        .tabs{display:flex;gap:8px;padding:16px 20px;background:var(--s1);border-bottom:1px solid var(--brd);overflow-x:auto}
+        .tab{padding:10px 20px;border-radius:12px;background:var(--s2);border:1px solid var(--brd);color:var(--t2);cursor:pointer;font-family:inherit;font-size:.9em;font-weight:600;transition:all .3s var(--ease);white-space:nowrap}
+        .tab:hover{border-color:var(--p2);color:var(--t1)}
+        .tab.active{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+
+        /* Sections */
+        .section{display:none;padding:20px;max-width:900px;margin:0 auto}
+        .section.active{display:block}
+
+        /* ====== TAB 1: ANIMATION ====== */
+        .anim-stage{background:var(--s1);border-radius:20px;overflow:hidden;border:1px solid var(--brd);margin-bottom:20px}
+        .anim-canvas{width:100%;height:400px;position:relative;overflow:hidden;background:linear-gradient(180deg,#87CEEB 0%,#87CEEB 55%,#8B6914 55%,#6B4E12 100%)}
+        .anim-sky{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,#1a1a4e,#87CEEB)}
+        .anim-ground{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(180deg,#8B6914,#5C3D0E)}
+
+        /* Sun */
+        .sun{position:absolute;top:30px;right:50px;width:70px;height:70px;background:radial-gradient(circle,#FFD700,#FFA500);border-radius:50%;box-shadow:0 0 40px #FFD700;opacity:0;transition:opacity 1s}
+        .sun.show{opacity:1;animation:sunPulse 3s ease-in-out infinite}
+        @keyframes sunPulse{0%,100%{box-shadow:0 0 40px #FFD700}50%{box-shadow:0 0 70px #FFD700}}
+
+        /* Clouds */
+        .cloud{position:absolute;background:#fff;border-radius:50px;opacity:0.7}
+        .cloud1{top:40px;left:20%;width:100px;height:35px;animation:cloudMove 20s linear infinite}
+        .cloud2{top:70px;left:60%;width:70px;height:25px;animation:cloudMove 25s linear infinite reverse}
+        @keyframes cloudMove{0%{transform:translateX(-100px)}100%{transform:translateX(100px)}}
+
+        /* Soil rows */
+        .soil-rows{position:absolute;bottom:20%;left:10%;right:10%;height:30%;display:flex;flex-direction:column;gap:8px;justify-content:center}
+        .soil-row{height:12px;background:#5C3D0E;border-radius:6px;transform:scaleX(0);transition:transform 0.8s var(--ease)}
+        .soil-row.show{transform:scaleX(1)}
+
+        /* Seeds */
+        .seed-container{position:absolute;bottom:20%;left:10%;right:10%;height:30%;display:flex;flex-direction:column;gap:8px;justify-content:center}
+        .seed-row{display:flex;gap:20px;justify-content:center}
+        .seed{width:8px;height:8px;background:#D2691E;border-radius:50%;opacity:0;transform:translateY(-50px);transition:all 0.5s var(--ease)}
+        .seed.show{opacity:1;transform:translateY(0)}
+
+        /* Water drops */
+        .water-container{position:absolute;top:50%;left:10%;right:10%;height:30%}
+        .water-drop{position:absolute;width:6px;height:10px;background:linear-gradient(180deg,#87CEEB,#4169E1);border-radius:0 0 50% 50%;opacity:0}
+        .water-drop.show{animation:waterFall 1s ease-in forwards}
+        @keyframes waterFall{0%{opacity:1;transform:translateY(-30px)}100%{opacity:0;transform:translateY(80px)}}
+
+        /* Carrot sprouts */
+        .sprout-container{position:absolute;bottom:25%;left:10%;right:10%;height:35%}
+        .sprout{position:absolute;bottom:0;display:flex;flex-direction:column;align-items:center}
+        .sprout-leaf{width:4px;background:#228B22;border-radius:2px;transform-origin:bottom;opacity:0;transition:all 1s var(--ease)}
+        .sprout-leaf.show{opacity:1}
+        .carrot-body{width:16px;background:linear-gradient(180deg,#FF8C00,#FF6600);border-radius:0 0 8px 8px;opacity:0;transition:all 1s var(--ease);transform-origin:top}
+        .carrot-body.show{opacity:1}
+
+        /* Harvest carrots */
+        .harvest-carrot{position:absolute;font-size:3em;opacity:0;transition:all 0.8s var(--ease)}
+        .harvest-carrot.show{opacity:1;animation:harvestBounce 0.8s var(--ease)}
+        @keyframes harvestBounce{0%{transform:translateY(20px) scale(0.5)}60%{transform:translateY(-10px) scale(1.1)}100%{transform:translateY(0) scale(1)}}
+
+        .anim-controls{display:flex;align-items:center;gap:12px;padding:16px 20px;background:var(--s2)}
+        .play-btn{display:flex;align-items:center;gap:8px;padding:12px 28px;border-radius:14px;background:var(--p);border:none;color:#fff;font-family:inherit;font-size:1em;font-weight:700;cursor:pointer;transition:all .3s var(--ease)}
+        .play-btn:hover{background:var(--p3);transform:scale(1.05);box-shadow:0 8px 30px rgba(124,58,237,0.3)}
+        .play-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+        .step-text{flex:1;font-size:1em;color:var(--t2);text-align:center;font-weight:500;min-height:1.5em}
+
+        /* Animation choice menu */
+        .anim-choice{position:absolute;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:10;border-radius:inherit}
+        .anim-choice.show{display:flex}
+        .anim-choice h3{color:#fff;font-size:1.3em;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
+        .choice-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+        .choice-btn{padding:14px 24px;border-radius:14px;border:2px solid var(--brd);background:var(--s2);color:var(--t1);font-family:inherit;font-size:1em;font-weight:700;cursor:pointer;transition:all .3s var(--ease);min-width:120px}
+        .choice-btn:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,0.3)}
+        .choice-btn.ch-guide{border-color:#10b981;background:rgba(16,185,129,0.15)}
+        .choice-btn.ch-guide:hover{background:rgba(16,185,129,0.3);box-shadow:0 8px 25px rgba(16,185,129,0.2)}
+        .choice-btn.ch-win{border-color:#7c3aed;background:rgba(124,58,237,0.15)}
+        .choice-btn.ch-win:hover{background:rgba(124,58,237,0.3);box-shadow:0 8px 25px rgba(124,58,237,0.2)}
+        .choice-btn.ch-lose{border-color:#ef4444;background:rgba(239,68,68,0.15)}
+        .choice-btn.ch-lose:hover{background:rgba(239,68,68,0.3);box-shadow:0 8px 25px rgba(239,68,68,0.2)}
+        .progress-bar{width:100%;height:6px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:8px}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--orange));border-radius:3px;transition:width 0.5s var(--ease);width:0}
+
+        /* ====== TAB 2: GUIDE ====== */
+        .guide-intro{text-align:center;padding:30px 20px;margin-bottom:20px}
+        .guide-intro h2{font-size:1.8em;font-weight:900;margin-bottom:8px}
+        .guide-intro h2 span{color:var(--orange)}
+        .guide-intro p{color:var(--t2);font-size:1em}
+
+        .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:30px}
+        .guide-card{background:var(--s1);border:1px solid var(--brd);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .3s var(--ease)}
+        .guide-card:hover{transform:translateY(-5px);box-shadow:0 12px 30px rgba(0,0,0,0.3);border-color:var(--p2)}
+        .card-emoji{font-size:3.5em;text-align:center;padding:25px 15px 10px;background:var(--s2)}
+        .card-body{padding:16px}
+        .card-body h3{font-size:1.05em;font-weight:700;margin-bottom:6px}
+        .card-body p{font-size:.85em;color:var(--t2);line-height:1.6}
+        .card-detail{max-height:0;overflow:hidden;transition:max-height .5s var(--ease);padding:0 16px}
+        .card-detail.open{max-height:300px;padding:0 16px 16px}
+        .card-detail p{font-size:.82em;color:var(--t3);line-height:1.7;border-top:1px solid var(--brd);padding-top:12px}
+        .card-tap{text-align:center;font-size:.7em;color:var(--t3);padding-bottom:12px}
+
+        .fun-facts{background:linear-gradient(135deg,var(--p3),#4338ca);border-radius:16px;padding:24px;margin-top:10px}
+        .fun-facts h3{font-size:1.1em;font-weight:700;margin-bottom:14px;color:#fff}
+        .fact{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+        .fact-emoji{font-size:1.3em;flex-shrink:0}
+        .fact p{font-size:.88em;color:rgba(255,255,255,0.85);line-height:1.5}
+
+        /* ====== TAB 3: GAME ====== */
+        .game-hud{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--s1);border-radius:14px;margin-bottom:16px;border:1px solid var(--brd)}
+        .hud-item{display:flex;align-items:center;gap:6px;font-weight:600;font-size:.95em}
+        .hud-item .emoji{font-size:1.3em}
+        .score-val{color:var(--orange);font-size:1.1em;font-weight:900}
+
+        .game-area{background:var(--s1);border-radius:20px;overflow:hidden;border:1px solid var(--brd);position:relative}
+        .game-canvas{width:100%;height:420px;position:relative;overflow:hidden;background:linear-gradient(180deg,#87CEEB 0%,#87CEEB 40%,#8B6914 40%,#6B4E12 100%);cursor:default}
+        .game-canvas.dig-mode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E⛏️%3C/text%3E%3C/svg%3E") 16 16, crosshair}
+        .game-canvas.water-mode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E🚿%3C/text%3E%3C/svg%3E") 16 16, pointer}
+        .game-canvas.harvest-mode{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext y='24' font-size='24'%3E✋%3C/text%3E%3C/svg%3E") 16 16, grab}
+
+        .game-sun{position:absolute;top:15px;right:30px;font-size:3em;animation:sunSpin 10s linear infinite}
+        @keyframes sunSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+        .game-tools{display:flex;gap:10px;padding:14px 20px;background:var(--s2);justify-content:center;flex-wrap:wrap}
+        .tool-btn{display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:var(--s3);border:2px solid var(--brd);color:var(--t1);font-family:inherit;font-size:.9em;font-weight:600;cursor:pointer;transition:all .3s var(--ease)}
+        .tool-btn:hover{border-color:var(--p2);transform:scale(1.05)}
+        .tool-btn.active{border-color:var(--p);background:rgba(124,58,237,0.2);box-shadow:0 0 20px rgba(124,58,237,0.2)}
+        .tool-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none}
+        .tool-btn .t-emoji{font-size:1.3em}
+
+        .game-msg{text-align:center;padding:14px;font-size:1em;color:var(--t2);font-weight:500;background:var(--s1);border-top:1px solid var(--brd)}
+
+        /* Game soil holes */
+        .hole{position:absolute;width:50px;height:20px;background:#5C3D0E;border-radius:10px;border:2px solid #4A3008;transition:all .3s;opacity:0}
+        .hole.dug{opacity:1;animation:digPop .4s var(--ease)}
+        @keyframes digPop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+
+        /* Game seeds */
+        .game-seed{position:absolute;width:10px;height:10px;background:#D2691E;border-radius:50%;opacity:0;transition:all .3s}
+        .game-seed.planted{opacity:1;animation:seedDrop .5s var(--ease)}
+        @keyframes seedDrop{0%{transform:translateY(-20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+
+        /* Game sprouts */
+        .game-sprout{position:absolute;font-size:0;transition:font-size 1s var(--ease)}
+        .game-sprout.growing{font-size:1.5em}
+        .game-sprout.ready{font-size:2.5em;cursor:pointer;animation:readyBounce 1s infinite}
+        @keyframes readyBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+        /* Water splash */
+        .splash{position:absolute;font-size:1.5em;pointer-events:none;animation:splashAnim 1s var(--ease) forwards}
+        @keyframes splashAnim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-30px) scale(1.5)}}
+
+        /* Game harvest basket */
+        .game-basket{position:absolute;bottom:5%;right:3%;width:60px;height:40px;opacity:0;transition:opacity .5s;pointer-events:none;filter:drop-shadow(2px 3px 5px rgba(0,0,0,0.4))}
+        .game-basket.show{opacity:1}
+        .gb-body{width:60px;height:30px;background:linear-gradient(180deg,#D2691E,#A0522D);border-radius:0 0 12px 12px;position:absolute;bottom:0;overflow:hidden;box-shadow:inset -4px 0 8px rgba(0,0,0,0.15)}
+        .gb-body::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 5px,rgba(0,0,0,0.08) 5px,rgba(0,0,0,0.08) 6px)}
+        .gb-handle{width:36px;height:12px;border:3px solid #8B4513;border-bottom:none;border-radius:12px 12px 0 0;position:absolute;top:0;left:12px}
+        .gb-label{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:.6em;color:var(--t3);white-space:nowrap;font-weight:600}
+        .gb-count{color:var(--orange);font-weight:900}
+        /* Flying carrot to basket */
+        .flying-carrot{position:absolute;font-size:1.8em;pointer-events:none;z-index:50;transition:all 0.7s var(--ease)}
+
+        /* Confetti */
+        .confetti{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1000}
+        .confetti-piece{position:absolute;width:10px;height:10px;border-radius:2px;animation:confettiFall 3s ease-in forwards}
+        @keyframes confettiFall{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+        /* Gardener Cutscene */
+        .cutscene-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;opacity:0;transition:opacity .5s;pointer-events:none}
+        .cutscene-overlay.show{opacity:1;pointer-events:all}
+        .cutscene-stage{width:90%;max-width:550px;height:320px;background:linear-gradient(180deg,#5BA3E6 0%,#87CEEB 40%,#7CB342 40%,#558B2F 42%,#8B6914 42%,#6B4E12 100%);border-radius:20px;position:relative;overflow:hidden;border:3px solid var(--p);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+
+        /* CSS Gardener - 3D style */
+        .gardener-wrap{position:absolute;bottom:15%;right:-18%;transition:all 1.5s var(--ease);transform:perspective(600px) rotateY(-5deg);filter:drop-shadow(4px 4px 8px rgba(0,0,0,0.4))}
+        .gardener-wrap.enter{right:22%}
+        .gardener-wrap.grab{right:38%}
+        .gardener-wrap.togoal{right:2%}
+        .gardener-wrap.exit{right:-20%}
+        .g-body{width:40px;height:50px;background:linear-gradient(180deg,#4CAF50,#388E3C);border-radius:8px 8px 4px 4px;position:relative;box-shadow:inset -5px 0 10px rgba(0,0,0,0.15),2px 2px 6px rgba(0,0,0,0.3)}
+        .g-head{width:32px;height:32px;background:linear-gradient(135deg,#FFCC80,#FFB74D);border-radius:50%;position:absolute;top:-28px;left:4px;box-shadow:inset -4px -2px 8px rgba(0,0,0,0.1),2px 1px 4px rgba(0,0,0,0.2)}
+        .g-hat{width:40px;height:14px;background:linear-gradient(180deg,#795548,#5D4037);border-radius:20px 20px 4px 4px;position:absolute;top:-38px;left:0;box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+        .g-hat::after{content:'';position:absolute;bottom:-4px;left:-6px;width:52px;height:6px;background:linear-gradient(180deg,#6D4C41,#4E342E);border-radius:3px;box-shadow:0 2px 3px rgba(0,0,0,0.2)}
+        .g-eyes{position:absolute;top:-20px;left:10px;display:flex;gap:8px}
+        .g-eye{width:5px;height:5px;background:#333;border-radius:50%}
+        .g-smile{position:absolute;top:-13px;left:13px;width:12px;height:6px;border:2px solid #333;border-top:none;border-radius:0 0 8px 8px}
+        .g-laugh .g-smile{border-radius:0 0 10px 10px;height:8px;background:#fff;border-color:#333}
+        .g-arm{width:8px;height:30px;background:linear-gradient(180deg,#4CAF50,#388E3C);border-radius:4px;position:absolute;top:5px;transform-origin:top center;box-shadow:1px 1px 3px rgba(0,0,0,0.2)}
+        .g-arm-l{left:-8px;transform:rotate(15deg)}
+        .g-arm-r{right:-8px;transform:rotate(-15deg)}
+        .g-arm-r.grab-arm{transform:rotate(-45deg)}
+        .g-leg{width:10px;height:22px;background:linear-gradient(180deg,#5D4037,#4E342E);border-radius:3px 3px 5px 5px;position:absolute;bottom:-20px;box-shadow:1px 2px 3px rgba(0,0,0,0.3)}
+        .g-leg-l{left:6px}
+        .g-leg-r{right:6px}
+        .g-hand{width:10px;height:10px;background:#FFCC80;border-radius:50%;position:absolute;bottom:-3px;left:-1px;box-shadow:1px 1px 2px rgba(0,0,0,0.2)}
+        /* Carrot hair (hidden by default) */
+        .g-carrot-hair{position:absolute;top:-48px;left:-2px;display:flex;gap:2px;opacity:0;transition:all .6s var(--ease)}
+        .g-carrot-hair.show{opacity:1;animation:hairBounce .6s var(--ease)}
+        @keyframes hairBounce{0%{transform:scale(0) rotate(-10deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0deg)}}
+        .g-hair-carrot{width:7px;height:18px;background:linear-gradient(180deg,#FF8C00,#FF6600,#E65100);border-radius:2px 2px 4px 4px;position:relative;box-shadow:1px 1px 2px rgba(0,0,0,0.2)}
+        .g-hair-carrot:nth-child(2){height:22px;top:-3px}
+        .g-hair-carrot:nth-child(4){height:20px;top:-2px}
+        .g-hair-leaf{width:8px;height:6px;background:#4CAF50;border-radius:50%;position:absolute;top:-4px;left:-1px}
+        /* Dead gardener */
+        .gardener-wrap.dead{transform:perspective(600px) rotate(90deg) translateY(20px);opacity:0.7}
+        .g-dead-eyes .g-eye{width:7px;height:7px;background:none;border:none;position:relative}
+        .g-dead-eyes .g-eye::before,.g-dead-eyes .g-eye::after{content:'';position:absolute;width:7px;height:2px;background:#333;top:2px;left:0}
+        .g-dead-eyes .g-eye::before{transform:rotate(45deg)}
+        .g-dead-eyes .g-eye::after{transform:rotate(-45deg)}
+        /* Eating animation */
+        .g-eating .g-smile{width:8px;height:8px;background:#333;border-radius:50%;border:none}
+        /* Nurse/Caretaker */
+        .nurse-wrap{position:absolute;bottom:15%;left:-18%;transition:all 1.5s var(--ease);transform:perspective(600px) rotateY(5deg);filter:drop-shadow(4px 4px 8px rgba(0,0,0,0.4))}
+        .nurse-wrap.enter{left:20%}
+        .nurse-wrap.atnurse{left:35%}
+        .nurse-wrap.exit{left:-20%}
+        .n-body{width:36px;height:48px;background:linear-gradient(180deg,#fff,#e0e0e0);border-radius:8px 8px 4px 4px;position:relative;box-shadow:inset -4px 0 8px rgba(0,0,0,0.1),2px 2px 6px rgba(0,0,0,0.2)}
+        .n-head{width:28px;height:28px;background:linear-gradient(135deg,#FFCC80,#FFB74D);border-radius:50%;position:absolute;top:-24px;left:4px;box-shadow:inset -3px -2px 6px rgba(0,0,0,0.1)}
+        .n-cap{width:32px;height:10px;background:#fff;border-radius:10px 10px 0 0;position:absolute;top:-30px;left:2px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+        .n-cross{position:absolute;top:-28px;left:13px;color:#ef4444;font-size:10px;font-weight:900}
+        .n-eyes{position:absolute;top:-17px;left:9px;display:flex;gap:6px}
+        .n-eye{width:4px;height:4px;background:#333;border-radius:50%}
+        .n-smile{position:absolute;top:-11px;left:12px;width:10px;height:5px;border:2px solid #333;border-top:none;border-radius:0 0 6px 6px}
+        .n-arm{width:7px;height:26px;background:linear-gradient(180deg,#fff,#e0e0e0);border-radius:4px;position:absolute;top:5px;transform-origin:top center;box-shadow:1px 1px 2px rgba(0,0,0,0.15)}
+        .n-arm-l{left:-7px;transform:rotate(15deg)}
+        .n-arm-r{right:-7px;transform:rotate(-15deg)}
+        .n-arm-r.styling{transform:rotate(-50deg)}
+        .n-leg{width:9px;height:20px;background:linear-gradient(180deg,#fff,#e0e0e0);border-radius:3px 3px 5px 5px;position:absolute;bottom:-18px}
+        .n-leg-l{left:5px}
+        .n-leg-r{right:5px}
+        .n-hand{width:9px;height:9px;background:#FFCC80;border-radius:50%;position:absolute;bottom:-2px;left:-1px}
+        /* Gun flash */
+        .gun-flash{position:absolute;width:30px;height:6px;background:linear-gradient(90deg,#FFD700,#FF6600,transparent);border-radius:3px;opacity:0;filter:blur(1px)}
+        .gun-flash.fire{opacity:1;animation:gunFlash .3s ease-out forwards}
+        @keyframes gunFlash{0%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(2)}}
+        /* Screen flash for shooting */
+        .screen-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .1s;z-index:5}
+        .screen-flash.flash{opacity:0.6;animation:flashBang .4s ease-out forwards}
+        @keyframes flashBang{0%{opacity:0.7}100%{opacity:0}}
+        /* Cracked screen overlay */
+        .screen-crack{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:0;transition:opacity .3s}
+        .screen-crack.show{opacity:1}
+        .crack-svg{width:100%;height:100%}
+        .crack-line{stroke:#fff;stroke-width:2;fill:none;opacity:0.9;filter:drop-shadow(0 0 3px rgba(255,255,255,0.5))}
+        .crack-line2{stroke:rgba(255,255,255,0.4);stroke-width:1;fill:none}
+        .crack-hole{fill:rgba(0,0,0,0.8);stroke:#fff;stroke-width:1.5}
+        .crack-chip{fill:rgba(0,0,0,0.5);stroke:rgba(255,255,255,0.3);stroke-width:0.5}
+        /* Glass shards falling */
+        .glass-shard{position:absolute;width:0;height:0;border-style:solid;opacity:0;pointer-events:none;filter:drop-shadow(0 0 2px rgba(255,255,255,0.3))}
+        .glass-shard.fall{animation:shardFall 2s ease-in forwards}
+        @keyframes shardFall{0%{opacity:0.8;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(150px) rotate(180deg)}}
+        /* Hit marker */
+        .hit-marker{position:absolute;font-size:3em;opacity:0;z-index:6;pointer-events:none}
+        .hit-marker.show{opacity:1;animation:hitPop .8s var(--ease) forwards}
+        @keyframes hitPop{0%{transform:scale(0) rotate(-20deg);opacity:0}30%{transform:scale(1.3) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:0}}
+
+        /* CSS Basket - 3D style */
+        .basket-wrap{position:absolute;bottom:12%;right:42%;opacity:0;transition:all 1.2s var(--ease);filter:drop-shadow(3px 3px 6px rgba(0,0,0,0.4))}
+        .basket-wrap.show{opacity:1}
+        .basket-wrap.grabbed{right:35%;bottom:18%}
+        .basket-wrap.atgoal{right:5%;bottom:18%}
+        .bsk-body{width:50px;height:30px;background:linear-gradient(180deg,#D2691E,#A0522D);border-radius:0 0 10px 10px;position:relative;box-shadow:inset -4px 0 8px rgba(0,0,0,0.15),2px 3px 6px rgba(0,0,0,0.3);overflow:hidden}
+        .bsk-body::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 5px,rgba(0,0,0,0.1) 5px,rgba(0,0,0,0.1) 6px)}
+        .bsk-handle{width:34px;height:14px;border:3px solid #8B4513;border-bottom:none;border-radius:14px 14px 0 0;position:absolute;top:-12px;left:8px}
+        .bsk-carrot{position:absolute;top:-8px;transform-origin:bottom center}
+        .bsk-carrot-shape{width:8px;height:20px;background:linear-gradient(180deg,#FF8C00,#FF6600,#E65100);border-radius:2px 2px 4px 4px;position:relative;box-shadow:1px 1px 2px rgba(0,0,0,0.2)}
+        .bsk-carrot-leaf{width:10px;height:8px;background:#4CAF50;border-radius:50%;position:absolute;top:-6px;left:-1px}
+        .bsk-c1{left:8px;transform:rotate(-10deg)}
+        .bsk-c2{left:20px;transform:rotate(5deg)}
+        .bsk-c3{left:32px;transform:rotate(12deg)}
+
+        /* CSS Goal - 3D perspective */
+        .goal-wrap{position:absolute;bottom:5%;left:2%;width:70px;height:55%;opacity:0;transition:opacity .5s;transform:perspective(400px) rotateY(10deg);filter:drop-shadow(3px 3px 8px rgba(0,0,0,0.4))}
+        .goal-wrap.show{opacity:1}
+        .goal-frame{width:100%;height:100%;position:relative}
+        .goal-crossbar{position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(180deg,#fff,#ddd);border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+        .goal-pole-l{position:absolute;top:0;left:0;width:6px;height:100%;background:linear-gradient(90deg,#fff,#ccc);border-radius:3px;box-shadow:2px 0 4px rgba(0,0,0,0.2)}
+        .goal-pole-r{position:absolute;top:0;right:0;width:6px;height:100%;background:linear-gradient(90deg,#ccc,#fff);border-radius:3px;box-shadow:-2px 0 4px rgba(0,0,0,0.2)}
+        .goal-net-mesh{position:absolute;top:6px;left:6px;right:6px;bottom:0;background:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(255,255,255,0.12) 4px,rgba(255,255,255,0.12) 5px),repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(255,255,255,0.12) 4px,rgba(255,255,255,0.12) 5px);border-radius:0 0 4px 4px}
+        .goal-depth{position:absolute;top:0;right:-15px;width:15px;height:100%;background:linear-gradient(90deg,rgba(255,255,255,0.05),transparent);border-top:6px solid rgba(200,200,200,0.5);transform:perspective(200px) rotateY(-25deg);transform-origin:left}
+
+        .laugh-bubble{position:absolute;top:6%;right:12%;background:linear-gradient(135deg,#fff,#f0f0f0);color:#333;padding:12px 20px;border-radius:20px;font-size:1.3em;font-weight:900;opacity:0;transition:all .5s;box-shadow:0 6px 20px rgba(0,0,0,0.3)}
+        .laugh-bubble.show{opacity:1;animation:laughShake .4s ease-in-out infinite}
+        .laugh-bubble::after{content:'';position:absolute;bottom:-10px;right:30px;border-width:10px 10px 0;border-style:solid;border-color:#fff transparent transparent}
+        @keyframes laughShake{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+        .result-screen{display:none;flex-direction:column;align-items:center;gap:16px;text-align:center;padding:0 20px}
+        .result-screen.show{display:flex}
+        .result-title{font-size:2.8em;font-weight:900;text-shadow:0 4px 20px rgba(0,0,0,0.3)}
+        .result-title.win{color:#10b981}
+        .result-title.lose{color:#ef4444}
+        .result-sub{font-size:1.1em;color:var(--t2)}
+        .continue-btn{padding:14px 36px;border-radius:14px;background:var(--p);border:none;color:#fff;font-family:inherit;font-size:1.1em;font-weight:700;cursor:pointer;transition:all .3s var(--ease)}
+        .continue-btn:hover{background:var(--p3);transform:scale(1.08);box-shadow:0 8px 30px rgba(124,58,237,0.4)}
+
+        /* End Screen */
+        .end-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:3000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:15px}
+        .end-screen.show{display:flex}
+        .end-text{font-size:6em;font-weight:900;background:linear-gradient(135deg,var(--p),var(--orange),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:endPulse 2s ease-in-out infinite}
+        @keyframes endPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+        .end-sub{color:var(--t3);font-size:1.2em;font-weight:500}
+
+        /* Growth bar */
+        .growth-bars{display:flex;gap:6px;padding:10px 20px;background:var(--s2);border-top:1px solid var(--brd);flex-wrap:wrap;justify-content:center}
+        .growth-item{display:flex;align-items:center;gap:4px;font-size:.75em;color:var(--t3)}
+        .growth-bar-mini{width:40px;height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+        .growth-fill{height:100%;background:var(--green);border-radius:3px;transition:width 0.5s;width:0}
+
+        /* Race Mode */
+        .race-bots-hud{display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--s1);border-radius:14px;border:1px solid var(--brd);margin-bottom:12px}
+        .bot-bar-wrap{display:flex;align-items:center;gap:8px;padding:4px 0}
+        .bot-bar-name{font-size:.85em;font-weight:700;min-width:70px}
+        .bot-bar-pct{font-size:.8em;font-weight:800;color:var(--t2);min-width:35px;text-align:left}
+        .race-canvas{border:2px solid #ef4444!important;box-shadow:0 0 20px rgba(239,68,68,0.15)!important}
+
+        /* Responsive */
+        @media(max-width:600px){
+            .anim-canvas,.game-canvas{height:300px}
+            .cards-grid{grid-template-columns:1fr}
+            .tabs{gap:6px;padding:12px}
+            .tab{padding:8px 14px;font-size:.82em}
+            .guide-intro h2{font-size:1.4em}
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <a href="index.html" class="back-btn">→ חזרה ל-SlideFlow</a>
+    <h1>🥕 איך שותלים <span>גזרים</span>?</h1>
+</div>
+
+<div class="tabs">
+    <button class="tab active" onclick="switchTab(0)">🎬 סרטון אנימציה</button>
+    <button class="tab" onclick="switchTab(1)">📸 מדריך אינטראקטיבי</button>
+    <button class="tab" onclick="switchTab(2)">🎮 משחק שתילת גזרים</button>
+</div>
+
+<!-- ====== TAB 1: ANIMATION ====== -->
+<div class="section active" id="sec0">
+    <div class="anim-stage">
+        <div class="anim-canvas" id="animCanvas">
+            <div class="anim-choice" id="animChoice">
+                <h3>🎬 מה תרצה לראות?</h3>
+                <div class="choice-btns">
+                    <button class="choice-btn ch-guide" onclick="startAnimMode('guide')">🌱 מדריך שתילה</button>
+                    <button class="choice-btn ch-win" onclick="startAnimMode('win')">🏆 סיום ניצחון</button>
+                    <button class="choice-btn ch-lose" onclick="startAnimMode('lose')">💀 סיום הפסד</button>
+                </div>
+            </div>
+            <div class="anim-sky"></div>
+            <div class="cloud cloud1"></div>
+            <div class="cloud cloud2"></div>
+            <div class="sun" id="animSun"></div>
+            <div class="anim-ground"></div>
+            <div class="soil-rows" id="soilRows"></div>
+            <div class="seed-container" id="seedContainer"></div>
+            <div class="water-container" id="waterContainer"></div>
+            <div class="sprout-container" id="sproutContainer"></div>
+        </div>
+        <div class="anim-controls">
+            <button class="play-btn" id="playBtn" onclick="playAnimation()">▶️ הפעל</button>
+            <div style="flex:1">
+                <div class="step-text" id="stepText">לחץ על הפעל כדי לראות איך שותלים גזרים! 🥕</div>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== TAB 2: GUIDE ====== -->
+<div class="section" id="sec1">
+    <div class="guide-intro">
+        <h2>🌱 המדריך המלא ל<span>שתילת גזרים</span></h2>
+        <p>לחץ על כל כרטיס כדי לגלות עוד מידע!</p>
+    </div>
+    <div class="cards-grid">
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🌤️</div>
+            <div class="card-body">
+                <h3>שלב 1: בחירת העונה</h3>
+                <p>הזמן הכי טוב לשתול גזרים הוא באביב או בסתיו, כשהטמפרטורה נעימה.</p>
+            </div>
+            <div class="card-detail"><p>🌡️ הטמפרטורה האידיאלית היא 15-20 מעלות. גזרים לא אוהבים חום קיצוני! באביב שותלים מפברואר עד אפריל, ובסתיו מספטמבר עד נובמבר. בישראל, הסתיו הוא זמן מושלם!</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🪴</div>
+            <div class="card-body">
+                <h3>שלב 2: הכנת האדמה</h3>
+                <p>חפרו את האדמה לעומק 30 ס"מ ופררו אותה היטב. גזרים אוהבים אדמה רכה!</p>
+            </div>
+            <div class="card-detail"><p>⛏️ הסירו אבנים וגושים — הם יגרמו לגזר לגדול עקום! הוסיפו קומפוסט להעשרת האדמה. אדמה חולית היא הכי טובה לגזרים כי היא מנקזת מים ומאפשרת לשורש לגדול ישר למטה.</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🌱</div>
+            <div class="card-body">
+                <h3>שלב 3: שתילת הזרעים</h3>
+                <p>שתלו את הזרעים בעומק 1-2 ס"מ, במרחק 5 ס"מ אחד מהשני.</p>
+            </div>
+            <div class="card-detail"><p>📏 צרו שורות במרחק 20-30 ס"מ אחת מהשנייה. הזרעים ממש קטנטנים! אפשר לערבב אותם עם חול כדי שיהיה קל לפזר אותם באופן אחיד. כסו בשכבה דקה של אדמה.</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">💧</div>
+            <div class="card-body">
+                <h3>שלב 4: השקיה</h3>
+                <p>השקו בעדינות כל יום-יומיים. האדמה צריכה להיות לחה אבל לא טובענית!</p>
+            </div>
+            <div class="card-detail"><p>🚿 השקיה עדינה היא המפתח! אל תשטפו את הזרעים עם זרם חזק. השתמשו בממטרה עדינה או טפטוף. בקיץ — השקו כל יום. בסתיו/אביב — כל יומיים-שלושה. תמיד בבוקר או בערב, לא בשמש הקופחת!</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">☀️</div>
+            <div class="card-body">
+                <h3>שלב 5: סבלנות וטיפול</h3>
+                <p>הגזרים צריכים 70-80 ימים לגדול. בינתיים — נכשו עשבים שוטים!</p>
+            </div>
+            <div class="card-detail"><p>⏰ אחרי 2-3 שבועות תראו עלים ירוקים קטנים מציצים מהאדמה! זה הסימן שהכל עובד. תנו להם שקט, שמרו על ניקיון מעשבים, והמשיכו להשקות באופן קבוע. אחרי חודש, דללו (הוציאו) צמחים שקרובים מדי.</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+        <div class="guide-card" onclick="toggleCard(this)">
+            <div class="card-emoji">🥕</div>
+            <div class="card-body">
+                <h3>שלב 6: קטיף!</h3>
+                <p>כשהחלק העליון של הגזר בולט מהאדמה ורוחבו כ-2 ס"מ — הגיע הזמן!</p>
+            </div>
+            <div class="card-detail"><p>🎉 תפסו את העלים הירוקים קרוב לאדמה ומשכו בעדינות כלפי מעלה. אם האדמה קשה, השקו קצת לפני הקטיף. גזרים טריים מהגינה טעימים פי מיליון מגזרים מהסופר! שטפו ותיהנו! 🥕✨</p></div>
+            <div class="card-tap">👆 לחץ לעוד מידע</div>
+        </div>
+    </div>
+
+    <div class="fun-facts">
+        <h3>🤯 עובדות מטורפות על גזרים!</h3>
+        <div class="fact">
+            <div class="fact-emoji">🟣</div>
+            <div><p>גזרים לא תמיד היו כתומים! במקור הם היו סגולים, אדומים, צהובים ולבנים. ההולנדים פיתחו את הגזר הכתום במאה ה-17 לכבוד בית המלוכה!</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">👁️</div>
+            <div><p>הגזר באמת טוב לעיניים! הוא מכיל בטא-קרוטן שהגוף הופך לויטמין A, שחשוב לראייה בלילה.</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">🏆</div>
+            <div><p>הגזר הכי ארוך שנמדד אי פעם היה 6.245 מטר! גדל בבריטניה ב-2016.</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">🐰</div>
+            <div><p>בניגוד למה שחושבים, ארנבים לא אמורים לאכול הרבה גזרים! יש בהם יותר מדי סוכר לארנבים. זה הכל בגלל באגס באני! 🤣</p></div>
+        </div>
+        <div class="fact">
+            <div class="fact-emoji">🌍</div>
+            <div><p>סין היא המדינה שמגדלת הכי הרבה גזרים בעולם — כמעט חצי מכל הגזרים על פני כדור הארץ!</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== TAB 3: GAME ====== -->
+<div class="section" id="sec2">
+    <!-- Tutorial phase -->
+    <div id="tutorialPhase">
+        <div style="text-align:center;padding:10px 0;margin-bottom:10px">
+            <span style="background:rgba(124,58,237,0.2);border:1px solid var(--p);padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:600;color:var(--p2)">שלב 1: מדריך — למד לשתול!</span>
+        </div>
+        <div class="game-hud">
+            <div class="hud-item"><span class="emoji">🥕</span> ניקוד: <span class="score-val" id="gameScore">0</span></div>
+            <div class="hud-item"><span class="emoji">🌱</span> גזרים: <span id="carrotCount">0</span>/9</div>
+            <div class="hud-item"><span class="emoji">📊</span> שלב: <span id="gameStage">חפירה</span></div>
+        </div>
+        <div class="game-area">
+            <div class="game-canvas" id="gameCanvas">
+                <div class="game-sun">☀️</div>
+                <div style="position:absolute;top:10px;left:10px;font-size:.7em;color:rgba(255,255,255,0.5)">☁️ ☁️</div>
+                <div class="game-basket" id="gameBasket">
+                    <div class="gb-handle"></div>
+                    <div class="gb-body"></div>
+                    <div class="gb-label">סל: <span class="gb-count" id="basketCount">0</span>/9</div>
+                </div>
+            </div>
+            <div class="growth-bars" id="growthBars"></div>
+            <div class="game-tools" id="gameTools">
+                <button class="tool-btn active" id="toolDig" onclick="setTool('dig')"><span class="t-emoji">⛏️</span> חפור</button>
+                <button class="tool-btn" id="toolSeed" onclick="setTool('seed')" disabled><span class="t-emoji">🌱</span> שתול</button>
+                <button class="tool-btn" id="toolWater" onclick="setTool('water')" disabled><span class="t-emoji">💧</span> השקה</button>
+                <button class="tool-btn" id="toolFast" onclick="fastForward()" disabled><span class="t-emoji">⏩</span> הרצה קדימה</button>
+                <button class="tool-btn" id="toolHarvest" onclick="setTool('harvest')" disabled><span class="t-emoji">✋</span> קטיף</button>
+                <button class="tool-btn" onclick="resetGame()"><span class="t-emoji">🔄</span> מחדש</button>
+            </div>
+            <div class="game-msg" id="gameMsg">⛏️ לחץ על האדמה כדי לחפור חורים לגזרים!</div>
+        </div>
+    </div>
+
+    <!-- Race phase (hidden until tutorial complete) -->
+    <div id="racePhase" style="display:none">
+        <div style="text-align:center;padding:10px 0;margin-bottom:10px">
+            <span style="background:rgba(239,68,68,0.2);border:1px solid #ef4444;padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:600;color:#fca5a5">שלב 2: מרוץ שתילה! מי מסיים ראשון?</span>
+        </div>
+        <!-- Bot progress bars -->
+        <div class="race-bots-hud" id="raceBotsHud">
+            <div class="bot-bar-wrap">
+                <span class="bot-bar-name">🤖 דני:</span>
+                <div class="lane-bar" style="flex:1"><div class="lane-fill bot1-fill" id="rBot1Fill" style="width:0"></div></div>
+                <span class="bot-bar-pct" id="rBot1Pct">0%</span>
+            </div>
+            <div class="bot-bar-wrap">
+                <span class="bot-bar-name">🤖 שרה:</span>
+                <div class="lane-bar" style="flex:1"><div class="lane-fill bot2-fill" id="rBot2Fill" style="width:0"></div></div>
+                <span class="bot-bar-pct" id="rBot2Pct">0%</span>
+            </div>
+            <div class="bot-bar-wrap" style="border-color:var(--p2)">
+                <span class="bot-bar-name">🧑 אתה:</span>
+                <div class="lane-bar" style="flex:1"><div class="lane-fill" id="rPlayerFill" style="width:0"></div></div>
+                <span class="bot-bar-pct" id="rPlayerPct">0%</span>
+            </div>
+        </div>
+        <!-- Same game canvas as tutorial -->
+        <div class="game-area">
+            <div class="game-canvas race-canvas" id="raceCanvas">
+                <div class="game-sun">☀️</div>
+                <div class="game-basket" id="raceBasket">
+                    <div class="gb-handle"></div>
+                    <div class="gb-body"></div>
+                    <div class="gb-label">סל: <span class="gb-count" id="raceBasketCount">0</span>/9</div>
+                </div>
+            </div>
+            <div class="growth-bars" id="raceGrowthBars"></div>
+            <div class="game-tools">
+                <button class="tool-btn active" id="rToolDig" onclick="rSetTool('dig')"><span class="t-emoji">⛏️</span> חפור</button>
+                <button class="tool-btn" id="rToolSeed" onclick="rSetTool('seed')" disabled><span class="t-emoji">🌱</span> שתול</button>
+                <button class="tool-btn" id="rToolWater" onclick="rSetTool('water')" disabled><span class="t-emoji">💧</span> השקה</button>
+                <button class="tool-btn" id="rToolFast" onclick="rFastForward()" disabled><span class="t-emoji">⏩</span> הרצה קדימה</button>
+                <button class="tool-btn" id="rToolHarvest" onclick="rSetTool('harvest')" disabled><span class="t-emoji">✋</span> קטיף</button>
+            </div>
+            <div class="game-msg" id="raceMsg">⛏️ מהר! לחץ על האדמה כדי לחפור!</div>
+        </div>
+    </div>
+</div>
+
+<!-- Gardener Cutscene (CSS 3D) -->
+<div class="cutscene-overlay" id="cutscene">
+    <div class="cutscene-stage" id="cutsceneStage">
+        <!-- 3D Goal -->
+        <div class="goal-wrap" id="goalWrap">
+            <div class="goal-frame">
+                <div class="goal-crossbar"></div>
+                <div class="goal-pole-l"></div>
+                <div class="goal-pole-r"></div>
+                <div class="goal-net-mesh"></div>
+                <div class="goal-depth"></div>
+            </div>
+        </div>
+        <!-- 3D Basket with carrots -->
+        <div class="basket-wrap" id="basketWrap">
+            <div class="bsk-carrot bsk-c1"><div class="bsk-carrot-shape"><div class="bsk-carrot-leaf"></div></div></div>
+            <div class="bsk-carrot bsk-c2"><div class="bsk-carrot-shape"><div class="bsk-carrot-leaf"></div></div></div>
+            <div class="bsk-carrot bsk-c3"><div class="bsk-carrot-shape"><div class="bsk-carrot-leaf"></div></div></div>
+            <div class="bsk-body"><div class="bsk-handle"></div></div>
+        </div>
+        <!-- 3D Gardener -->
+        <div class="gardener-wrap" id="gardenerWrap">
+            <div class="g-body">
+                <div class="g-hat" id="gHat"></div>
+                <div class="g-carrot-hair" id="gCarrotHair">
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                    <div class="g-hair-carrot"><div class="g-hair-leaf"></div></div>
+                </div>
+                <div class="g-head"></div>
+                <div class="g-eyes"><div class="g-eye"></div><div class="g-eye"></div></div>
+                <div class="g-smile"></div>
+                <div class="g-arm g-arm-l"><div class="g-hand"></div></div>
+                <div class="g-arm g-arm-r" id="gArmR"><div class="g-hand"></div></div>
+                <div class="g-leg g-leg-l"></div>
+                <div class="g-leg g-leg-r"></div>
+            </div>
+        </div>
+        <div class="laugh-bubble" id="laughBubble">ההההה!</div>
+        <!-- Nurse -->
+        <div class="nurse-wrap" id="nurseWrap">
+            <div class="n-body">
+                <div class="n-cap"></div>
+                <div class="n-cross">+</div>
+                <div class="n-head"></div>
+                <div class="n-eyes"><div class="n-eye"></div><div class="n-eye"></div></div>
+                <div class="n-smile"></div>
+                <div class="n-arm n-arm-l"><div class="n-hand"></div></div>
+                <div class="n-arm n-arm-r" id="nArmR"><div class="n-hand"></div></div>
+                <div class="n-leg n-leg-l"></div>
+                <div class="n-leg n-leg-r"></div>
+            </div>
+        </div>
+        <!-- Effects -->
+        <div class="screen-flash" id="screenFlash"></div>
+        <div class="screen-crack" id="screenCrack">
+            <svg class="crack-svg" viewBox="0 0 550 320">
+                <!-- Bullet hole -->
+                <circle class="crack-hole" cx="275" cy="160" r="8"/>
+                <circle class="crack-chip" cx="275" cy="160" r="14"/>
+                <!-- Main cracks radiating from center -->
+                <path class="crack-line" d="M275,160 L220,80 L200,40"/>
+                <path class="crack-line" d="M275,160 L340,70 L380,30"/>
+                <path class="crack-line" d="M275,160 L180,160 L100,140 L40,120"/>
+                <path class="crack-line" d="M275,160 L370,170 L450,190 L520,200"/>
+                <path class="crack-line" d="M275,160 L230,230 L190,280 L160,310"/>
+                <path class="crack-line" d="M275,160 L330,240 L370,290"/>
+                <path class="crack-line" d="M275,160 L260,100 L250,40"/>
+                <path class="crack-line" d="M275,160 L290,220 L300,290"/>
+                <!-- Secondary cracks (branches) -->
+                <path class="crack-line2" d="M220,80 L180,90 L140,85"/>
+                <path class="crack-line2" d="M340,70 L360,100 L390,95"/>
+                <path class="crack-line2" d="M180,160 L170,200 L140,220"/>
+                <path class="crack-line2" d="M370,170 L380,130 L420,120"/>
+                <path class="crack-line2" d="M230,230 L270,250 L280,270"/>
+                <path class="crack-line2" d="M330,240 L300,260 L310,280"/>
+                <path class="crack-line2" d="M260,100 L230,110 L210,100"/>
+                <path class="crack-line2" d="M290,220 L320,210 L340,220"/>
+                <!-- Small chips around hole -->
+                <circle class="crack-chip" cx="265" cy="150" r="3"/>
+                <circle class="crack-chip" cx="285" cy="148" r="2.5"/>
+                <circle class="crack-chip" cx="268" cy="172" r="2"/>
+                <circle class="crack-chip" cx="288" cy="168" r="3"/>
+            </svg>
+        </div>
+        <div class="gun-flash" id="gunFlash" style="bottom:30%;right:20%"></div>
+        <div class="hit-marker" id="hitMarker" style="top:30%;left:40%">💥</div>
+    </div>
+    <div class="result-screen" id="resultScreen">
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-sub" id="resultMsg"></div>
+        <button class="continue-btn" onclick="showEnd()">Continue ▶</button>
+    </div>
+</div>
+
+<!-- End Screen -->
+<div class="end-screen" id="endScreen">
+    <div class="end-text">END</div>
+    <div class="end-sub">תודה ששיחקת!</div>
+    <button class="continue-btn" style="margin-top:20px" onclick="closeEnd()">שחק שוב</button>
+</div>
+
+<script>
+// === Tabs ===
+function switchTab(i){
+    document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+    document.querySelectorAll('.section').forEach((s,j)=>s.classList.toggle('active',j===i));
+}
+
+// === Guide Cards ===
+function toggleCard(card){
+    const det=card.querySelector('.card-detail');
+    det.classList.toggle('open');
+    const tap=card.querySelector('.card-tap');
+    tap.textContent=det.classList.contains('open')?'👆 לחץ לסגור':'👆 לחץ לעוד מידע';
+}
+
+// === Audio ===
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let audioCtx;
+function beep(freq,dur,type='sine'){
+    if(!audioCtx)audioCtx=new AudioCtx();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(0.15,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();o.stop(audioCtx.currentTime+dur);
+}
+function digSound(){beep(150,0.15,'square')}
+function seedSound(){beep(600,0.1,'sine')}
+function waterSound(){beep(400,0.3,'sine')}
+function growSound(){beep(500,0.2,'triangle')}
+function harvestSound(){beep(800,0.15);setTimeout(()=>beep(1000,0.15),100);setTimeout(()=>beep(1200,0.2),200)}
+function winSound(){[0,100,200,300,400].forEach((d,i)=>setTimeout(()=>beep(600+i*100,0.2,'triangle'),d))}
+
+// === Animation (Tab 1) ===
+let animPlaying=false;
+let animMode='guide'; // guide, win, lose
+const STEPS=[
+    {text:'🌱 שלב 1: מכינים את האדמה — חופרים ומפררים!',fn:animStep1},
+    {text:'📏 שלב 2: יוצרים תלמים באדמה',fn:animStep2},
+    {text:'🌱 שלב 3: שותלים את הזרעים בתלמים!',fn:animStep3},
+    {text:'💧 שלב 4: משקים בעדינות',fn:animStep4},
+    {text:'☀️ שלב 5: שמש, מים וסבלנות!',fn:animStep5},
+    {text:'🌿 שלב 6: הגזרים גדלים!',fn:animStep6},
+    {text:'🥕 שלב 7: קטיף! אוספים את הגזרים!',fn:animStep7},
+];
+function playAnimation(){
+    if(animPlaying)return;
+    // Show choice menu
+    document.getElementById('animChoice').classList.add('show');
+    document.getElementById('playBtn').disabled=true;
+}
+function startAnimMode(mode){
+    animMode=mode;
+    document.getElementById('animChoice').classList.remove('show');
+    animPlaying=true;
+    document.getElementById('playBtn').textContent='⏳ מריץ...';
+    resetAnim();
+    if(mode==='guide'){
+        runStep(0);
+    }else{
+        // For win/lose: play quick planting animation then cutscene
+        document.getElementById('stepText').textContent='🌱 שותלים גזרים...';
+        document.getElementById('progressFill').style.width='20%';
+        animStep2(()=>{
+            document.getElementById('stepText').textContent='💧 משקים...';
+            document.getElementById('progressFill').style.width='40%';
+            animStep4(()=>{
+                document.getElementById('stepText').textContent='🌿 הגזרים גדלים...';
+                document.getElementById('progressFill').style.width='60%';
+                animStep6(()=>{
+                    document.getElementById('stepText').textContent='🥕 קוטפים!';
+                    document.getElementById('progressFill').style.width='80%';
+                    animStep7(()=>{
+                        document.getElementById('stepText').textContent=mode==='win'?'🏆 וזה מה שקורה כשמנצחים...':'💀 וזה מה שקורה כשמפסידים...';
+                        document.getElementById('progressFill').style.width='100%';
+                        setTimeout(()=>{
+                            startCutsceneForced(mode==='win');
+                            animPlaying=false;
+                            document.getElementById('playBtn').disabled=false;
+                            document.getElementById('playBtn').textContent='▶️ הפעל';
+                        },1500);
+                    });
+                });
+            });
+        });
+    }
+}
+function runStep(i){
+    if(i>=STEPS.length){
+        document.getElementById('stepText').textContent='🎉 סיימנו! עכשיו אתה יודע איך שותלים גזרים!';
+        document.getElementById('progressFill').style.width='100%';
+        document.getElementById('playBtn').disabled=false;
+        document.getElementById('playBtn').textContent='🔄 הפעל שוב';
+        animPlaying=false;
+        return;
+    }
+    document.getElementById('stepText').textContent=STEPS[i].text;
+    document.getElementById('progressFill').style.width=((i+1)/STEPS.length*100)+'%';
+    STEPS[i].fn(()=>setTimeout(()=>runStep(i+1),800));
+}
+function resetAnim(){
+    document.getElementById('soilRows').innerHTML='';
+    document.getElementById('seedContainer').innerHTML='';
+    document.getElementById('waterContainer').innerHTML='';
+    document.getElementById('sproutContainer').innerHTML='';
+    document.getElementById('animSun').classList.remove('show');
+    document.querySelectorAll('.harvest-carrot').forEach(e=>e.remove());
+}
+function animStep1(cb){
+    const g=document.getElementById('anim-canvas');
+    // Shake the ground a bit
+    const ground=document.querySelector('.anim-ground');
+    ground.style.transition='transform 0.1s';
+    let shakes=0;
+    const si=setInterval(()=>{
+        ground.style.transform=`translateX(${shakes%2?3:-3}px)`;
+        shakes++;
+        if(shakes>8){clearInterval(si);ground.style.transform='';digSound();cb();}
+    },100);
+}
+function animStep2(cb){
+    const sr=document.getElementById('soilRows');
+    sr.innerHTML='';
+    for(let i=0;i<4;i++){
+        const row=document.createElement('div');
+        row.className='soil-row';
+        sr.appendChild(row);
+        setTimeout(()=>{row.classList.add('show');digSound()},i*300);
+    }
+    setTimeout(cb,1500);
+}
+function animStep3(cb){
+    const sc=document.getElementById('seedContainer');
+    sc.innerHTML='';
+    for(let r=0;r<4;r++){
+        const row=document.createElement('div');
+        row.className='seed-row';
+        for(let s=0;s<6;s++){
+            const seed=document.createElement('div');
+            seed.className='seed';
+            row.appendChild(seed);
+            setTimeout(()=>{seed.classList.add('show');seedSound()},r*300+s*100);
+        }
+        sc.appendChild(row);
+    }
+    setTimeout(cb,2500);
+}
+function animStep4(cb){
+    const wc=document.getElementById('waterContainer');
+    wc.innerHTML='';
+    for(let i=0;i<20;i++){
+        const drop=document.createElement('div');
+        drop.className='water-drop';
+        drop.style.left=Math.random()*90+'%';
+        drop.style.top=Math.random()*20+'%';
+        wc.appendChild(drop);
+        setTimeout(()=>{drop.classList.add('show');if(i%4===0)waterSound()},i*150);
+    }
+    setTimeout(cb,3500);
+}
+function animStep5(cb){
+    document.getElementById('animSun').classList.add('show');
+    setTimeout(cb,2000);
+}
+function animStep6(cb){
+    const sc=document.getElementById('sproutContainer');
+    sc.innerHTML='';
+    const positions=[15,25,35,45,55,65,75,85];
+    positions.forEach((x,i)=>{
+        const s=document.createElement('div');
+        s.className='sprout';
+        s.style.left=x+'%';
+        const leaf=document.createElement('div');
+        leaf.className='sprout-leaf';
+        leaf.style.height='0px';
+        s.appendChild(leaf);
+        const carrot=document.createElement('div');
+        carrot.className='carrot-body';
+        carrot.style.height='0px';
+        s.appendChild(carrot);
+        sc.appendChild(s);
+        setTimeout(()=>{
+            leaf.classList.add('show');
+            leaf.style.height='30px';
+            growSound();
+        },i*200);
+        setTimeout(()=>{
+            carrot.classList.add('show');
+            carrot.style.height='25px';
+        },i*200+500);
+    });
+    setTimeout(cb,3000);
+}
+function animStep7(cb){
+    const canvas=document.getElementById('animCanvas');
+    const positions=[15,25,35,45,55,65,75,85];
+    positions.forEach((x,i)=>{
+        setTimeout(()=>{
+            const c=document.createElement('div');
+            c.className='harvest-carrot';
+            c.textContent='🥕';
+            c.style.left=x+'%';
+            c.style.bottom=(30+Math.random()*20)+'%';
+            canvas.appendChild(c);
+            setTimeout(()=>c.classList.add('show'),50);
+            harvestSound();
+        },i*200);
+    });
+    setTimeout(cb,2500);
+}
+
+// === Game (Tab 3) ===
+let gameTool='dig';
+let holes=[];
+let seeds=[];
+let watered=false;
+let growing=false;
+let growthProgress=[];
+let score=0;
+let gamePhase='dig'; // dig, seed, water, grow, harvest, done
+
+const HOLE_POSITIONS=[
+    {x:15,y:55},{x:30,y:55},{x:45,y:55},
+    {x:60,y:55},{x:75,y:55},{x:90,y:55},
+    {x:22,y:70},{x:52,y:70},{x:82,y:70}
+];
+
+function resetGame(){
+    holes=[];seeds=[];watered=false;growing=false;growthProgress=[];score=0;gamePhase='dig';gameTool='dig';
+    document.getElementById('tutorialPhase').style.display='block';
+    document.getElementById('racePhase').style.display='none';
+    document.getElementById('gameScore').textContent='0';
+    document.getElementById('carrotCount').textContent='0';
+    document.getElementById('gameStage').textContent='חפירה';
+    document.getElementById('gameMsg').textContent='⛏️ לחץ על האדמה כדי לחפור חורים לגזרים!';
+    document.getElementById('gameCanvas').className='game-canvas dig-mode';
+    document.getElementById('toolDig').classList.add('active');
+    document.getElementById('toolDig').disabled=false;
+    document.getElementById('toolSeed').classList.remove('active');document.getElementById('toolSeed').disabled=true;
+    document.getElementById('toolWater').classList.remove('active');document.getElementById('toolWater').disabled=true;
+    document.getElementById('toolFast').disabled=true;
+    document.getElementById('toolHarvest').classList.remove('active');document.getElementById('toolHarvest').disabled=true;
+    document.getElementById('gameCanvas').innerHTML='<div class="game-sun">☀️</div><div style="position:absolute;top:10px;left:10px;font-size:.7em;color:rgba(255,255,255,0.5)">☁️ ☁️</div><div class="game-basket" id="gameBasket"><div class="gb-handle"></div><div class="gb-body"></div><div class="gb-label">סל: <span class="gb-count" id="basketCount">0</span>/9</div></div>';
+    document.getElementById('growthBars').innerHTML='';
+}
+
+function setTool(t){
+    gameTool=t;
+    document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+    const btn=document.getElementById('tool'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn)btn.classList.add('active');
+    const canvas=document.getElementById('gameCanvas');
+    canvas.className='game-canvas';
+    if(t==='dig')canvas.classList.add('dig-mode');
+    if(t==='water')canvas.classList.add('water-mode');
+    if(t==='harvest')canvas.classList.add('harvest-mode');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('gameCanvas').addEventListener('click',onGameClick);
+});
+
+function onGameClick(e){
+    const rect=e.currentTarget.getBoundingClientRect();
+    const xPct=(e.clientX-rect.left)/rect.width*100;
+    const yPct=(e.clientY-rect.top)/rect.height*100;
+
+    if(yPct<40)return; // clicked sky
+
+    if(gameTool==='dig'&&gamePhase==='dig'){
+        doDig(xPct,yPct);
+    }else if(gameTool==='seed'&&gamePhase==='seed'){
+        doSeed(xPct,yPct);
+    }else if(gameTool==='water'&&gamePhase==='water'){
+        doWater(xPct,yPct);
+    }else if(gameTool==='harvest'&&gamePhase==='harvest'){
+        doHarvest(xPct,yPct);
+    }
+}
+
+function doDig(x,y){
+    if(holes.length>=9)return;
+    // Snap to closest position
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(holes.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>20)return;
+    const pos=HOLE_POSITIONS[closest];
+    const hole=document.createElement('div');
+    hole.className='hole';
+    hole.style.left=(pos.x-3)+'%';
+    hole.style.top=(pos.y-1)+'%';
+    document.getElementById('gameCanvas').appendChild(hole);
+    setTimeout(()=>hole.classList.add('dug'),50);
+    holes.push({idx:closest,el:hole});
+    digSound();
+    score+=5;
+    document.getElementById('gameScore').textContent=score;
+
+    if(holes.length>=9){
+        gamePhase='seed';
+        document.getElementById('toolDig').disabled=true;
+        document.getElementById('toolSeed').disabled=false;
+        setTool('seed');
+        document.getElementById('gameStage').textContent='שתילה';
+        document.getElementById('gameMsg').textContent='🌱 מעולה! עכשיו לחץ על החורים כדי לשתול זרעים!';
+    }else{
+        document.getElementById('gameMsg').textContent=`⛏️ חפרת ${holes.length}/9 חורים! המשך לחפור!`;
+    }
+}
+
+function doSeed(x,y){
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(seeds.find(s=>s.idx===i))return;
+        if(!holes.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const pos=HOLE_POSITIONS[closest];
+    const seed=document.createElement('div');
+    seed.className='game-seed';
+    seed.style.left=(pos.x-0.5)+'%';
+    seed.style.top=(pos.y)+'%';
+    document.getElementById('gameCanvas').appendChild(seed);
+    setTimeout(()=>seed.classList.add('planted'),50);
+    seeds.push({idx:closest,el:seed});
+    seedSound();
+    score+=5;
+    document.getElementById('gameScore').textContent=score;
+
+    if(seeds.length>=9){
+        gamePhase='water';
+        document.getElementById('toolSeed').disabled=true;
+        document.getElementById('toolWater').disabled=false;
+        setTool('water');
+        document.getElementById('gameStage').textContent='השקיה';
+        document.getElementById('gameMsg').textContent='💧 יופי! עכשיו לחץ כדי להשקות את הגזרים!';
+    }else{
+        document.getElementById('gameMsg').textContent=`🌱 שתלת ${seeds.length}/9 זרעים!`;
+    }
+    document.getElementById('carrotCount').textContent=seeds.length;
+}
+
+let waterClicks=0;
+function doWater(x,y){
+    // Add splash
+    const splash=document.createElement('div');
+    splash.className='splash';
+    splash.textContent='💧';
+    splash.style.left=x+'%';
+    splash.style.top=y+'%';
+    document.getElementById('gameCanvas').appendChild(splash);
+    setTimeout(()=>splash.remove(),1000);
+    waterSound();
+    waterClicks++;
+
+    if(waterClicks>=5){
+        gamePhase='grow';
+        document.getElementById('toolWater').disabled=true;
+        document.getElementById('toolFast').disabled=false;
+        document.getElementById('gameStage').textContent='גדילה';
+        document.getElementById('gameMsg').textContent='⏩ הגזרים גדלים! לחץ "הרצה קדימה" כדי להאיץ!';
+        score+=10;
+        document.getElementById('gameScore').textContent=score;
+        startGrowing();
+        waterClicks=0;
+    }else{
+        document.getElementById('gameMsg').textContent=`💧 השקית ${waterClicks}/5 פעמים! המשך להשקות!`;
+    }
+}
+
+function startGrowing(){
+    growthProgress=seeds.map(()=>0);
+    renderGrowthBars();
+    seeds.forEach((s,i)=>{
+        const pos=HOLE_POSITIONS[s.idx];
+        const sprout=document.createElement('div');
+        sprout.className='game-sprout';
+        sprout.textContent='🌱';
+        sprout.id='sprout-'+i;
+        sprout.style.left=(pos.x-1)+'%';
+        sprout.style.top=(pos.y-5)+'%';
+        document.getElementById('gameCanvas').appendChild(sprout);
+        setTimeout(()=>sprout.classList.add('growing'),100);
+    });
+    growInterval=setInterval(()=>{
+        let allDone=true;
+        growthProgress=growthProgress.map((g,i)=>{
+            const newG=Math.min(100,g+Math.random()*3+1);
+            if(newG<100)allDone=false;
+            const sprout=document.getElementById('sprout-'+i);
+            if(sprout){
+                if(newG>=100){
+                    sprout.textContent='🥕';
+                    sprout.classList.remove('growing');
+                    sprout.classList.add('ready');
+                }else if(newG>=60){
+                    sprout.textContent='🌿';
+                }
+            }
+            return newG;
+        });
+        renderGrowthBars();
+        if(allDone){
+            clearInterval(growInterval);
+            gamePhase='harvest';
+            document.getElementById('toolFast').disabled=true;
+            document.getElementById('toolHarvest').disabled=false;
+            setTool('harvest');
+            document.getElementById('gameStage').textContent='קטיף!';
+            document.getElementById('gameMsg').textContent='🥕 הגזרים מוכנים! לחץ עליהם כדי לקטוף לסל!';
+            document.getElementById('gameBasket').classList.add('show');
+            growSound();
+        }
+    },500);
+}
+
+let growInterval;
+function fastForward(){
+    if(gamePhase!=='grow')return;
+    growthProgress=growthProgress.map((g,i)=>{
+        const newG=Math.min(100,g+25);
+        const sprout=document.getElementById('sprout-'+i);
+        if(sprout){
+            if(newG>=100){sprout.textContent='🥕';sprout.classList.remove('growing');sprout.classList.add('ready')}
+            else if(newG>=60){sprout.textContent='🌿'}
+        }
+        return newG;
+    });
+    renderGrowthBars();
+    growSound();
+    score+=5;
+    document.getElementById('gameScore').textContent=score;
+}
+
+function renderGrowthBars(){
+    const gb=document.getElementById('growthBars');
+    gb.innerHTML=growthProgress.map((g,i)=>`
+        <div class="growth-item">🥕${i+1} <div class="growth-bar-mini"><div class="growth-fill" style="width:${g}%"></div></div> ${Math.round(g)}%</div>
+    `).join('');
+}
+
+let harvested=0;
+function doHarvest(x,y){
+    // Find closest ready sprout
+    let closest=null,minDist=999;
+    seeds.forEach((s,i)=>{
+        if(growthProgress[i]<100)return;
+        const sprout=document.getElementById('sprout-'+i);
+        if(!sprout||sprout.dataset.harvested)return;
+        const pos=HOLE_POSITIONS[s.idx];
+        const d=Math.sqrt((pos.x-x)**2+(pos.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const sprout=document.getElementById('sprout-'+closest);
+    const pos=HOLE_POSITIONS[seeds[closest].idx];
+    sprout.dataset.harvested='1';
+    
+    // Create flying carrot that goes to basket
+    const canvas=document.getElementById('gameCanvas');
+    const fc=document.createElement('div');
+    fc.className='flying-carrot';
+    fc.textContent='🥕';
+    fc.style.left=pos.x+'%';
+    fc.style.top=(pos.y-5)+'%';
+    fc.style.transform='scale(1)';
+    fc.style.opacity='1';
+    canvas.appendChild(fc);
+    
+    // Hide the sprout
+    sprout.style.transition='all 0.3s';
+    sprout.style.transform='translateY(-15px) scale(0.5)';
+    sprout.style.opacity='0';
+    setTimeout(()=>sprout.remove(),300);
+    
+    // Animate flying carrot to basket position (bottom-right)
+    requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+            fc.style.left='92%';
+            fc.style.top='82%';
+            fc.style.transform='scale(0.6) rotate(360deg)';
+            fc.style.opacity='0.8';
+        });
+    });
+    
+    // Remove flying carrot after landing in basket
+    setTimeout(()=>{
+        fc.remove();
+        // Basket bounce effect
+        const basket=document.getElementById('gameBasket');
+        basket.style.transform='scale(1.15)';
+        setTimeout(()=>basket.style.transform='scale(1)',200);
+    },700);
+    
+    harvestSound();
+    harvested++;
+    score+=15;
+    document.getElementById('gameScore').textContent=score;
+    document.getElementById('basketCount').textContent=harvested;
+    document.getElementById('gameMsg').textContent=`🥕 קטפת ${harvested}/9 גזרים לסל!`;
+
+    if(harvested>=9){
+        gamePhase='done';
+        score+=50;
+        document.getElementById('gameScore').textContent=score;
+        document.getElementById('gameStage').textContent='סיום מדריך!';
+        document.getElementById('gameMsg').textContent='🎉 מעולה! עברת את המדריך! עכשיו בוא נתחרה נגד בוטים!';
+        document.getElementById('toolHarvest').disabled=true;
+        winSound();
+        launchConfetti();
+        // After 3 seconds, switch to race mode
+        setTimeout(()=>showRacePhase(),3000);
+    }
+}
+
+function launchConfetti(){
+    const div=document.createElement('div');
+    div.className='confetti';
+    document.body.appendChild(div);
+    const colors=['#f97316','#7c3aed','#10b981','#ef4444','#06b6d4','#eab308','#ec4899'];
+    for(let i=0;i<60;i++){
+        const p=document.createElement('div');
+        p.className='confetti-piece';
+        p.style.left=Math.random()*100+'%';
+        p.style.background=colors[Math.floor(Math.random()*colors.length)];
+        p.style.animationDelay=Math.random()*2+'s';
+        p.style.animationDuration=(2+Math.random()*2)+'s';
+        p.style.width=(6+Math.random()*8)+'px';
+        p.style.height=(6+Math.random()*8)+'px';
+        div.appendChild(p);
+    }
+    setTimeout(()=>div.remove(),5000);
+}
+
+// === Gardener Cutscene (3D CSS) ===
+function startCutscene(){
+    // Random win/lose from game
+    const willWin=Math.random()>0.35;
+    runCutscene(willWin);
+}
+function startCutsceneForced(willWin){
+    // Forced win/lose from animation viewer
+    runCutscene(willWin);
+}
+function runCutscene(willWin){
+    const overlay=document.getElementById('cutscene');
+    overlay.classList.add('show');
+    const gardener=document.getElementById('gardenerWrap');
+    const basket=document.getElementById('basketWrap');
+    const goalWrap=document.getElementById('goalWrap');
+    const laughBubble=document.getElementById('laughBubble');
+    const armR=document.getElementById('gArmR');
+    const nurse=document.getElementById('nurseWrap');
+
+    // Reset everything
+    gardener.className='gardener-wrap';
+    basket.className='basket-wrap';
+    goalWrap.className='goal-wrap';
+    laughBubble.className='laugh-bubble';
+    nurse.className='nurse-wrap';
+    armR.classList.remove('grab-arm');
+    gardener.querySelector('.g-body').classList.remove('g-laugh','g-eating');
+    gardener.querySelector('.g-eyes').classList.remove('g-dead-eyes');
+    document.getElementById('gHat').style.transform='';
+    document.getElementById('gHat').style.opacity='';
+    document.getElementById('gHat').style.transition='';
+    document.getElementById('gHat').style.display='';
+    document.getElementById('gCarrotHair').classList.remove('show');
+    document.getElementById('screenFlash').className='screen-flash';
+    document.getElementById('screenCrack').className='screen-crack';
+    document.getElementById('gunFlash').className='gun-flash';
+    document.getElementById('hitMarker').className='hit-marker';
+    document.getElementById('nArmR').classList.remove('styling');
+    laughBubble.textContent='ההההה!';
+
+    // === SHARED: Steps 1-5 (gardener enters, grabs basket, goes to goal) ===
+    setTimeout(()=>{gardener.classList.add('enter');beep(250,0.3,'square')},600);
+    setTimeout(()=>{basket.classList.add('show');beep(350,0.2)},2200);
+    setTimeout(()=>{
+        gardener.classList.remove('enter');gardener.classList.add('grab');
+        basket.classList.add('grabbed');armR.classList.add('grab-arm');beep(400,0.15);
+    },3500);
+    setTimeout(()=>{goalWrap.classList.add('show')},4500);
+    setTimeout(()=>{
+        gardener.classList.remove('grab');gardener.classList.add('togoal');
+        basket.classList.remove('grabbed');basket.classList.add('atgoal');beep(500,0.2);
+    },5500);
+
+    // Step 6: Gardener laughs
+    setTimeout(()=>{
+        laughBubble.classList.add('show');
+        gardener.querySelector('.g-body').classList.add('g-laugh');
+        beep(600,0.1);setTimeout(()=>beep(800,0.1),100);setTimeout(()=>beep(600,0.12),200);
+    },7000);
+
+    if(willWin){
+        // === WIN PATH: Gardener eats a carrot and DIES ===
+        // Step 7: Gardener picks up carrot to eat
+        setTimeout(()=>{
+            laughBubble.classList.remove('show');
+            gardener.querySelector('.g-body').classList.remove('g-laugh');
+            gardener.querySelector('.g-body').classList.add('g-eating');
+            laughBubble.textContent='*אוכל גזר*';
+            laughBubble.classList.add('show');
+            beep(300,0.2);
+        },8500);
+        // Step 8: Gardener chokes/dies
+        setTimeout(()=>{
+            laughBubble.textContent='🤢 אוי...';
+            beep(150,0.4,'sawtooth');
+        },10000);
+        setTimeout(()=>{
+            laughBubble.classList.remove('show');
+            gardener.querySelector('.g-body').classList.remove('g-eating');
+            gardener.querySelector('.g-eyes').classList.add('g-dead-eyes');
+            gardener.classList.remove('togoal');
+            gardener.classList.add('dead');
+            beep(80,0.8,'sawtooth');
+        },11000);
+        // Step 9: Show WIN
+        setTimeout(()=>{
+            const resultScreen=document.getElementById('resultScreen');
+            const resultTitle=document.getElementById('resultTitle');
+            const resultMsg=document.getElementById('resultMsg');
+            resultScreen.classList.add('show');
+            resultTitle.textContent='YOU WIN!';
+            resultTitle.className='result-title win';
+            resultMsg.textContent='הגנן אכל גזר מורעל ומת! הגזרים שלך בטוחים! ניקוד: '+score;
+            winSound();launchConfetti();
+        },12500);
+    }else{
+        // === LOSE PATH: Nurse comes, changes hair to carrots, gardener shoots you ===
+        // Step 7: Basket disappears
+        setTimeout(()=>{
+            basket.style.transition='all 0.5s';
+            basket.style.opacity='0';basket.style.transform='scale(0)';
+        },8500);
+        // Step 8: Hat flies off
+        setTimeout(()=>{
+            laughBubble.classList.remove('show');
+            const hat=document.getElementById('gHat');
+            hat.style.transition='all 0.6s var(--ease)';
+            hat.style.transform='translateY(-30px) rotate(40deg)';hat.style.opacity='0';
+            beep(300,0.2,'square');
+        },9000);
+        // Step 9: Nurse enters
+        setTimeout(()=>{
+            nurse.classList.add('enter');
+            beep(400,0.15);
+        },10000);
+        // Step 10: Nurse goes to gardener and styles hair
+        setTimeout(()=>{
+            nurse.classList.remove('enter');nurse.classList.add('atnurse');
+            document.getElementById('nArmR').classList.add('styling');
+            beep(500,0.1);
+        },11500);
+        // Step 11: Carrot hair appears!
+        setTimeout(()=>{
+            document.getElementById('gCarrotHair').classList.add('show');
+            beep(800,0.15);setTimeout(()=>beep(1000,0.1),100);
+            laughBubble.textContent='שיער חדש!';
+            laughBubble.classList.add('show');
+        },12500);
+        // Step 12: Nurse exits
+        setTimeout(()=>{
+            nurse.classList.remove('atnurse');nurse.classList.add('exit');
+            document.getElementById('nArmR').classList.remove('styling');
+        },14000);
+        // Step 13: Gardener shoots at YOU — SCREEN CRACKS!
+        setTimeout(()=>{
+            laughBubble.textContent='קח את זה!';
+            // Gun flash
+            document.getElementById('gunFlash').classList.add('fire');
+            beep(100,0.3,'square');setTimeout(()=>beep(80,0.2,'sawtooth'),100);
+            // Screen flash
+            document.getElementById('screenFlash').classList.add('flash');
+            // Hit marker
+            setTimeout(()=>{
+                document.getElementById('hitMarker').classList.add('show');
+                beep(200,0.4,'sawtooth');
+            },200);
+            // SCREEN CRACKS!
+            setTimeout(()=>{
+                document.getElementById('screenCrack').classList.add('show');
+                beep(60,0.5,'sawtooth');
+                // Spawn glass shards falling
+                const stage=document.getElementById('cutsceneStage');
+                for(let i=0;i<12;i++){
+                    const shard=document.createElement('div');
+                    shard.className='glass-shard';
+                    const size=4+Math.random()*10;
+                    const colors=['rgba(200,220,255,0.6)','rgba(255,255,255,0.5)','rgba(180,200,230,0.4)'];
+                    shard.style.borderColor=`transparent transparent ${colors[Math.floor(Math.random()*3)]} transparent`;
+                    shard.style.borderWidth=`0 ${size/2}px ${size}px ${size/2}px`;
+                    shard.style.left=(35+Math.random()*30)+'%';
+                    shard.style.top=(40+Math.random()*20)+'%';
+                    shard.style.animationDelay=(Math.random()*0.5)+'s';
+                    stage.appendChild(shard);
+                    setTimeout(()=>shard.classList.add('fall'),50);
+                    setTimeout(()=>shard.remove(),2500);
+                }
+            },400);
+        },15500);
+        // Step 14: Gardener exits laughing
+        setTimeout(()=>{
+            laughBubble.textContent='ביי ביי!';
+            gardener.classList.remove('togoal');gardener.classList.add('exit');
+        },17000);
+        // Step 15: Show LOSE
+        setTimeout(()=>{
+            laughBubble.classList.remove('show');
+            const resultScreen=document.getElementById('resultScreen');
+            const resultTitle=document.getElementById('resultTitle');
+            const resultMsg=document.getElementById('resultMsg');
+            resultScreen.classList.add('show');
+            resultTitle.textContent='YOU LOSE';
+            resultTitle.className='result-title lose';
+            resultMsg.textContent='המטפלת החליפה לגנן שיער לגזרים, והוא ירה בך! אאוץ!';
+            beep(150,0.6,'sawtooth');
+        },18500);
+    }
+}
+
+function showEnd(){
+    document.getElementById('cutscene').classList.remove('show');
+    const endScreen=document.getElementById('endScreen');
+    endScreen.classList.add('show');
+    beep(500,0.3,'triangle');
+    setTimeout(()=>beep(700,0.3,'triangle'),200);
+    setTimeout(()=>beep(900,0.4,'triangle'),400);
+}
+
+function closeEnd(){
+    document.getElementById('endScreen').classList.remove('show');
+    // Reset cutscene
+    document.getElementById('gardenerWrap').className='gardener-wrap';
+    document.getElementById('basketWrap').className='basket-wrap';
+    document.getElementById('goalWrap').className='goal-wrap';
+    document.getElementById('laughBubble').className='laugh-bubble';
+    document.getElementById('resultScreen').className='result-screen';
+    document.getElementById('gArmR').classList.remove('grab-arm');
+    document.getElementById('nurseWrap').className='nurse-wrap';
+    document.getElementById('nArmR').classList.remove('styling');
+    document.getElementById('screenFlash').className='screen-flash';
+    document.getElementById('screenCrack').className='screen-crack';
+    document.getElementById('gunFlash').className='gun-flash';
+    document.getElementById('hitMarker').className='hit-marker';
+    // Reset gardener face
+    const gBody=document.getElementById('gardenerWrap').querySelector('.g-body');
+    gBody.classList.remove('g-laugh','g-eating');
+    document.getElementById('gardenerWrap').querySelector('.g-eyes').classList.remove('g-dead-eyes');
+    // Reset hat and carrot hair
+    const hat=document.getElementById('gHat');
+    hat.style.transform='';hat.style.opacity='';hat.style.transition='';hat.style.display='';
+    document.getElementById('gCarrotHair').classList.remove('show');
+    // Reset basket style
+    const bw=document.getElementById('basketWrap');
+    bw.style.transition='';bw.style.opacity='';bw.style.transform='';
+    harvested=0;
+    waterClicks=0;
+    resetGame();
+}
+
+// === Race Mode (same mechanics as tutorial, vs bots) ===
+let rActive=false, rTool='dig', rPhase='dig';
+let rHoles=[], rSeeds=[], rGrowth=[], rHarvested=0, rWaterClicks=0;
+let rBot1=0, rBot2=0; // bot progress 0-100%
+let botTimers=[];
+const R_TOTAL=9; // same as tutorial
+
+function showRacePhase(){
+    document.getElementById('tutorialPhase').style.display='none';
+    document.getElementById('racePhase').style.display='block';
+    resetRace();
+}
+
+function resetRace(){
+    rActive=true; rTool='dig'; rPhase='dig';
+    rHoles=[]; rSeeds=[]; rGrowth=[]; rHarvested=0; rWaterClicks=0;
+    rBot1=0; rBot2=0;
+    botTimers.forEach(t=>clearInterval(t)); botTimers=[];
+    // Reset canvas
+    const cv=document.getElementById('raceCanvas');
+    cv.innerHTML='<div class="game-sun">☀️</div><div class="game-basket" id="raceBasket"><div class="gb-handle"></div><div class="gb-body"></div><div class="gb-label">סל: <span class="gb-count" id="raceBasketCount">0</span>/9</div></div>';
+    cv.className='game-canvas race-canvas dig-mode';
+    document.getElementById('raceGrowthBars').innerHTML='';
+    document.getElementById('raceMsg').textContent='⛏️ מהר! לחץ על האדמה כדי לחפור!';
+    // Reset tools
+    document.getElementById('rToolDig').classList.add('active'); document.getElementById('rToolDig').disabled=false;
+    document.getElementById('rToolSeed').classList.remove('active'); document.getElementById('rToolSeed').disabled=true;
+    document.getElementById('rToolWater').classList.remove('active'); document.getElementById('rToolWater').disabled=true;
+    document.getElementById('rToolFast').disabled=true;
+    document.getElementById('rToolHarvest').classList.remove('active'); document.getElementById('rToolHarvest').disabled=true;
+    // Reset progress bars
+    document.getElementById('rBot1Fill').style.width='0';
+    document.getElementById('rBot2Fill').style.width='0';
+    document.getElementById('rPlayerFill').style.width='0';
+    document.getElementById('rBot1Pct').textContent='0%';
+    document.getElementById('rBot2Pct').textContent='0%';
+    document.getElementById('rPlayerPct').textContent='0%';
+    // Add click listener
+    cv.onclick=onRaceClick;
+    // Start bots
+    startRaceBots();
+}
+
+function rSetTool(t){
+    rTool=t;
+    document.querySelectorAll('#racePhase .tool-btn').forEach(b=>b.classList.remove('active'));
+    const btn=document.getElementById('rTool'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn)btn.classList.add('active');
+    const cv=document.getElementById('raceCanvas');
+    cv.className='game-canvas race-canvas';
+    if(t==='dig')cv.classList.add('dig-mode');
+    if(t==='water')cv.classList.add('water-mode');
+    if(t==='harvest')cv.classList.add('harvest-mode');
+}
+
+function onRaceClick(e){
+    if(!rActive)return;
+    const rect=e.currentTarget.getBoundingClientRect();
+    const x=(e.clientX-rect.left)/rect.width*100;
+    const y=(e.clientY-rect.top)/rect.height*100;
+    if(y<40)return;
+    if(rTool==='dig'&&rPhase==='dig') rDoDig(x,y);
+    else if(rTool==='seed'&&rPhase==='seed') rDoSeed(x,y);
+    else if(rTool==='water'&&rPhase==='water') rDoWater(x,y);
+    else if(rTool==='harvest'&&rPhase==='harvest') rDoHarvest(x,y);
+}
+
+function rDoDig(x,y){
+    if(rHoles.length>=R_TOTAL)return;
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(rHoles.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>20)return;
+    const pos=HOLE_POSITIONS[closest];
+    const hole=document.createElement('div');
+    hole.className='hole';hole.style.left=(pos.x-3)+'%';hole.style.top=(pos.y-1)+'%';
+    document.getElementById('raceCanvas').appendChild(hole);
+    setTimeout(()=>hole.classList.add('dug'),50);
+    rHoles.push({idx:closest});digSound();
+    updateRacePlayerProgress();
+    if(rHoles.length>=R_TOTAL){
+        rPhase='seed';
+        document.getElementById('rToolDig').disabled=true;document.getElementById('rToolSeed').disabled=false;
+        rSetTool('seed');
+        document.getElementById('raceMsg').textContent='🌱 מהר! שתול זרעים!';
+    }else{
+        document.getElementById('raceMsg').textContent=`⛏️ חפרת ${rHoles.length}/${R_TOTAL}! מהר!`;
+    }
+}
+
+function rDoSeed(x,y){
+    let closest=null,minDist=999;
+    HOLE_POSITIONS.forEach((p,i)=>{
+        if(rSeeds.find(s=>s.idx===i))return;
+        if(!rHoles.find(h=>h.idx===i))return;
+        const d=Math.sqrt((p.x-x)**2+(p.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const pos=HOLE_POSITIONS[closest];
+    const seed=document.createElement('div');
+    seed.className='game-seed';seed.style.left=(pos.x-0.5)+'%';seed.style.top=pos.y+'%';
+    document.getElementById('raceCanvas').appendChild(seed);
+    setTimeout(()=>seed.classList.add('planted'),50);
+    rSeeds.push({idx:closest});seedSound();
+    updateRacePlayerProgress();
+    if(rSeeds.length>=R_TOTAL){
+        rPhase='water';
+        document.getElementById('rToolSeed').disabled=true;document.getElementById('rToolWater').disabled=false;
+        rSetTool('water');
+        document.getElementById('raceMsg').textContent='💧 מהר! השקה!';
+    }else{
+        document.getElementById('raceMsg').textContent=`🌱 שתלת ${rSeeds.length}/${R_TOTAL}!`;
+    }
+}
+
+function rDoWater(x,y){
+    const splash=document.createElement('div');
+    splash.className='splash';splash.textContent='💧';splash.style.left=x+'%';splash.style.top=y+'%';
+    document.getElementById('raceCanvas').appendChild(splash);
+    setTimeout(()=>splash.remove(),1000);waterSound();
+    rWaterClicks++;
+    updateRacePlayerProgress();
+    if(rWaterClicks>=5){
+        rPhase='grow';
+        document.getElementById('rToolWater').disabled=true;document.getElementById('rToolFast').disabled=false;
+        document.getElementById('raceMsg').textContent='⏩ לחץ הרצה קדימה!';
+        rStartGrowing();rWaterClicks=0;
+    }else{
+        document.getElementById('raceMsg').textContent=`💧 ${rWaterClicks}/5 השקיות!`;
+    }
+}
+
+let rGrowInterval;
+function rStartGrowing(){
+    rGrowth=rSeeds.map(()=>0);
+    rSeeds.forEach((s,i)=>{
+        const pos=HOLE_POSITIONS[s.idx];
+        const sp=document.createElement('div');
+        sp.className='game-sprout';sp.textContent='🌱';sp.id='rsprout-'+i;
+        sp.style.left=(pos.x-1)+'%';sp.style.top=(pos.y-5)+'%';
+        document.getElementById('raceCanvas').appendChild(sp);
+        setTimeout(()=>sp.classList.add('growing'),100);
+    });
+    rGrowInterval=setInterval(()=>{
+        let allDone=true;
+        rGrowth=rGrowth.map((g,i)=>{
+            const nG=Math.min(100,g+Math.random()*3+1);
+            if(nG<100)allDone=false;
+            const sp=document.getElementById('rsprout-'+i);
+            if(sp){
+                if(nG>=100){sp.textContent='🥕';sp.classList.remove('growing');sp.classList.add('ready')}
+                else if(nG>=60)sp.textContent='🌿';
+            }
+            return nG;
+        });
+        rRenderGrowthBars();
+        updateRacePlayerProgress();
+        if(allDone){
+            clearInterval(rGrowInterval);
+            rPhase='harvest';
+            document.getElementById('rToolFast').disabled=true;document.getElementById('rToolHarvest').disabled=false;
+            rSetTool('harvest');
+            document.getElementById('raceBasket').classList.add('show');
+            document.getElementById('raceMsg').textContent='🥕 מהר! קטוף הכל!';
+            growSound();
+        }
+    },500);
+}
+
+function rFastForward(){
+    if(rPhase!=='grow')return;
+    rGrowth=rGrowth.map((g,i)=>{
+        const nG=Math.min(100,g+25);
+        const sp=document.getElementById('rsprout-'+i);
+        if(sp){if(nG>=100){sp.textContent='🥕';sp.classList.remove('growing');sp.classList.add('ready')}else if(nG>=60)sp.textContent='🌿'}
+        return nG;
+    });
+    rRenderGrowthBars();growSound();updateRacePlayerProgress();
+}
+
+function rRenderGrowthBars(){
+    const gb=document.getElementById('raceGrowthBars');
+    gb.innerHTML=rGrowth.map((g,i)=>`<div class="growth-item">🥕${i+1} <div class="growth-bar-mini"><div class="growth-fill" style="width:${g}%"></div></div></div>`).join('');
+}
+
+function rDoHarvest(x,y){
+    let closest=null,minDist=999;
+    rSeeds.forEach((s,i)=>{
+        if(rGrowth[i]<100)return;
+        const sp=document.getElementById('rsprout-'+i);
+        if(!sp||sp.dataset.harvested)return;
+        const pos=HOLE_POSITIONS[s.idx];
+        const d=Math.sqrt((pos.x-x)**2+(pos.y-y)**2);
+        if(d<minDist){minDist=d;closest=i;}
+    });
+    if(closest===null||minDist>15)return;
+    const sp=document.getElementById('rsprout-'+closest);
+    const pos=HOLE_POSITIONS[rSeeds[closest].idx];
+    sp.dataset.harvested='1';
+    // Flying carrot to basket
+    const cv=document.getElementById('raceCanvas');
+    const fc=document.createElement('div');fc.className='flying-carrot';fc.textContent='🥕';
+    fc.style.left=pos.x+'%';fc.style.top=(pos.y-5)+'%';fc.style.opacity='1';
+    cv.appendChild(fc);
+    sp.style.transition='all 0.3s';sp.style.transform='translateY(-15px) scale(0.5)';sp.style.opacity='0';
+    setTimeout(()=>sp.remove(),300);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        fc.style.left='92%';fc.style.top='82%';fc.style.transform='scale(0.6) rotate(360deg)';fc.style.opacity='0.8';
+    }));
+    setTimeout(()=>fc.remove(),700);
+    harvestSound();rHarvested++;
+    document.getElementById('raceBasketCount').textContent=rHarvested;
+    updateRacePlayerProgress();
+    document.getElementById('raceMsg').textContent=`🥕 ${rHarvested}/${R_TOTAL} בסל!`;
+    if(rHarvested>=R_TOTAL) raceFinish(true);
+}
+
+function updateRacePlayerProgress(){
+    // Player: dig=20%, seed=20%, water=10%, grow=25%, harvest=25%
+    let pct=0;
+    pct+=(rHoles.length/R_TOTAL)*20;
+    pct+=(rSeeds.length/R_TOTAL)*20;
+    pct+=Math.min(rWaterClicks,5)/5*10;
+    if(rGrowth.length){const avg=rGrowth.reduce((a,b)=>a+b,0)/rGrowth.length; pct+=avg/100*25;}
+    pct+=(rHarvested/R_TOTAL)*25;
+    pct=Math.min(100,Math.round(pct));
+    document.getElementById('rPlayerFill').style.width=pct+'%';
+    document.getElementById('rPlayerPct').textContent=pct+'%';
+}
+
+function startRaceBots(){
+    // Bot 1: medium (finishes ~50-70 seconds)
+    const b1=setInterval(()=>{
+        if(!rActive){clearInterval(b1);return}
+        rBot1+=0.8+Math.random()*0.6;
+        if(rBot1>=100){rBot1=100;clearInterval(b1);raceFinish(false,'דני');}
+        document.getElementById('rBot1Fill').style.width=rBot1+'%';
+        document.getElementById('rBot1Pct').textContent=Math.round(rBot1)+'%';
+    },800);
+    botTimers.push(b1);
+    // Bot 2: faster (finishes ~40-55 seconds)
+    const b2=setInterval(()=>{
+        if(!rActive){clearInterval(b2);return}
+        rBot2+=1+Math.random()*0.7;
+        if(rBot2>=100){rBot2=100;clearInterval(b2);raceFinish(false,'שרה');}
+        document.getElementById('rBot2Fill').style.width=rBot2+'%';
+        document.getElementById('rBot2Pct').textContent=Math.round(rBot2)+'%';
+    },700);
+    botTimers.push(b2);
+}
+
+function raceFinish(playerWon, botName){
+    if(!rActive)return;
+    rActive=false;
+    clearInterval(rGrowInterval);
+    botTimers.forEach(t=>clearInterval(t));
+    document.getElementById('rToolDig').disabled=true;
+    document.getElementById('rToolSeed').disabled=true;
+    document.getElementById('rToolWater').disabled=true;
+    document.getElementById('rToolFast').disabled=true;
+    document.getElementById('rToolHarvest').disabled=true;
+    if(playerWon){
+        document.getElementById('raceMsg').textContent='🏆 ניצחת! צפה בסיום...';
+        // Play WIN cutscene (gardener eats carrot and dies)
+        setTimeout(()=>startCutsceneForced(true),1500);
+    }else{
+        document.getElementById('raceMsg').textContent=`💀 בוט ${botName} ניצח! צפה בסיום...`;
+        // Play LOSE cutscene (nurse + shooting + broken screen)
+        setTimeout(()=>startCutsceneForced(false),1500);
+    }
+}
+
+// Init
+resetGame();
+</script>
+</body>
+</html>
