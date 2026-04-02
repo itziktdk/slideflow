@@ -7,7 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#1a1a2e;overflow:hidden;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;font-family:'Segoe UI',Arial,sans-serif}
-canvas{display:block}
+canvas{display:block;position:fixed;top:0;left:0;z-index:1}
 #topBar{position:fixed;top:0;left:0;right:0;height:36px;background:rgba(0,0,0,0.7);display:flex;align-items:center;padding:0 10px;z-index:100}
 #topBar a{color:#fff;text-decoration:none;font-size:14px;font-weight:bold;background:#4a90d9;padding:4px 12px;border-radius:12px}
 #topBar a:hover{background:#5aa0e9}
@@ -66,7 +66,9 @@ const BOT_COLORS=['#e74c3c','#3498db','#e67e22','#9b59b6','#1abc9c','#f1c40f','#
 const BOT_NAMES=['Spike','Colt','Shelly','Bull','Rosa','Crow'];
 
 function resize(){
-  W=C.width=window.innerWidth;H=C.height=window.innerHeight;
+  W=window.innerWidth;H=window.innerHeight;
+  C.width=W;C.height=H;
+  C.style.width=W+'px';C.style.height=H+'px';
 }
 window.addEventListener('resize',resize);resize();
 
@@ -155,6 +157,7 @@ function startGame(){
   stormSpeed=0.15;
   stormCenter={x:MW/2,y:MH/2};
   gameState='playing';
+  resize(); // ensure canvas is properly sized
 }
 
 function tileAt(px,py){
@@ -481,6 +484,8 @@ function drawBrawlerBody(e,sx,sy){
 }
 
 function draw(){
+  X.clearRect(0,0,W,H);
+  if(gameState!=='playing'){X.fillStyle='#1a1a2e';X.fillRect(0,0,W,H);return;}
   X.fillStyle='#2d5a1e';X.fillRect(0,0,W,H);
 
   // Draw tiles
