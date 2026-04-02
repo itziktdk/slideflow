@@ -23,15 +23,50 @@ canvas{position:fixed;top:0;left:0;z-index:1;display:block;cursor:crosshair}
 #timerDiv{position:fixed;top:40px;left:50%;transform:translateX(-50%);z-index:15;color:#fff;font-size:15px;font-weight:bold;text-shadow:0 1px 4px #000;display:none}
 #superBtn{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:15;display:none;width:70px;height:70px;border-radius:50%;border:3px solid #ff0;background:radial-gradient(circle,#ffe600,#f90);color:#333;font-size:28px;font-weight:bold;cursor:pointer;box-shadow:0 0 20px rgba(255,230,0,.7);animation:superPulse 1s infinite}
 @keyframes superPulse{0%,100%{box-shadow:0 0 20px rgba(255,230,0,.7)}50%{box-shadow:0 0 35px rgba(255,230,0,1)}}
-#menu,#endScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,30,.92)}
-#menu h1{font-size:42px;color:#ffe600;text-shadow:0 3px 12px rgba(255,230,0,.4);margin-bottom:4px}
-#menu p{color:#ccc;font-size:16px;margin-bottom:20px}
-#startBtn,#retryBtn{padding:14px 36px;font-size:22px;font-weight:bold;border:none;border-radius:12px;cursor:pointer;background:linear-gradient(135deg,#4fc3f7,#0288d1);color:#fff;box-shadow:0 4px 15px rgba(0,0,0,.4);margin-top:10px}
-#startBtn:active,#retryBtn:active{transform:scale(.95)}
-#endScreen{display:none}
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+#menu{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;display:flex;flex-direction:column;font-family:'Heebo','Segoe UI',sans-serif;overflow:hidden;direction:rtl}
+#menu *{font-family:'Heebo','Segoe UI',sans-serif}
+.bs-bg{position:absolute;inset:0;background:linear-gradient(135deg,#f97316,#ea580c);z-index:0}
+.bs-bg::before{content:'';position:absolute;inset:0;background:repeating-conic-gradient(rgba(255,255,255,.04) 0% 25%,transparent 0% 50%) 0 0/60px 60px;animation:bgDrift 40s linear infinite}
+@keyframes bgDrift{to{background-position:60px 60px}}
+.bs-topbar{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)}
+.bs-topbar-left,.bs-topbar-right{display:flex;align-items:center;gap:10px}
+.bs-avatar{width:36px;height:36px;border-radius:50%;background:#4ade80;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid #fff}
+.bs-player-name{color:#fff;font-weight:700;font-size:15px}
+.bs-trophy{color:#ffd700;font-weight:700;font-size:14px}
+.bs-currency{color:#fff;font-weight:700;font-size:14px;background:rgba(0,0,0,.4);padding:3px 8px;border-radius:8px}
+.bs-hamburger{color:#fff;font-size:24px;cursor:pointer;padding:4px 8px}
+.bs-center{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bs-badges{display:flex;gap:10px;margin-bottom:8px}
+.bs-badge{background:rgba(0,0,0,.5);color:#fff;padding:4px 12px;border-radius:12px;font-weight:700;font-size:13px}
+.bs-char-canvas{animation:charBounce 2s ease-in-out infinite}
+@keyframes charBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.bs-sidebar{position:absolute;left:10px;top:50%;transform:translateY(-50%);z-index:2;display:flex;flex-direction:column;gap:8px}
+.bs-sidebar-btn{background:rgba(20,20,40,.85);color:#fff;border:none;padding:10px 14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.4);text-align:right;min-width:100px;transition:transform .1s}
+.bs-sidebar-btn:active{transform:scale(.95);box-shadow:0 2px 0 rgba(0,0,0,.4)}
+.bs-right{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:2;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.bs-online{background:#22c55e;color:#fff;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:700}
+.bs-friend-slot{width:40px;height:40px;background:rgba(0,0,0,.4);border-radius:8px;border:2px dashed rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:18px}
+.bs-bottombar{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);gap:8px}
+.bs-lootboxes{display:flex;gap:6px}
+.bs-lootbox{width:44px;height:50px;background:linear-gradient(180deg,#6366f1,#4338ca);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;position:relative;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+.bs-lootbox-bar{position:absolute;bottom:2px;left:4px;right:4px;height:4px;background:rgba(0,0,0,.3);border-radius:2px}
+.bs-lootbox-bar-fill{height:100%;width:60%;background:#fbbf24;border-radius:2px}
+.bs-gamemode{text-align:center;color:#fff}
+.bs-gamemode-title{font-size:18px;font-weight:900}
+.bs-gamemode-sub{font-size:12px;color:rgba(255,255,255,.7)}
+.bs-play-area{display:flex;flex-direction:column;align-items:center;gap:4px}
+.bs-play-btn{padding:14px 40px;font-size:26px;font-weight:900;border:none;border-radius:16px;cursor:pointer;background:linear-gradient(180deg,#facc15,#eab308);color:#333;box-shadow:0 5px 0 #a16207,0 8px 20px rgba(0,0,0,.3);animation:playPulse 2s ease-in-out infinite;transition:transform .1s}
+.bs-play-btn:active{transform:scale(.95);box-shadow:0 2px 0 #a16207}
+@keyframes playPulse{0%,100%{box-shadow:0 5px 0 #a16207,0 8px 20px rgba(0,0,0,.3)}50%{box-shadow:0 5px 0 #a16207,0 8px 30px rgba(250,204,21,.5)}}
+.bs-friendly{font-size:11px;color:rgba(255,255,255,.5)}
+.bs-friendly span{background:rgba(255,255,255,.15);padding:2px 6px;border-radius:4px;cursor:pointer;margin-right:4px}
+#retryBtn{padding:14px 36px;font-size:22px;font-weight:bold;border:none;border-radius:12px;cursor:pointer;background:linear-gradient(135deg,#4fc3f7,#0288d1);color:#fff;box-shadow:0 4px 15px rgba(0,0,0,.4);margin-top:10px}
+#retryBtn:active{transform:scale(.95)}
+#endScreen{position:fixed;top:0;left:0;right:0;bottom:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,30,.92);display:none}
 #endScreen h1{font-size:40px;margin-bottom:10px}
 #endScreen p{color:#ddd;font-size:18px;margin-bottom:6px}
-#previewCanvas{border-radius:12px;margin-bottom:12px}
+@media(max-width:600px){.bs-sidebar{left:4px}.bs-sidebar-btn{padding:7px 10px;font-size:12px;min-width:auto}.bs-right{right:4px}.bs-friend-slot{width:32px;height:32px}.bs-play-btn{padding:12px 28px;font-size:22px}}
 #stormWarn{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:16;color:#ff4444;font-size:28px;font-weight:bold;text-shadow:0 0 20px #f00;display:none;pointer-events:none}
 </style>
 </head>
@@ -50,10 +85,52 @@ canvas{position:fixed;top:0;left:0;z-index:1;display:block;cursor:crosshair}
 <div id="stormWarn">!הסערה מתקרבת</div>
 <button id="superBtn" ontouchstart="">⚡</button>
 <div id="menu">
-<canvas id="previewCanvas" width="140" height="140"></canvas>
-<h1>בראול פיקסל ⚔️</h1>
-<p>השמד את כולם — אחרון שורד!</p>
-<button id="startBtn">התחל קרב!</button>
+<div class="bs-bg"></div>
+<div class="bs-topbar">
+<div class="bs-topbar-left">
+<div class="bs-avatar">😎</div>
+<span class="bs-player-name">שחקן</span>
+<span class="bs-trophy">🏆 0</span>
+</div>
+<div class="bs-topbar-right">
+<span class="bs-currency">💎 10</span>
+<span class="bs-currency">🪙 411</span>
+<span class="bs-hamburger">☰</span>
+</div>
+</div>
+<div class="bs-sidebar">
+<button class="bs-sidebar-btn">🏪 חנות</button>
+<button class="bs-sidebar-btn">🎮 בראולרים</button>
+<button class="bs-sidebar-btn">👥 חברתי</button>
+<button class="bs-sidebar-btn">📰 חדשות</button>
+</div>
+<div class="bs-right">
+<div class="bs-online">● ONLINE</div>
+<div class="bs-friend-slot">+</div>
+<div class="bs-friend-slot">+</div>
+<div class="bs-friend-slot">+</div>
+</div>
+<div class="bs-center">
+<div class="bs-badges">
+<span class="bs-badge">🎖️ RANK 1</span>
+<span class="bs-badge">⭐ POWER 1</span>
+</div>
+<canvas class="bs-char-canvas" id="menuCharCanvas" width="200" height="260"></canvas>
+</div>
+<div class="bs-bottombar">
+<div class="bs-lootboxes">
+<div class="bs-lootbox">📦<div class="bs-lootbox-bar"><div class="bs-lootbox-bar-fill"></div></div></div>
+<div class="bs-lootbox">🎁<div class="bs-lootbox-bar"><div class="bs-lootbox-bar-fill" style="width:30%"></div></div></div>
+</div>
+<div class="bs-gamemode">
+<div class="bs-gamemode-title">⚔️ SHOWDOWN</div>
+<div class="bs-gamemode-sub">Last Brawler Standing</div>
+</div>
+<div class="bs-play-area">
+<button class="bs-play-btn" id="startBtn">!שחק</button>
+<div class="bs-friendly"><span>CREATE</span> FRIENDLY GAME</div>
+</div>
+</div>
 </div>
 <div id="endScreen">
 <h1 id="endTitle"></h1>
@@ -867,13 +944,6 @@ function draw(){
   X.clearRect(0,0,W,H);
 
   if(gameState==='menu'){
-    X.fillStyle='#111';X.fillRect(0,0,W,H);
-    // menu particles
-    menuParticles.forEach(p=>{
-      X.globalAlpha=p.life/p.maxLife;X.fillStyle=p.color;
-      X.beginPath();X.arc(p.x,p.y,p.r,0,Math.PI*2);X.fill();
-    });
-    X.globalAlpha=1;
     return;
   }
   if(gameState==='end'){
@@ -999,55 +1069,79 @@ function draw(){
   drawMinimap();
 }
 
-// Menu particles
-let menuParticles=[];
-function updateMenuParticles(){
-  if(menuParticles.length<40){
-    menuParticles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*1,vy:(Math.random()-.5)*1,r:2+Math.random()*3,color:COLORS[Math.floor(Math.random()*8)],life:60+Math.random()*60,maxLife:120});
-  }
-  menuParticles=menuParticles.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.life--;return p.life>0;});
-}
 
 // Confetti
 function updateConfetti(){
   confetti=confetti.filter(c=>{c.x+=c.vx;c.y+=c.vy;c.vy+=.05;c.life--;return c.life>0;});
 }
 
-// Menu preview bounce
-let previewBounce=0;
-function drawMenuPreview(){
-  let pc=document.getElementById('previewCanvas'),px=pc.getContext('2d');
-  px.clearRect(0,0,140,140);
-  previewBounce+=.05;
-  let by=Math.sin(previewBounce)*8;
-  px.fillStyle='#2d2d4e';px.fillRect(0,0,140,140);
+// Menu character drawing
+let menuCharTick=0,menuBlinkTimer=0,menuIsBlinking=false;
+function drawMenuChar(){
+  let pc=document.getElementById('menuCharCanvas');
+  if(!pc)return;
+  let px=pc.getContext('2d');
+  px.clearRect(0,0,200,260);
+  menuCharTick+=.03;
+  menuBlinkTimer++;
+  if(!menuIsBlinking&&menuBlinkTimer>180+Math.random()*60){menuIsBlinking=true;menuBlinkTimer=0;}
+  if(menuIsBlinking&&menuBlinkTimer>8){menuIsBlinking=false;menuBlinkTimer=0;}
+  let cx=100,cy=140;
   // shadow
-  px.fillStyle='rgba(0,0,0,.3)';px.beginPath();px.ellipse(70,95+by*.3,24,12,0,0,Math.PI*2);px.fill();
+  px.fillStyle='rgba(0,0,0,.25)';px.beginPath();px.ellipse(cx,cy+54,40,16,0,0,Math.PI*2);px.fill();
+  // legs
+  px.fillStyle='#2a8a50';
+  px.fillRect(cx-12,cy+26,10,16);px.fillRect(cx+2,cy+26,10,16);
+  // feet
+  px.fillStyle='#222';
+  px.beginPath();px.ellipse(cx-7,cy+44,8,5,0,0,Math.PI*2);px.fill();
+  px.beginPath();px.ellipse(cx+7,cy+44,8,5,0,0,Math.PI*2);px.fill();
   // body
-  px.fillStyle='#4ade80';px.strokeStyle='#2a8a50';px.lineWidth=2;
-  px.fillRect(55,65+by,30,20);px.strokeRect(55,65+by,30,20);
+  px.fillStyle='#4ade80';px.strokeStyle='#2a8a50';px.lineWidth=3;
+  px.beginPath();px.roundRect(cx-16,cy+4,32,24,6);px.fill();px.stroke();
+  // arms
+  px.strokeStyle='#3cb371';px.lineWidth=8;px.lineCap='round';
+  let armSwing=Math.sin(menuCharTick*2)*.15;
+  px.beginPath();px.moveTo(cx-16,cy+14);px.lineTo(cx-36,cy+14+Math.sin(armSwing)*10+15);px.stroke();
+  px.beginPath();px.moveTo(cx+16,cy+14);px.lineTo(cx+36,cy+14+Math.sin(-armSwing)*10+15);px.stroke();
+  // gun right hand
+  px.fillStyle='#555';px.save();px.translate(cx+36,cy+28);px.rotate(-.4);
+  px.fillRect(0,-5,28,10);px.fillStyle='#777';px.fillRect(20,-3,10,6);px.restore();
   // head
-  px.beginPath();px.arc(70,55+by,18,0,Math.PI*2);px.fill();px.stroke();
+  let headR=24;
+  px.fillStyle='#4ade80';px.strokeStyle='#2a8a50';px.lineWidth=3;
+  px.beginPath();px.arc(cx,cy-14,headR,0,Math.PI*2);px.fill();px.stroke();
   // bandana
-  px.fillStyle='#c0392b';px.fillRect(52,50+by,36,5);
-  px.beginPath();px.moveTo(52,52+by);px.lineTo(44,46+by);px.lineTo(48,56+by);px.closePath();px.fill();
+  px.fillStyle='#c0392b';
+  px.fillRect(cx-headR-2,cy-22,headR*2+4,7);
+  px.beginPath();px.moveTo(cx-headR-2,cy-18);px.lineTo(cx-headR-14,cy-30);px.lineTo(cx-headR+2,cy-14);px.closePath();px.fill();
   // eyes
-  px.fillStyle='#fff';px.beginPath();px.ellipse(63,52+by,6,7,0,0,Math.PI*2);px.fill();
-  px.beginPath();px.ellipse(77,52+by,6,7,0,0,Math.PI*2);px.fill();
-  px.fillStyle='#2a7d4f';px.beginPath();px.arc(64,53+by,3,0,Math.PI*2);px.fill();
-  px.beginPath();px.arc(78,53+by,3,0,Math.PI*2);px.fill();
-  px.fillStyle='#fff';px.beginPath();px.arc(62,50+by,1.5,0,Math.PI*2);px.fill();
-  px.beginPath();px.arc(76,50+by,1.5,0,Math.PI*2);px.fill();
+  if(menuIsBlinking){
+    px.strokeStyle='#333';px.lineWidth=2.5;
+    px.beginPath();px.moveTo(cx-10,cy-16);px.lineTo(cx-3,cy-16);px.stroke();
+    px.beginPath();px.moveTo(cx+3,cy-16);px.lineTo(cx+10,cy-16);px.stroke();
+  }else{
+    px.fillStyle='#fff';
+    px.beginPath();px.ellipse(cx-7,cy-16,7,9,0,0,Math.PI*2);px.fill();
+    px.beginPath();px.ellipse(cx+7,cy-16,7,9,0,0,Math.PI*2);px.fill();
+    px.fillStyle='#2a7d4f';
+    px.beginPath();px.arc(cx-6,cy-15,4,0,Math.PI*2);px.fill();
+    px.beginPath();px.arc(cx+8,cy-15,4,0,Math.PI*2);px.fill();
+    px.fillStyle='#fff';
+    px.beginPath();px.arc(cx-8,cy-18,2,0,Math.PI*2);px.fill();
+    px.beginPath();px.arc(cx+6,cy-18,2,0,Math.PI*2);px.fill();
+  }
+  // eyebrows
+  px.strokeStyle='#333';px.lineWidth=2.5;
+  px.beginPath();px.moveTo(cx-13,cy-26);px.lineTo(cx-2,cy-24);px.stroke();
+  px.beginPath();px.moveTo(cx+2,cy-24);px.lineTo(cx+13,cy-26);px.stroke();
   // mouth
-  px.strokeStyle='#333';px.lineWidth=1.5;
-  px.beginPath();px.arc(70,60+by,5,.2,Math.PI-.2);px.stroke();
-  // gun
-  px.fillStyle='#555';px.save();px.translate(92,70+by);px.rotate(-.3);
-  px.fillRect(0,-3,20,6);px.fillStyle='#777';px.fillRect(14,-2,8,4);px.restore();
+  px.strokeStyle='#333';px.lineWidth=2;
+  px.beginPath();px.arc(cx,cy-6,7,.2,Math.PI-.2);px.stroke();
 }
 
 function loop(){
-  if(gameState==='menu'){updateMenuParticles();drawMenuPreview();}
+  if(gameState==='menu'){drawMenuChar();}
   if(gameState==='end')updateConfetti();
   update();
   draw();
