@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>בראול פיקסל ⚔️</title>
+<title>בראול פיקסל</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{overflow:hidden;background:#111;font-family:'Segoe UI',Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -73,9 +73,9 @@ canvas{position:fixed;top:0;left:0;z-index:1;display:block;cursor:crosshair}
 <body>
 <a id="topLink" href="index.html">→ SlideFlow</a>
 <div id="hud">
-<span id="hudAlive">👥 8</span>
-<span id="hudCubes" style="color:#e040fb">💎 0</span>
-<span id="hudSuper" style="color:#ffe600">⚡ 0%</span>
+<span id="hudAlive">8 alive</span>
+<span id="hudCubes" style="color:#e040fb">0 cubes</span>
+<span id="hudSuper" style="color:#ffe600">SUPER 0%</span>
 </div>
 <div id="hpBarOuter"><div id="hpBarInner"></div><div id="hpText">100</div></div>
 <div id="ammoDiv" style="display:none"><div class="ammo-bullet"></div><div class="ammo-bullet"></div><div class="ammo-bullet"></div></div>
@@ -83,47 +83,47 @@ canvas{position:fixed;top:0;left:0;z-index:1;display:block;cursor:crosshair}
 <canvas id="minimap" width="100" height="100"></canvas>
 <div id="timerDiv">0:00</div>
 <div id="stormWarn">!הסערה מתקרבת</div>
-<button id="superBtn" ontouchstart="">⚡</button>
+<button id="superBtn" ontouchstart="">S</button>
 <div id="menu">
 <div class="bs-bg"></div>
 <div class="bs-topbar">
 <div class="bs-topbar-left">
-<div class="bs-avatar">😎</div>
+<div class="bs-avatar"><svg viewBox="0 0 36 36" width="30" height="30"><circle cx="18" cy="18" r="16" fill="#4ade80" stroke="#166534" stroke-width="2"/><circle cx="12" cy="15" r="3.5" fill="#fff"/><circle cx="24" cy="15" r="3.5" fill="#fff"/><circle cx="13" cy="15" r="2" fill="#222"/><circle cx="25" cy="15" r="2" fill="#222"/><path d="M12 24q6 5 12 0" stroke="#222" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
 <span class="bs-player-name">שחקן</span>
-<span class="bs-trophy">🏆 0</span>
+<span class="bs-trophy"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M7 2h10v2h3c1 0 2 1 2 2v2c0 2-1 4-3 4h-1c-1 2-3 3-5 4v3h3v2H8v-2h3v-3c-2-1-4-2-5-4H5c-2 0-3-2-3-4V6c0-1 1-2 2-2h3V2z" fill="#ffd700" stroke="#b8860b" stroke-width="1"/></svg> 0</span>
 </div>
 <div class="bs-topbar-right">
-<span class="bs-currency">💎 10</span>
-<span class="bs-currency">🪙 411</span>
-<span class="bs-hamburger">☰</span>
+<span class="bs-currency"><svg viewBox="0 0 24 24" width="14" height="14"><polygon points="12,2 22,9 12,22 2,9" fill="#4fc3f7" stroke="#0288d1" stroke-width="1.5"/><polygon points="12,2 17,9 12,22 7,9" fill="#81d4fa"/></svg> 10</span>
+<span class="bs-currency"><svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" fill="#ffd700" stroke="#b8860b" stroke-width="1.5"/><circle cx="12" cy="12" r="6" fill="#ffecb3" stroke="#ffc107" stroke-width="1"/></svg> 411</span>
+<span class="bs-hamburger"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="5" width="18" height="2.5" rx="1" fill="#fff"/><rect x="3" y="11" width="18" height="2.5" rx="1" fill="#fff"/><rect x="3" y="17" width="18" height="2.5" rx="1" fill="#fff"/></svg></span>
 </div>
 </div>
 <div class="bs-sidebar">
-<button class="bs-sidebar-btn">🏪 חנות</button>
-<button class="bs-sidebar-btn">🎮 בראולרים</button>
-<button class="bs-sidebar-btn">👥 חברתי</button>
-<button class="bs-sidebar-btn">📰 חדשות</button>
+<button class="bs-sidebar-btn"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 7l1-4h14l1 4" fill="#ff9800" stroke="#e65100" stroke-width="1"/><rect x="3" y="7" width="18" height="2" fill="#ff9800"/><rect x="4" y="9" width="16" height="12" fill="#6d4c41" stroke="#4e342e" stroke-width="1"/></svg> חנות</button>
+<button class="bs-sidebar-btn"><svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="8" width="20" height="10" rx="4" fill="#424242" stroke="#212121" stroke-width="1"/><circle cx="8" cy="13" r="2.5" fill="#666"/><circle cx="17" cy="11" r="1.5" fill="#f44336"/><circle cx="19" cy="13" r="1.5" fill="#4caf50"/></svg> בראולרים</button>
+<button class="bs-sidebar-btn"><svg viewBox="0 0 24 24" width="18" height="18"><circle cx="9" cy="8" r="3.5" fill="#90caf9" stroke="#42a5f5" stroke-width="1"/><circle cx="16" cy="8" r="3" fill="#a5d6a7" stroke="#66bb6a" stroke-width="1"/><path d="M3 20c0-4 3-7 6-7s6 3 6 7" fill="#42a5f5"/></svg> חברתי</button>
+<button class="bs-sidebar-btn"><svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2" fill="#eceff1" stroke="#90a4ae" stroke-width="1"/><rect x="5" y="5" width="8" height="5" fill="#42a5f5"/><rect x="5" y="12" width="14" height="2" rx="1" fill="#b0bec5"/></svg> חדשות</button>
 </div>
 <div class="bs-right">
-<div class="bs-online">● ONLINE</div>
-<div class="bs-friend-slot">+</div>
-<div class="bs-friend-slot">+</div>
-<div class="bs-friend-slot">+</div>
+<div class="bs-online"><svg viewBox="0 0 10 10" width="8" height="8"><circle cx="5" cy="5" r="4" fill="#22c55e"/></svg> ONLINE</div>
+<div class="bs-friend-slot"><svg viewBox="0 0 24 24" width="18" height="18"><line x1="12" y1="6" x2="12" y2="18" stroke="rgba(255,255,255,.4)" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="12" x2="18" y2="12" stroke="rgba(255,255,255,.4)" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+<div class="bs-friend-slot"><svg viewBox="0 0 24 24" width="18" height="18"><line x1="12" y1="6" x2="12" y2="18" stroke="rgba(255,255,255,.4)" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="12" x2="18" y2="12" stroke="rgba(255,255,255,.4)" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+<div class="bs-friend-slot"><svg viewBox="0 0 24 24" width="18" height="18"><line x1="12" y1="6" x2="12" y2="18" stroke="rgba(255,255,255,.4)" stroke-width="2.5" stroke-linecap="round"/><line x1="6" y1="12" x2="18" y2="12" stroke="rgba(255,255,255,.4)" stroke-width="2.5" stroke-linecap="round"/></svg></div>
 </div>
 <div class="bs-center">
 <div class="bs-badges">
-<span class="bs-badge">🎖️ RANK 1</span>
-<span class="bs-badge">⭐ POWER 1</span>
+<span class="bs-badge"><svg viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" fill="#ff9800" stroke="#e65100" stroke-width="1"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">1</text></svg> RANK 1</span>
+<span class="bs-badge"><svg viewBox="0 0 24 24" width="14" height="14"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill="#ffd700" stroke="#ff8f00" stroke-width="1"/></svg> POWER 1</span>
 </div>
 <canvas class="bs-char-canvas" id="menuCharCanvas" width="200" height="260"></canvas>
 </div>
 <div class="bs-bottombar">
 <div class="bs-lootboxes">
-<div class="bs-lootbox">📦<div class="bs-lootbox-bar"><div class="bs-lootbox-bar-fill"></div></div></div>
-<div class="bs-lootbox">🎁<div class="bs-lootbox-bar"><div class="bs-lootbox-bar-fill" style="width:30%"></div></div></div>
+<div class="bs-lootbox"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="8" width="18" height="14" rx="2" fill="#8d6e63" stroke="#5d4037" stroke-width="1.5"/><rect x="3" y="8" width="18" height="5" fill="#a1887f" stroke="#5d4037" stroke-width="1"/><rect x="10" y="6" width="4" height="4" rx="1" fill="#ffd54f" stroke="#f9a825" stroke-width="1"/></svg><div class="bs-lootbox-bar"><div class="bs-lootbox-bar-fill"></div></div></div>
+<div class="bs-lootbox"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="8" width="18" height="14" rx="2" fill="#e53935" stroke="#b71c1c" stroke-width="1.5"/><rect x="3" y="8" width="18" height="5" fill="#ef5350" stroke="#b71c1c" stroke-width="1"/><path d="M8 12l4 4 4-4" fill="none" stroke="#ffd54f" stroke-width="2" stroke-linecap="round"/></svg><div class="bs-lootbox-bar"><div class="bs-lootbox-bar-fill" style="width:30%"></div></div></div>
 </div>
 <div class="bs-gamemode">
-<div class="bs-gamemode-title">⚔️ SHOWDOWN</div>
+<div class="bs-gamemode-title"><svg viewBox="0 0 24 24" width="18" height="18"><line x1="4" y1="20" x2="20" y2="4" stroke="#f44336" stroke-width="3" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#f44336" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="#ff9800"/></svg> SHOWDOWN</div>
 <div class="bs-gamemode-sub">Last Brawler Standing</div>
 </div>
 <div class="bs-play-area">
@@ -408,12 +408,12 @@ function endGame(won){
   document.getElementById('timerDiv').style.display='none';
   endEl.style.display='flex';
   let min=Math.floor(gameTimerSec/60),sec=Math.floor(gameTimerSec%60);
-  document.getElementById('endTitle').textContent=won?'🏆 !ניצחון':'💀 ...הפסד';
+  document.getElementById('endTitle').textContent=won?'VICTORY!':'...הפסד';document.getElementById('endTitle').style.color=won?'#ffd700':'#ef4444';
   document.getElementById('endTitle').style.color=won?'#ffe600':'#f44';
-  document.getElementById('endStat1').textContent='⚔️ הריגות: '+totalKills;
-  document.getElementById('endStat2').textContent='💥 נזק: '+Math.round(totalDmg);
-  document.getElementById('endStat3').textContent='💎 קוביות: '+player.cubes;
-  document.getElementById('endStat4').textContent='⏱️ זמן: '+min+':'+String(sec).padStart(2,'0');
+  document.getElementById('endStat1').textContent='הריגות: '+totalKills;
+  document.getElementById('endStat2').textContent='נזק: '+Math.round(totalDmg);
+  document.getElementById('endStat3').textContent='קוביות: '+player.cubes;
+  document.getElementById('endStat4').textContent='זמן: '+min+':'+String(sec).padStart(2,'0');
   if(won){sndWin();for(let i=0;i<60;i++)confetti.push({x:W*Math.random(),y:-20,vx:(Math.random()-.5)*4,vy:Math.random()*3+2,color:COLORS[Math.floor(Math.random()*8)],life:200});}
   else sndLose();
   stopStormRumble();
@@ -702,9 +702,9 @@ function update(){
     ammoBullets[i].classList.toggle('empty',i>=Math.floor(player.ammo));
   }
 
-  document.getElementById('hudSuper').textContent='⚡ '+Math.round(player.superCharge)+'%';
-  document.getElementById('hudCubes').textContent='💎 '+player.cubes;
-  document.getElementById('hudAlive').textContent='👥 '+alive;
+  document.getElementById('hudSuper').textContent='SUPER '+Math.round(player.superCharge)+'%';
+  document.getElementById('hudCubes').textContent=player.cubes+' cubes';
+  document.getElementById('hudAlive').textContent=alive+' alive';
   superBtn.style.display=(player.superCharge>=100&&player.alive)?'block':'none';
 
   let min=Math.floor(gameTimerSec/60),sec=Math.floor(gameTimerSec%60);
