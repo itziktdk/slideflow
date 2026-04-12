@@ -724,19 +724,23 @@
                 
                 this.playerVelocity.y += gravity * delta;
                 
-                // עדכון כיוון המצלמה
-                this.camera.rotation.x = this.cameraRotation.x;
+                // עדכון המצלמה עם הסיבוב החופשי
+                this.camera.rotation.order = 'YXZ';
                 this.camera.rotation.y = this.cameraRotation.y;
+                this.camera.rotation.x = this.cameraRotation.x;
                 
-                const direction = new THREE.Vector3();
-                this.camera.getWorldDirection(direction);
+                // חישוב כיוון התנועה על בסיס סיבוב המצלמה
+                const direction = new THREE.Vector3(0, 0, -1);
+                direction.applyQuaternion(this.camera.quaternion);
                 direction.y = 0;
                 direction.normalize();
                 
-                const right = new THREE.Vector3();
-                right.crossVectors(direction, new THREE.Vector3(0, 1, 0));
+                const right = new THREE.Vector3(1, 0, 0);
+                right.applyQuaternion(this.camera.quaternion);
+                right.y = 0;
+                right.normalize();
                 
-                // תנועה
+                // תנועה בכל הכיוונים
                 if (this.controls.moveForward) {
                     this.playerPosition.addScaledVector(direction, actualSpeed * delta);
                 }
