@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עולם פתוח - לירוי</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            overflow: hidden;
+            background: #000;
+            user-select: none;
+        }
+        
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #world {
+            position: absolute;
+            width: 2000px;
+            height: 2000px;
+            background: linear-gradient(45deg, #2a5a2a, #3a7a3a);
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 2px, transparent 2px, transparent 10px),
+                repeating-linear-gradient(-45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 8px);
+        }
+        
+        .building {
+            position: absolute;
+            background: #4a4a4a;
+            border: 2px solid #666;
+            border-radius: 4px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .building:hover {
+            background: #5a5a5a;
+            border-color: #888;
+            transform: scale(1.02);
+        }
+        
+        .building.house {
+            background: #8B4513;
+            border-color: #A0522D;
+        }
+        
+        .building.shop {
+            background: #4169E1;
+            border-color: #6495ED;
+        }
+        
+        .building.office {
+            background: #708090;
+            border-color: #778899;
+        }
+        
+        .road {
+            position: absolute;
+            background: #2c2c2c;
+            border: 1px solid #444;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+        }
+        
+        .road.horizontal {
+            height: 40px;
+        }
+        
+        .road.vertical {
+            width: 40px;
+        }
+        
+        #player {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #FFD700;
+            border: 2px solid #FFA500;
+            border-radius: 50%;
+            transition: all 0.1s ease;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        
+        #player::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: #FF4500;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .tree {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #228B22;
+            border-radius: 50%;
+            border: 2px solid #32CD32;
+            z-index: 100;
+        }
+        
+        .tree::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            width: 6px;
+            height: 15px;
+            background: #8B4513;
+            transform: translateX(-50%);
+        }
+        
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+        }
+        
+        #minimap {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #666;
+            border-radius: 10px;
+            z-index: 2000;
+            overflow: hidden;
+        }
+        
+        #minimapPlayer {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #FFD700;
+            border-radius: 50%;
+            z-index: 2001;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 3000;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+        }
+        
+        .interactable {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+            50% { box-shadow: 0 0 20px rgba(255,255,255,0.6); }
+            100% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        }
+        
+        @media (max-width: 768px) {
+            #ui, #controls {
+                font-size: 12px;
+                padding: 10px;
+            }
+            
+            #minimap {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="world">
+            <!-- Roads will be generated here -->
+            <!-- Buildings will be generated here -->
+            <!-- Trees will be generated here -->
+        </div>
+        <div id="player"></div>
+    </div>
+    
+    <div id="ui">
+        <div><strong>עולם פתוח</strong></div>
+        <div>מיקום: <span id="position">0, 0</span></div>
+        <div>מהירות: <span id="speed">רגיל</span></div>
+        <div>בניינים נמצאו: <span id="buildingsFound">0</span></div>
+    </div>
+    
+    <div id="minimap">
+        <div id="minimapPlayer"></div>
+    </div>
+    
+    <div id="controls">
+        <div><strong>בקרות:</strong></div>
+        <div>WASD / חיצים - תנועה</div>
+        <div>Shift - ריצה מהירה</div>
+        <div>E - כניסה לבניין</div>
+        <div>M - מפה מלאה</div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <script>
+        class OpenWorldGame {
+            constructor() {
+                this.player = {
+                    x: 1000, // מתחיל במרכז העולם
+                    y: 1000,
+                    speed: 3,
+                    fastSpeed: 6
+                };
+                
+                this.camera = {
+                    x: 0,
+                    y: 0
+                };
+                
+                this.world = {
+                    width: 2000,
+                    height: 2000
+                };
+                
+                this.buildings = [];
+                this.trees = [];
+                this.roads = [];
+                this.buildingsFound = 0;
+                
+                this.keys = {};
+                this.lastTime = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.generateWorld();
+                this.setupControls();
+                this.gameLoop();
+                this.updateCamera();
+                this.updateUI();
+            }
+            
+            generateWorld() {
+                this.generateRoads();
+                this.generateBuildings();
+                this.generateTrees();
+                this.renderWorld();
+            }
+            
+            generateRoads() {
+                // כבישים אופקיים
+                for (let y = 200; y < this.world.height; y += 300) {
+                    this.roads.push({
+                        x: 0,
+                        y: y,
+                        width: this.world.width,
+                        height: 40,
+                        type: 'horizontal'
+                    });
+                }
+                
+                // כבישים אנכיים
+                for (let x = 200; x < this.world.width; x += 300) {
+                    this.roads.push({
+                        x: x,
+                        y: 0,
+                        width: 40,
+                        height: this.world.height,
+                        type: 'vertical'
+                    });
+                }
+            }
+            
+            generateBuildings() {
+                const buildingTypes = ['house', 'shop', 'office'];
+                const buildingNames = {
+                    house: ['בית משפחת כהן', 'בית משפחת לוי', 'וילה יפה', 'דירת סטודיו', 'בית עם גינה'],
+                    shop: ['מכולת השכונה', 'פיצרייה איטלקית', 'בית מרקחת', 'חנות ספרים', 'קפה קטן'],
+                    office: ['משרד עורכי דין', 'חברת הייטק', 'בנק השכונה', 'מרפאת שיניים', 'סטודיו עיצוב']
+                };
+                
+                // יצירת בלוקים של עיר
+                for (let blockX = 0; blockX < 6; blockX++) {
+                    for (let blockY = 0; blockY < 6; blockY++) {
+                        const baseX = blockX * 300 + 50;
+                        const baseY = blockY * 300 + 50;
+                        
+                        // בניינים בכל בלוק
+                        for (let i = 0; i < 8; i++) {
+                            const type = buildingTypes[Math.floor(Math.random() * buildingTypes.length)];
+                            const names = buildingNames[type];
+                            
+                            this.buildings.push({
+                                x: baseX + Math.random() * 150,
+                                y: baseY + Math.random() * 150,
+                                width: 40 + Math.random() * 30,
+                                height: 30 + Math.random() * 40,
+                                type: type,
+                                name: names[Math.floor(Math.random() * names.length)],
+                                visited: false,
+                                interactable: Math.random() > 0.7 // 30% מהבניינים אינטראקטיביים
+                            });
+                        }
+                    }
+                }
+            }
+            
+            generateTrees() {
+                // עצים רנדומליים
+                for (let i = 0; i < 200; i++) {
+                    let x, y;
+                    let attempts = 0;
+                    
+                    do {
+                        x = Math.random() * this.world.width;
+                        y = Math.random() * this.world.height;
+                        attempts++;
+                    } while (this.isOnRoad(x, y) && attempts < 20);
+                    
+                    if (attempts < 20) {
+                        this.trees.push({ x, y });
+                    }
+                }
+            }
+            
+            isOnRoad(x, y) {
+                return this.roads.some(road => 
+                    x >= road.x && x <= road.x + road.width &&
+                    y >= road.y && y <= road.y + road.height
+                );
+            }
+            
+            renderWorld() {
+                const world = document.getElementById('world');
+                world.innerHTML = '';
+                
+                // רנדור כבישים
+                this.roads.forEach(road => {
+                    const roadEl = document.createElement('div');
+                    roadEl.className = `road ${road.type}`;
+                    roadEl.style.left = road.x + 'px';
+                    roadEl.style.top = road.y + 'px';
+                    roadEl.style.width = road.width + 'px';
+                    roadEl.style.height = road.height + 'px';
+                    world.appendChild(roadEl);
+                });
+                
+                // רנדור בניינים
+                this.buildings.forEach((building, index) => {
+                    const buildingEl = document.createElement('div');
+                    buildingEl.className = `building ${building.type}`;
+                    if (building.interactable) buildingEl.classList.add('interactable');
+                    
+                    buildingEl.style.left = building.x + 'px';
+                    buildingEl.style.top = building.y + 'px';
+                    buildingEl.style.width = building.width + 'px';
+                    buildingEl.style.height = building.height + 'px';
+                    buildingEl.title = building.name;
+                    buildingEl.onclick = () => this.interactWithBuilding(index);
+                    
+                    world.appendChild(buildingEl);
+                });
+                
+                // רנדור עצים
+                this.trees.forEach(tree => {
+                    const treeEl = document.createElement('div');
+                    treeEl.className = 'tree';
+                    treeEl.style.left = tree.x + 'px';
+                    treeEl.style.top = tree.y + 'px';
+                    world.appendChild(treeEl);
+                });
+            }
+            
+            setupControls() {
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                    
+                    if (e.key.toLowerCase() === 'e') {
+                        this.checkBuildingInteraction();
+                    }
+                    
+                    if (e.key.toLowerCase() === 'm') {
+                        this.toggleFullMap();
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+                
+                // תמיכה במגע למובייל
+                let touchStartX, touchStartY;
+                document.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                });
+                
+                document.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touchX = e.touches[0].clientX;
+                    const touchY = e.touches[0].clientY;
+                    
+                    const deltaX = touchX - touchStartX;
+                    const deltaY = touchY - touchStartY;
+                    
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        this.keys['a'] = deltaX < -20;
+                        this.keys['d'] = deltaX > 20;
+                        this.keys['w'] = false;
+                        this.keys['s'] = false;
+                    } else {
+                        this.keys['w'] = deltaY < -20;
+                        this.keys['s'] = deltaY > 20;
+                        this.keys['a'] = false;
+                        this.keys['d'] = false;
+                    }
+                });
+                
+                document.addEventListener('touchend', () => {
+                    this.keys = {};
+                });
+            }
+            
+            updatePlayer() {
+                const speed = this.keys['shift'] ? this.player.fastSpeed : this.player.speed;
+                
+                if (this.keys['w'] || this.keys['arrowup']) {
+                    this.player.y = Math.max(10, this.player.y - speed);
+                }
+                if (this.keys['s'] || this.keys['arrowdown']) {
+                    this.player.y = Math.min(this.world.height - 30, this.player.y + speed);
+                }
+                if (this.keys['a'] || this.keys['arrowleft']) {
+                    this.player.x = Math.max(10, this.player.x - speed);
+                }
+                if (this.keys['d'] || this.keys['arrowright']) {
+                    this.player.x = Math.min(this.world.width - 30, this.player.x + speed);
+                }
+            }
+            
+            updateCamera() {
+                const gameContainer = document.getElementById('gameContainer');
+                const containerWidth = gameContainer.offsetWidth;
+                const containerHeight = gameContainer.offsetHeight;
+                
+                // מרכז המצלמה על השחקן
+                this.camera.x = this.player.x - containerWidth / 2;
+                this.camera.y = this.player.y - containerHeight / 2;
+                
+                // הגבלת המצלמה לגבולות העולם
+                this.camera.x = Math.max(0, Math.min(this.world.width - containerWidth, this.camera.x));
+                this.camera.y = Math.max(0, Math.min(this.world.height - containerHeight, this.camera.y));
+                
+                const world = document.getElementById('world');
+                world.style.transform = `translate(${-this.camera.x}px, ${-this.camera.y}px)`;
+                
+                const player = document.getElementById('player');
+                player.style.left = (this.player.x - this.camera.x) + 'px';
+                player.style.top = (this.player.y - this.camera.y) + 'px';
+                
+                this.updateMinimap();
+            }
+            
+            updateMinimap() {
+                const minimapPlayer = document.getElementById('minimapPlayer');
+                const minimapWidth = 150;
+                const minimapHeight = 150;
+                
+                const relativeX = (this.player.x / this.world.width) * minimapWidth;
+                const relativeY = (this.player.y / this.world.height) * minimapHeight;
+                
+                minimapPlayer.style.left = relativeX + 'px';
+                minimapPlayer.style.top = relativeY + 'px';
+            }
+            
+            updateUI() {
+                document.getElementById('position').textContent = 
+                    `${Math.floor(this.player.x)}, ${Math.floor(this.player.y)}`;
+                document.getElementById('speed').textContent = 
+                    this.keys['shift'] ? 'מהיר' : 'רגיל';
+                document.getElementById('buildingsFound').textContent = this.buildingsFound;
+            }
+            
+            checkBuildingInteraction() {
+                const nearbyBuilding = this.buildings.find(building => {
+                    const distance = Math.sqrt(
+                        Math.pow(this.player.x - (building.x + building.width/2), 2) +
+                        Math.pow(this.player.y - (building.y + building.height/2), 2)
+                    );
+                    return distance < 50 && building.interactable;
+                });
+                
+                if (nearbyBuilding) {
+                    this.interactWithBuilding(this.buildings.indexOf(nearbyBuilding));
+                }
+            }
+            
+            interactWithBuilding(index) {
+                const building = this.buildings[index];
+                if (!building.visited) {
+                    building.visited = true;
+                    this.buildingsFound++;
+                    
+                    const messages = [
+                        `גילית את ${building.name}! 🏠`,
+                        `נכנסת ל${building.name} 🚪`,
+                        `${building.name} נוסף למפה שלך! 📍`,
+                        `ברוך הבא ל${building.name}! 🎉`
+                    ];
+                    
+                    this.showNotification(messages[Math.floor(Math.random() * messages.length)]);
+                }
+            }
+            
+            showNotification(message) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            toggleFullMap() {
+                // יישום של מפה מלאה - לעתיד
+                this.showNotification('מפה מלאה - בקרוב! 🗺️');
+            }
+            
+            gameLoop() {
+                this.updatePlayer();
+                this.updateCamera();
+                this.updateUI();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+        
+        // התחלת המשחק
+        window.addEventListener('load', () => {
+            new OpenWorldGame();
+        });
+        
+        // הודעת ברוכים הבאים
+        setTimeout(() => {
+            const notification = document.getElementById('notification');
+            notification.textContent = 'ברוך הבא לעולם הפתוח! חקור את העיר 🌟';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }, 1000);
+    </script>
+</body>
+</html>
