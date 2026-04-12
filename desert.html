@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מצפה פתוחה - מערב פרוע</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            overflow: hidden;
+            background: #000;
+            user-select: none;
+        }
+        
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #world {
+            position: absolute;
+            width: 3000px;
+            height: 3000px;
+            background: linear-gradient(135deg, #D2B48C, #F4A460, #DAA520);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(160, 82, 45, 0.15) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        .building {
+            position: absolute;
+            background: #8B4513;
+            border: 3px solid #654321;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
+        }
+        
+        .building:hover {
+            transform: scale(1.02);
+            border-color: #A0522D;
+        }
+        
+        .saloon {
+            background: #8B0000;
+            border-color: #A0522D;
+            position: relative;
+        }
+        
+        .saloon::before {
+            content: '🍺';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background: #8B0000;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .sheriff {
+            background: #4682B4;
+            border-color: #1E90FF;
+        }
+        
+        .sheriff::before {
+            content: '⭐';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background: #4682B4;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .bank {
+            background: #FFD700;
+            border-color: #FFA500;
+        }
+        
+        .bank::before {
+            content: '💰';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background: #FFD700;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .general-store {
+            background: #228B22;
+            border-color: #32CD32;
+        }
+        
+        .general-store::before {
+            content: '🛒';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            background: #228B22;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .road {
+            position: absolute;
+            background: #CD853F;
+            border: 2px solid #D2B48C;
+            box-shadow: inset 0 0 15px rgba(139, 69, 19, 0.3);
+        }
+        
+        .road.main {
+            background: #DEB887;
+            border-color: #F4A460;
+        }
+        
+        #player {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: #8B4513;
+            border: 3px solid #654321;
+            border-radius: 3px;
+            transition: all 0.1s ease;
+            z-index: 1000;
+            box-shadow: 0 0 15px rgba(139, 69, 19, 0.8);
+        }
+        
+        #player::before {
+            content: '🤠';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+        }
+        
+        .cactus {
+            position: absolute;
+            width: 25px;
+            height: 40px;
+            z-index: 100;
+        }
+        
+        .cactus::before {
+            content: '🌵';
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 25px;
+        }
+        
+        .rock {
+            position: absolute;
+            width: 30px;
+            height: 20px;
+            background: #696969;
+            border-radius: 50%;
+            border: 2px solid #808080;
+            z-index: 50;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .tumblewed {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            z-index: 50;
+            animation: roll 10s linear infinite;
+        }
+        
+        .tumblewed::before {
+            content: '🌿';
+            position: absolute;
+            font-size: 20px;
+        }
+        
+        @keyframes roll {
+            0% { transform: rotate(0deg) translateX(0); }
+            100% { transform: rotate(360deg) translateX(100px); }
+        }
+        
+        .horse {
+            position: absolute;
+            width: 40px;
+            height: 30px;
+            z-index: 200;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .horse::before {
+            content: '🐴';
+            position: absolute;
+            font-size: 30px;
+        }
+        
+        .horse:hover {
+            transform: scale(1.1);
+        }
+        
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+            color: white;
+            background: rgba(139, 69, 19, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            border: 2px solid #654321;
+        }
+        
+        #minimap {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(139, 69, 19, 0.9);
+            border: 3px solid #654321;
+            border-radius: 10px;
+            z-index: 2000;
+            overflow: hidden;
+        }
+        
+        #minimapPlayer {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #FFD700;
+            border-radius: 50%;
+            border: 1px solid #FFA500;
+            z-index: 2001;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(139, 69, 19, 0.95);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 3000;
+            border: 2px solid #654321;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(139, 69, 19, 0.8);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            border: 2px solid #654321;
+        }
+        
+        .interactable {
+            animation: glow 2s infinite;
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+        }
+        
+        .dust-cloud {
+            position: absolute;
+            width: 30px;
+            height: 15px;
+            background: rgba(210, 180, 140, 0.6);
+            border-radius: 50%;
+            animation: dust 0.5s ease-out forwards;
+            z-index: 10;
+        }
+        
+        @keyframes dust {
+            0% { opacity: 0.8; transform: scale(0.5); }
+            100% { opacity: 0; transform: scale(2); }
+        }
+        
+        .sun {
+            position: absolute;
+            top: 50px;
+            right: 100px;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+            z-index: 5;
+        }
+        
+        @media (max-width: 768px) {
+            #ui, #controls {
+                font-size: 10px;
+                padding: 8px;
+            }
+            
+            #minimap {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .notification {
+                font-size: 12px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="world">
+            <div class="sun"></div>
+        </div>
+        <div id="player"></div>
+    </div>
+    
+    <div id="ui">
+        <div><strong>🤠 מערב פרוע</strong></div>
+        <div>מיקום: <span id="position">0, 0</span></div>
+        <div>מהירות: <span id="speed">רגיל</span></div>
+        <div>מקומות נמצאו: <span id="placesFound">0</span></div>
+        <div>זהב: <span id="gold">$0</span></div>
+        <div>בחסות הסוס: <span id="ridingHorse">לא</span></div>
+    </div>
+    
+    <div id="minimap">
+        <div id="minimapPlayer"></div>
+    </div>
+    
+    <div id="controls">
+        <div><strong>בקרות:</strong></div>
+        <div>WASD / חיצים - תנועה</div>
+        <div>Shift - ריצה / דהרה</div>
+        <div>E - פעולה / כניסה</div>
+        <div>H - עליה/ירידה מסוס</div>
+        <div>קליק על סוס - רכיבה</div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <script>
+        class WildWestGame {
+            constructor() {
+                this.player = {
+                    x: 1500,
+                    y: 1500,
+                    speed: 4,
+                    fastSpeed: 8,
+                    ridingHorse: false,
+                    horseSpeed: 12
+                };
+                
+                this.camera = {
+                    x: 0,
+                    y: 0
+                };
+                
+                this.world = {
+                    width: 3000,
+                    height: 3000
+                };
+                
+                this.buildings = [];
+                this.cacti = [];
+                this.rocks = [];
+                this.horses = [];
+                this.roads = [];
+                this.tumbleweeds = [];
+                
+                this.placesFound = 0;
+                this.gold = 0;
+                this.keys = {};
+                this.dustTimer = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.generateWorld();
+                this.setupControls();
+                this.gameLoop();
+                this.updateCamera();
+                this.updateUI();
+            }
+            
+            generateWorld() {
+                this.generateRoads();
+                this.generateBuildings();
+                this.generateNature();
+                this.generateHorses();
+                this.renderWorld();
+            }
+            
+            generateRoads() {
+                // דרך ראשית אופקית
+                this.roads.push({
+                    x: 0,
+                    y: 1480,
+                    width: this.world.width,
+                    height: 40,
+                    type: 'main'
+                });
+                
+                // דרך ראשית אנכית
+                this.roads.push({
+                    x: 1480,
+                    y: 0,
+                    width: 40,
+                    height: this.world.height,
+                    type: 'main'
+                });
+                
+                // דרכים צדדיות
+                for (let i = 0; i < 8; i++) {
+                    this.roads.push({
+                        x: 300 + i * 350,
+                        y: 800,
+                        width: 25,
+                        height: 400,
+                        type: 'side'
+                    });
+                    
+                    this.roads.push({
+                        x: 800,
+                        y: 300 + i * 350,
+                        width: 400,
+                        height: 25,
+                        type: 'side'
+                    });
+                }
+            }
+            
+            generateBuildings() {
+                const buildingTypes = [
+                    { type: 'saloon', name: 'סלון הזהב', width: 80, height: 60 },
+                    { type: 'sheriff', name: 'משרד השריף', width: 70, height: 50 },
+                    { type: 'bank', name: 'בנק המערב', width: 90, height: 55 },
+                    { type: 'general-store', name: 'חנות כללית', width: 75, height: 45 },
+                    { type: 'building', name: 'בית מגורים', width: 60, height: 40 },
+                    { type: 'building', name: 'רפת', width: 70, height: 35 },
+                    { type: 'building', name: 'בית חרושת', width: 85, height: 50 }
+                ];
+                
+                // עיר מרכזית
+                const townCenterX = 1400;
+                const townCenterY = 1400;
+                
+                for (let i = 0; i < 15; i++) {
+                    const buildingType = buildingTypes[Math.floor(Math.random() * buildingTypes.length)];
+                    const angle = (i / 15) * 2 * Math.PI;
+                    const radius = 100 + Math.random() * 150;
+                    
+                    this.buildings.push({
+                        x: townCenterX + Math.cos(angle) * radius,
+                        y: townCenterY + Math.sin(angle) * radius,
+                        width: buildingType.width,
+                        height: buildingType.height,
+                        type: buildingType.type,
+                        name: buildingType.name,
+                        visited: false,
+                        interactable: true
+                    });
+                }
+                
+                // מבנים מפוזרים במדבר
+                for (let i = 0; i < 20; i++) {
+                    const buildingType = buildingTypes[Math.floor(Math.random() * buildingTypes.length)];
+                    
+                    this.buildings.push({
+                        x: 200 + Math.random() * (this.world.width - 400),
+                        y: 200 + Math.random() * (this.world.height - 400),
+                        width: buildingType.width * 0.8,
+                        height: buildingType.height * 0.8,
+                        type: buildingType.type,
+                        name: buildingType.name + ' נטוש',
+                        visited: false,
+                        interactable: Math.random() > 0.5
+                    });
+                }
+            }
+            
+            generateNature() {
+                // קקטוסים
+                for (let i = 0; i < 150; i++) {
+                    this.cacti.push({
+                        x: Math.random() * this.world.width,
+                        y: Math.random() * this.world.height
+                    });
+                }
+                
+                // אבנים
+                for (let i = 0; i < 100; i++) {
+                    this.rocks.push({
+                        x: Math.random() * this.world.width,
+                        y: Math.random() * this.world.height
+                    });
+                }
+                
+                // עשבים מתגלגלים
+                for (let i = 0; i < 20; i++) {
+                    this.tumbleweeds.push({
+                        x: Math.random() * this.world.width,
+                        y: Math.random() * this.world.height,
+                        direction: Math.random() * 2 * Math.PI,
+                        speed: 1 + Math.random() * 2
+                    });
+                }
+            }
+            
+            generateHorses() {
+                const horseNames = [
+                    'רוח המדבר',
+                    'ברק הזהב',
+                    'סער החול',
+                    'אש השמש',
+                    'נקמת הערבה'
+                ];
+                
+                for (let i = 0; i < 8; i++) {
+                    this.horses.push({
+                        x: 500 + Math.random() * (this.world.width - 1000),
+                        y: 500 + Math.random() * (this.world.height - 1000),
+                        name: horseNames[Math.floor(Math.random() * horseNames.length)],
+                        tamed: false,
+                        direction: Math.random() * 2 * Math.PI,
+                        speed: 1 + Math.random(),
+                        wanderTimer: 0
+                    });
+                }
+            }
+            
+            renderWorld() {
+                const world = document.getElementById('world');
+                // נשמור רק את השמש
+                const sun = world.querySelector('.sun');
+                world.innerHTML = '';
+                if (sun) world.appendChild(sun);
+                
+                // רנדור דרכים
+                this.roads.forEach(road => {
+                    const roadEl = document.createElement('div');
+                    roadEl.className = `road ${road.type}`;
+                    roadEl.style.left = road.x + 'px';
+                    roadEl.style.top = road.y + 'px';
+                    roadEl.style.width = road.width + 'px';
+                    roadEl.style.height = road.height + 'px';
+                    world.appendChild(roadEl);
+                });
+                
+                // רנדור בניינים
+                this.buildings.forEach((building, index) => {
+                    const buildingEl = document.createElement('div');
+                    buildingEl.className = `building ${building.type}`;
+                    if (building.interactable) buildingEl.classList.add('interactable');
+                    
+                    buildingEl.style.left = building.x + 'px';
+                    buildingEl.style.top = building.y + 'px';
+                    buildingEl.style.width = building.width + 'px';
+                    buildingEl.style.height = building.height + 'px';
+                    buildingEl.title = building.name;
+                    buildingEl.onclick = () => this.interactWithBuilding(index);
+                    
+                    world.appendChild(buildingEl);
+                });
+                
+                // רנדור קקטוסים
+                this.cacti.forEach(cactus => {
+                    const cactusEl = document.createElement('div');
+                    cactusEl.className = 'cactus';
+                    cactusEl.style.left = cactus.x + 'px';
+                    cactusEl.style.top = cactus.y + 'px';
+                    world.appendChild(cactusEl);
+                });
+                
+                // רנדור אבנים
+                this.rocks.forEach(rock => {
+                    const rockEl = document.createElement('div');
+                    rockEl.className = 'rock';
+                    rockEl.style.left = rock.x + 'px';
+                    rockEl.style.top = rock.y + 'px';
+                    world.appendChild(rockEl);
+                });
+                
+                // רנדור סוסים
+                this.horses.forEach((horse, index) => {
+                    const horseEl = document.createElement('div');
+                    horseEl.className = 'horse';
+                    horseEl.style.left = horse.x + 'px';
+                    horseEl.style.top = horse.y + 'px';
+                    horseEl.title = horse.name + (horse.tamed ? ' (מאולף)' : '');
+                    horseEl.onclick = () => this.interactWithHorse(index);
+                    world.appendChild(horseEl);
+                });
+                
+                // רנדור עשבים מתגלגלים
+                this.tumbleweeds.forEach(tumbleweed => {
+                    const tumbleweedEl = document.createElement('div');
+                    tumbleweedEl.className = 'tumblewed';
+                    tumbleweedEl.style.left = tumbleweed.x + 'px';
+                    tumbleweedEl.style.top = tumbleweed.y + 'px';
+                    world.appendChild(tumbleweedEl);
+                });
+            }
+            
+            setupControls() {
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key.toLowerCase()] = true;
+                    
+                    if (e.key.toLowerCase() === 'e') {
+                        this.checkInteraction();
+                    }
+                    
+                    if (e.key.toLowerCase() === 'h') {
+                        this.toggleHorse();
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+            }
+            
+            updatePlayer() {
+                const baseSpeed = this.player.ridingHorse ? this.player.horseSpeed : this.player.speed;
+                const speed = this.keys['shift'] ? 
+                    (this.player.ridingHorse ? this.player.horseSpeed * 1.5 : this.player.fastSpeed) : 
+                    baseSpeed;
+                
+                let moved = false;
+                
+                if (this.keys['w'] || this.keys['arrowup']) {
+                    this.player.y = Math.max(10, this.player.y - speed);
+                    moved = true;
+                }
+                if (this.keys['s'] || this.keys['arrowdown']) {
+                    this.player.y = Math.min(this.world.height - 30, this.player.y + speed);
+                    moved = true;
+                }
+                if (this.keys['a'] || this.keys['arrowleft']) {
+                    this.player.x = Math.max(10, this.player.x - speed);
+                    moved = true;
+                }
+                if (this.keys['d'] || this.keys['arrowright']) {
+                    this.player.x = Math.min(this.world.width - 30, this.player.x + speed);
+                    moved = true;
+                }
+                
+                // אפקט אבק כשזז מהר
+                if (moved && (this.keys['shift'] || this.player.ridingHorse)) {
+                    this.dustTimer++;
+                    if (this.dustTimer > 10) {
+                        this.createDustCloud();
+                        this.dustTimer = 0;
+                    }
+                }
+            }
+            
+            updateHorses() {
+                this.horses.forEach(horse => {
+                    if (!horse.tamed) {
+                        horse.wanderTimer++;
+                        
+                        if (horse.wanderTimer > 60) {
+                            horse.direction = Math.random() * 2 * Math.PI;
+                            horse.wanderTimer = 0;
+                        }
+                        
+                        horse.x += Math.cos(horse.direction) * horse.speed;
+                        horse.y += Math.sin(horse.direction) * horse.speed;
+                        
+                        // שמירה בגבולות העולם
+                        horse.x = Math.max(50, Math.min(this.world.width - 50, horse.x));
+                        horse.y = Math.max(50, Math.min(this.world.height - 50, horse.y));
+                    }
+                });
+            }
+            
+            updateTumbleweeds() {
+                this.tumbleweeds.forEach(tumbleweed => {
+                    tumbleweed.x += Math.cos(tumbleweed.direction) * tumbleweed.speed;
+                    tumbleweed.y += Math.sin(tumbleweed.direction) * tumbleweed.speed;
+                    
+                    // עטיפה של העולם
+                    if (tumbleweed.x > this.world.width) tumbleweed.x = 0;
+                    if (tumbleweed.x < 0) tumbleweed.x = this.world.width;
+                    if (tumbleweed.y > this.world.height) tumbleweed.y = 0;
+                    if (tumbleweed.y < 0) tumbleweed.y = this.world.height;
+                });
+            }
+            
+            createDustCloud() {
+                const world = document.getElementById('world');
+                const dustCloud = document.createElement('div');
+                dustCloud.className = 'dust-cloud';
+                dustCloud.style.left = (this.player.x - 15 + Math.random() * 30) + 'px';
+                dustCloud.style.top = (this.player.y + 20) + 'px';
+                world.appendChild(dustCloud);
+                
+                setTimeout(() => {
+                    if (dustCloud.parentNode) {
+                        dustCloud.parentNode.removeChild(dustCloud);
+                    }
+                }, 500);
+            }
+            
+            updateCamera() {
+                const gameContainer = document.getElementById('gameContainer');
+                const containerWidth = gameContainer.offsetWidth;
+                const containerHeight = gameContainer.offsetHeight;
+                
+                this.camera.x = this.player.x - containerWidth / 2;
+                this.camera.y = this.player.y - containerHeight / 2;
+                
+                this.camera.x = Math.max(0, Math.min(this.world.width - containerWidth, this.camera.x));
+                this.camera.y = Math.max(0, Math.min(this.world.height - containerHeight, this.camera.y));
+                
+                const world = document.getElementById('world');
+                world.style.transform = `translate(${-this.camera.x}px, ${-this.camera.y}px)`;
+                
+                const player = document.getElementById('player');
+                player.style.left = (this.player.x - this.camera.x) + 'px';
+                player.style.top = (this.player.y - this.camera.y) + 'px';
+                
+                this.updateMinimap();
+            }
+            
+            updateMinimap() {
+                const minimapPlayer = document.getElementById('minimapPlayer');
+                const minimapWidth = 150;
+                const minimapHeight = 150;
+                
+                const relativeX = (this.player.x / this.world.width) * minimapWidth;
+                const relativeY = (this.player.y / this.world.height) * minimapHeight;
+                
+                minimapPlayer.style.left = relativeX + 'px';
+                minimapPlayer.style.top = relativeY + 'px';
+            }
+            
+            updateUI() {
+                document.getElementById('position').textContent = 
+                    `${Math.floor(this.player.x)}, ${Math.floor(this.player.y)}`;
+                document.getElementById('speed').textContent = 
+                    this.player.ridingHorse ? (this.keys['shift'] ? 'דהירה' : 'רכיבה') :
+                    (this.keys['shift'] ? 'ריצה' : 'הליכה');
+                document.getElementById('placesFound').textContent = this.placesFound;
+                document.getElementById('gold').textContent = '$' + this.gold;
+                document.getElementById('ridingHorse').textContent = this.player.ridingHorse ? 'כן' : 'לא';
+            }
+            
+            checkInteraction() {
+                // בדיקת בניין
+                const nearbyBuilding = this.buildings.find(building => {
+                    const distance = Math.sqrt(
+                        Math.pow(this.player.x - (building.x + building.width/2), 2) +
+                        Math.pow(this.player.y - (building.y + building.height/2), 2)
+                    );
+                    return distance < 60 && building.interactable;
+                });
+                
+                if (nearbyBuilding) {
+                    this.interactWithBuilding(this.buildings.indexOf(nearbyBuilding));
+                    return;
+                }
+                
+                // בדיקת סוס
+                const nearbyHorse = this.horses.find(horse => {
+                    const distance = Math.sqrt(
+                        Math.pow(this.player.x - horse.x, 2) +
+                        Math.pow(this.player.y - horse.y, 2)
+                    );
+                    return distance < 50;
+                });
+                
+                if (nearbyHorse) {
+                    this.interactWithHorse(this.horses.indexOf(nearbyHorse));
+                }
+            }
+            
+            interactWithBuilding(index) {
+                const building = this.buildings[index];
+                
+                if (!building.visited) {
+                    building.visited = true;
+                    this.placesFound++;
+                    
+                    const rewards = {
+                        'bank': 50,
+                        'saloon': 20,
+                        'sheriff': 30,
+                        'general-store': 15,
+                        'building': 10
+                    };
+                    
+                    const reward = rewards[building.type] || 5;
+                    this.gold += reward;
+                    
+                    const messages = [
+                        `גילית את ${building.name}! קיבלת $${reward} 💰`,
+                        `נכנסת ל${building.name} וקיבלת $${reward} 🤠`,
+                        `${building.name} - מקום מעניין! +$${reward} 🏛️`
+                    ];
+                    
+                    this.showNotification(messages[Math.floor(Math.random() * messages.length)]);
+                } else {
+                    const visitMessages = [
+                        `ביקרת כבר ב${building.name} 🏠`,
+                        `${building.name} - מוכר לך המקום 🤔`,
+                        `חזרת ל${building.name} 🔄`
+                    ];
+                    
+                    this.showNotification(visitMessages[Math.floor(Math.random() * visitMessages.length)]);
+                }
+            }
+            
+            interactWithHorse(index) {
+                const horse = this.horses[index];
+                
+                if (!horse.tamed) {
+                    horse.tamed = true;
+                    this.showNotification(`אילפת את ${horse.name}! 🐴`);
+                } else {
+                    this.player.ridingHorse = !this.player.ridingHorse;
+                    if (this.player.ridingHorse) {
+                        this.showNotification(`רוכב על ${horse.name}! יאללה! 🤠🐴`);
+                    } else {
+                        this.showNotification(`ירדת מ${horse.name} 🚶`);
+                    }
+                }
+            }
+            
+            toggleHorse() {
+                if (this.horses.some(horse => horse.tamed)) {
+                    this.player.ridingHorse = !this.player.ridingHorse;
+                    const message = this.player.ridingHorse ? 
+                        'עלית על הסוס! 🐴' : 
+                        'ירדת מהסוס 🚶';
+                    this.showNotification(message);
+                } else {
+                    this.showNotification('אין לך סוס! חפש סוס לאילוף 🔍');
+                }
+            }
+            
+            showNotification(message) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 4000);
+            }
+            
+            gameLoop() {
+                this.updatePlayer();
+                this.updateHorses();
+                this.updateTumbleweeds();
+                this.updateCamera();
+                this.updateUI();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+        
+        // התחלת המשחק
+        window.addEventListener('load', () => {
+            new WildWestGame();
+        });
+        
+        // הודעת ברוכים הבאים
+        setTimeout(() => {
+            const notification = document.getElementById('notification');
+            notification.textContent = 'ברוך הבא למערב הפרוע! חפש סוסים, גלה מקומות וקבל זהב! 🤠⭐';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }, 1000);
+    </script>
+</body>
+</html>
