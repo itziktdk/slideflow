@@ -278,14 +278,7 @@
         }
         
         #crosshair {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 20px;
-            height: 20px;
-            z-index: 999;
-            pointer-events: none;
+            display: none; /* מסתיר את הכוונת ב-Third Person */
         }
         
         #crosshair::before,
@@ -467,10 +460,11 @@
     </div>
     
     <div id="controls">
-        <div><strong>בקרות 3D:</strong></div>
+        <div><strong>בקרות 3D (Third Person):</strong></div>
         <div>WASD - תנועה</div>
-        <div>עכבר - מבט</div>
+        <div>עכבר - סיבוב מצלמה</div>
         <div>גלגול עכבר - מעבר פריטים</div>
+        <div>Ctrl+גלגול - זום מצלמה</div>
         <div>Shift - ריצה</div>
         <div>Space - קפיצה</div>
         <div>E - פעולה/פתיחה</div>
@@ -538,6 +532,8 @@
                 this.playerPosition = new THREE.Vector3(0, 2, 0);
                 this.playerVelocity = new THREE.Vector3(0, 0, 0);
                 this.cameraRotation = { x: 0, y: 0 };
+                this.cameraDistance = 8; // מרחק המצלמה מהשחקן
+                this.cameraHeight = 3; // גובה המצלמה
                 
                 this.buildings = [];
                 this.chests = [];
@@ -573,6 +569,7 @@
                 this.inventoryOpen = false;
                 this.inventoryItems = [];
                 this.selectedHotbarSlot = 0;
+                this.heldItem = null; // הפריט שהשחקן מחזיק
                 
                 this.init();
             }
@@ -673,7 +670,8 @@
                 this.player.position.copy(this.playerPosition);
                 this.scene.add(this.player);
                 
-                this.camera.position.set(0, 1.7, 0);
+                // מיקום המצלמה מאחורי השחקן (Third Person)
+                this.updateCameraPosition();
             }
             
             createWorld() {
@@ -989,26 +987,33 @@
                     this.cameraRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.cameraRotation.x));
                 });
                 
-                // גלגול עכבר למעבר בין פריטים
+                // גלגול עכבר למעבר בין פריטים ובקרת מרחק מצלמה
                 document.addEventListener('wheel', (event) => {
                     if (!this.isPointerLocked) return;
                     
                     event.preventDefault();
                     
-                    if (event.deltaY > 0) {
-                        // גלגול למטה - פריט הבא
-                        this.selectedHotbarSlot = (this.selectedHotbarSlot + 1) % 9;
+                    if (event.ctrlKey) {
+                        // עם Ctrl - שינוי מרחק המצלמה
+                        if (event.deltaY > 0) {
+                            this.cameraDistance = Math.min(15, this.cameraDistance + 1);
+                        } else {
+                            this.cameraDistance = Math.max(3, this.cameraDistance - 1);
+                        }
                     } else {
-                        // גלגול למעלה - פריט קודם
-                        this.selectedHotbarSlot = (this.selectedHotbarSlot - 1 + 9) % 9;
-                    }
-                    
-                    this.updateHotbar();
-                    
-                    // הצגת הפריט הנבחר
-                    if (this.selectedHotbarSlot < this.inventoryItems.length) {
-                        const item = this.inventoryItems[this.selectedHotbarSlot];
-                        this.showNotification(`נבחר: ${item.name} ${item.icon}`, 'normal');
+                        // בלי Ctrl - מעבר בין פריטים
+                        if (event.deltaY > 0) {
+                            this.selectedHotbarSlot = (this.selectedHotbarSlot + 1) % 9;
+                        } else {
+                            this.selectedHotbarSlot = (this.selectedHotbarSlot - 1 + 9) % 9;
+                        }
+                        
+                        this.updateHotbar();
+                        
+                        if (this.selectedHotbarSlot < this.inventoryItems.length) {
+                            const item = this.inventoryItems[this.selectedHotbarSlot];
+                            this.showNotification(`נבחר: ${item.name} ${item.icon}`, 'normal');
+                        }
                     }
                 });
             }
@@ -1031,12 +1036,40 @@
                 this.playerVelocity.y += gravity * delta;
                 
                 // עדכון המצלמה עם הסיבוב החופשי
-                this.camera.rotation.order = 'YXZ';
-                this.camera.rotation.y = this.cameraRotation.y;
-                this.camera.rotation.x = this.cameraRotation.x;
+                this.updateCameraPosition();
                 
-                // סיבוב הגוף של השחקן עם המצלמה (רק Y - ימין ושמאל)
-                this.player.rotation.y = this.cameraRotation.y;
+                // סיבוב הגוף של השחקן עם הכיוון הנכון
+                if (this.controls.moveForward || this.controls.moveBackward || this.controls.moveLeft || this.controls.moveRight) {
+                    // סיבוב השחקן לכיוון התנועה
+                    let targetRotation = this.cameraRotation.y;
+                    
+                    if (this.controls.moveBackward && !this.controls.moveLeft && !this.controls.moveRight) {
+                        targetRotation += Math.PI; // פניה לאחור
+                    } else if (this.controls.moveLeft && !this.controls.moveForward && !this.controls.moveBackward) {
+                        targetRotation += Math.PI/2; // פניה שמאלה
+                    } else if (this.controls.moveRight && !this.controls.moveForward && !this.controls.moveBackward) {
+                        targetRotation -= Math.PI/2; // פניה ימינה
+                    } else if (this.controls.moveBackward && this.controls.moveLeft) {
+                        targetRotation += Math.PI * 3/4; // אלכסון שמאל אחור
+                    } else if (this.controls.moveBackward && this.controls.moveRight) {
+                        targetRotation += Math.PI * 1/4; // אלכסון ימין אחור
+                    } else if (this.controls.moveForward && this.controls.moveLeft) {
+                        targetRotation += Math.PI/4; // אלכסון שמאל קדימה
+                    } else if (this.controls.moveForward && this.controls.moveRight) {
+                        targetRotation -= Math.PI/4; // אלכסון ימין קדימה
+                    }
+                    
+                    // סיבוב חלק של הדמות
+                    const rotationSpeed = 10;
+                    const currentRotation = this.player.rotation.y;
+                    let rotationDiff = targetRotation - currentRotation;
+                    
+                    // תיקון לסיבוב הקצר ביותר
+                    while (rotationDiff > Math.PI) rotationDiff -= 2 * Math.PI;
+                    while (rotationDiff < -Math.PI) rotationDiff += 2 * Math.PI;
+                    
+                    this.player.rotation.y += rotationDiff * delta * rotationSpeed;
+                }
                 
                 // חישוב כיוון התנועה על בסיס סיבוב המצלמה
                 const direction = new THREE.Vector3(0, 0, -1);
@@ -1076,8 +1109,57 @@
                 
                 // עדכון מיקומים
                 this.player.position.copy(this.playerPosition);
+                this.updateCameraPosition();
+                this.updateHeldItem();
+            }
+            
+            updateCameraPosition() {
+                // מיקום המצלמה מאחורי השחקן
+                const cameraOffset = new THREE.Vector3(
+                    Math.sin(this.cameraRotation.y) * this.cameraDistance,
+                    this.cameraHeight + Math.sin(this.cameraRotation.x) * this.cameraDistance * 0.5,
+                    Math.cos(this.cameraRotation.y) * this.cameraDistance
+                );
+                
                 this.camera.position.copy(this.playerPosition);
-                this.camera.position.y += 1.7;
+                this.camera.position.add(cameraOffset);
+                
+                // המצלמה מסתכלת על השחקן
+                this.camera.lookAt(this.playerPosition.clone().add(new THREE.Vector3(0, 1.5, 0)));
+            }
+            
+            updateHeldItem() {
+                // הסרת הפריט הקודם
+                if (this.heldItem) {
+                    this.player.remove(this.heldItem);
+                    this.heldItem = null;
+                }
+                
+                // הוספת הפריט הנוכחי
+                if (this.selectedHotbarSlot < this.inventoryItems.length) {
+                    const item = this.inventoryItems[this.selectedHotbarSlot];
+                    
+                    // יצירת הפריט המוחזק
+                    const itemGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.1);
+                    let itemColor = 0xffffff;
+                    
+                    // צבע לפי סוג הפריט
+                    if (item.name === 'זהב') itemColor = 0xFFD700;
+                    else if (item.name === 'יהלום') itemColor = 0x00FFFF;
+                    else if (item.name === 'נשק') itemColor = 0xFF4444;
+                    else if (item.name === 'כלי') itemColor = 0x888888;
+                    else if (item.name === 'פריט נדיר') itemColor = 0xFF00FF;
+                    
+                    const itemMaterial = new THREE.MeshLambertMaterial({ color: itemColor });
+                    this.heldItem = new THREE.Mesh(itemGeometry, itemMaterial);
+                    
+                    // מיקום הפריט בידו של השחקן
+                    this.heldItem.position.set(0.7, 0.5, -0.3);
+                    this.heldItem.rotation.x = -Math.PI/6;
+                    this.heldItem.castShadow = true;
+                    
+                    this.player.add(this.heldItem);
+                }
             }
             
             checkInteractions() {
@@ -1325,6 +1407,7 @@
             selectHotbarSlot(index) {
                 this.selectedHotbarSlot = index;
                 this.updateHotbar();
+                this.updateHeldItem(); // עדכון הפריט המוחזק
             }
             
             onSlotClick(index) {
