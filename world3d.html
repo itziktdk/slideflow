@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עולם פתוח 3D - לירוי</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            overflow: hidden;
+            background: #1a1a1a;
+            user-select: none;
+        }
+        
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #333;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        #minimap {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #333;
+            border-radius: 10px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border: 2px solid #333;
+        }
+        
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            z-index: 999;
+            pointer-events: none;
+        }
+        
+        #crosshair::before,
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255,255,255,0.8);
+        }
+        
+        #crosshair::before {
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+        
+        #crosshair::after {
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+            border: 2px solid #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            z-index: 2000;
+            background: rgba(0,0,0,0.9);
+            padding: 20px 30px;
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+        
+        @media (max-width: 768px) {
+            #ui, #controls {
+                font-size: 10px;
+                padding: 8px;
+            }
+            
+            #minimap {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer"></div>
+    
+    <div id="loading">טוען משחק 3D... 🎮</div>
+    
+    <div id="crosshair"></div>
+    
+    <div id="ui">
+        <div><strong>🎮 עולם פתוח 3D</strong></div>
+        <div>מיקום: <span id="position">0, 0, 0</span></div>
+        <div>מהירות: <span id="speed">רגיל</span></div>
+        <div>גובה: <span id="height">0</span></div>
+        <div>FPS: <span id="fps">0</span></div>
+        <div>מבנים נמצאו: <span id="buildingsFound">0</span></div>
+    </div>
+    
+    <div id="minimap"></div>
+    
+    <div id="controls">
+        <div><strong>בקרות 3D:</strong></div>
+        <div>WASD - תנועה</div>
+        <div>עכבר - מבט</div>
+        <div>Shift - ריצה</div>
+        <div>Space - קפיצה</div>
+        <div>E - פעולה</div>
+        <div>C - מצלמה נמוכה</div>
+        <div>esc - עכבר חופשי</div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        class OpenWorld3D {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.player = null;
+                this.controls = {
+                    moveForward: false,
+                    moveBackward: false,
+                    moveLeft: false,
+                    moveRight: false,
+                    jump: false,
+                    run: false,
+                    crouch: false
+                };
+                
+                this.playerPosition = new THREE.Vector3(0, 2, 0);
+                this.playerVelocity = new THREE.Vector3(0, 0, 0);
+                this.cameraDirection = new THREE.Vector3();
+                
+                this.buildings = [];
+                this.cars = [];
+                this.trees = [];
+                this.objects = [];
+                
+                this.buildingsFound = 0;
+                this.isPointerLocked = false;
+                this.clock = new THREE.Clock();
+                this.fps = 0;
+                this.frameCount = 0;
+                this.lastFpsUpdate = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.createScene();
+                this.createPlayer();
+                this.createWorld();
+                this.setupControls();
+                this.setupPointerLock();
+                this.animate();
+                
+                // הסתר מסך הטעינה
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    this.showNotification('ברוך הבא לעולם 3D! השתמש בעכבר ו-WASD 🎮');
+                }, 2000);
+            }
+            
+            createScene() {
+                // Scene
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x87CEEB); // צבע שמיים
+                this.scene.fog = new THREE.Fog(0x87CEEB, 50, 500);
+                
+                // Camera
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                
+                // Renderer
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                document.getElementById('gameContainer').appendChild(this.renderer.domElement);
+                
+                // Lights
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                this.scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(100, 100, 50);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 2048;
+                directionalLight.shadow.mapSize.height = 2048;
+                directionalLight.shadow.camera.near = 0.5;
+                directionalLight.shadow.camera.far = 500;
+                directionalLight.shadow.camera.left = -100;
+                directionalLight.shadow.camera.right = 100;
+                directionalLight.shadow.camera.top = 100;
+                directionalLight.shadow.camera.bottom = -100;
+                this.scene.add(directionalLight);
+            }
+            
+            createPlayer() {
+                // הדמות (קובייה זמנית)
+                const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
+                const playerMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b6b });
+                this.player = new THREE.Mesh(playerGeometry, playerMaterial);
+                this.player.position.copy(this.playerPosition);
+                this.player.castShadow = true;
+                this.scene.add(this.player);
+                
+                // מיקום המצלמה מעל הדמות
+                this.camera.position.set(0, 4, 0);
+            }
+            
+            createWorld() {
+                this.createGround();
+                this.createBuildings();
+                this.createTrees();
+                this.createCars();
+                this.createRoads();
+                this.createStreetLights();
+            }
+            
+            createGround() {
+                const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 }); // ירוק דשא
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+            }
+            
+            createBuildings() {
+                const buildingColors = [0x8B4513, 0x696969, 0x4682B4, 0xB22222, 0x2F4F4F];
+                const buildingTypes = ['בית', 'משרד', 'חנות', 'דירות', 'מחסן'];
+                
+                for (let i = 0; i < 50; i++) {
+                    const width = 10 + Math.random() * 20;
+                    const height = 15 + Math.random() * 40;
+                    const depth = 10 + Math.random() * 15;
+                    
+                    const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+                    const buildingMaterial = new THREE.MeshLambertMaterial({ 
+                        color: buildingColors[Math.floor(Math.random() * buildingColors.length)]
+                    });
+                    const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                    
+                    // מיקום רנדומלי אבל לא קרוב מדי למרכז
+                    let x, z;
+                    do {
+                        x = (Math.random() - 0.5) * 400;
+                        z = (Math.random() - 0.5) * 400;
+                    } while (Math.abs(x) < 20 && Math.abs(z) < 20);
+                    
+                    building.position.set(x, height / 2, z);
+                    building.castShadow = true;
+                    building.receiveShadow = true;
+                    
+                    // מידע נוסף על הבניין
+                    building.userData = {
+                        type: buildingTypes[Math.floor(Math.random() * buildingTypes.length)],
+                        visited: false,
+                        interactable: Math.random() > 0.7
+                    };
+                    
+                    this.buildings.push(building);
+                    this.scene.add(building);
+                }
+            }
+            
+            createTrees() {
+                for (let i = 0; i < 100; i++) {
+                    // גזע
+                    const trunkGeometry = new THREE.CylinderGeometry(0.5, 1, 8);
+                    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                    
+                    // עלים
+                    const leavesGeometry = new THREE.SphereGeometry(4, 8, 6);
+                    const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+                    const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+                    leaves.position.y = 6;
+                    
+                    const tree = new THREE.Group();
+                    tree.add(trunk);
+                    tree.add(leaves);
+                    
+                    const x = (Math.random() - 0.5) * 800;
+                    const z = (Math.random() - 0.5) * 800;
+                    tree.position.set(x, 4, z);
+                    
+                    trunk.castShadow = true;
+                    leaves.castShadow = true;
+                    
+                    this.trees.push(tree);
+                    this.scene.add(tree);
+                }
+            }
+            
+            createCars() {
+                const carColors = [0xff0000, 0x0000ff, 0xffff00, 0x800080, 0x008000];
+                
+                for (let i = 0; i < 20; i++) {
+                    // גוף המכונית
+                    const carBodyGeometry = new THREE.BoxGeometry(4, 1.5, 2);
+                    const carBodyMaterial = new THREE.MeshLambertMaterial({ 
+                        color: carColors[Math.floor(Math.random() * carColors.length)]
+                    });
+                    const carBody = new THREE.Mesh(carBodyGeometry, carBodyMaterial);
+                    
+                    // חלונות
+                    const windowGeometry = new THREE.BoxGeometry(3.5, 1, 1.8);
+                    const windowMaterial = new THREE.MeshLambertMaterial({ 
+                        color: 0x87CEEB, 
+                        opacity: 0.7, 
+                        transparent: true 
+                    });
+                    const windows = new THREE.Mesh(windowGeometry, windowMaterial);
+                    windows.position.y = 1;
+                    
+                    // גלגלים
+                    const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3);
+                    const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+                    
+                    const wheelPositions = [
+                        [-1.5, -0.5, 0.8],
+                        [1.5, -0.5, 0.8],
+                        [-1.5, -0.5, -0.8],
+                        [1.5, -0.5, -0.8]
+                    ];
+                    
+                    const car = new THREE.Group();
+                    car.add(carBody);
+                    car.add(windows);
+                    
+                    wheelPositions.forEach(pos => {
+                        const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                        wheel.position.set(pos[0], pos[1], pos[2]);
+                        wheel.rotation.z = Math.PI / 2;
+                        car.add(wheel);
+                    });
+                    
+                    const x = (Math.random() - 0.5) * 300;
+                    const z = (Math.random() - 0.5) * 300;
+                    car.position.set(x, 1, z);
+                    car.rotation.y = Math.random() * Math.PI * 2;
+                    
+                    carBody.castShadow = true;
+                    carBody.receiveShadow = true;
+                    
+                    car.userData = {
+                        type: 'car',
+                        interactable: true
+                    };
+                    
+                    this.cars.push(car);
+                    this.scene.add(car);
+                }
+            }
+            
+            createRoads() {
+                // דרך ראשית אופקית
+                const roadGeometry1 = new THREE.PlaneGeometry(500, 20);
+                const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x2F2F2F });
+                const road1 = new THREE.Mesh(roadGeometry1, roadMaterial);
+                road1.rotation.x = -Math.PI / 2;
+                road1.position.y = 0.1;
+                road1.receiveShadow = true;
+                this.scene.add(road1);
+                
+                // דרך ראשית אנכית
+                const roadGeometry2 = new THREE.PlaneGeometry(20, 500);
+                const road2 = new THREE.Mesh(roadGeometry2, roadMaterial);
+                road2.rotation.x = -Math.PI / 2;
+                road2.position.y = 0.1;
+                road2.receiveShadow = true;
+                this.scene.add(road2);
+                
+                // דרכים נוספות
+                for (let i = -200; i <= 200; i += 100) {
+                    if (i !== 0) {
+                        const sideRoad1 = new THREE.Mesh(roadGeometry1, roadMaterial);
+                        sideRoad1.rotation.x = -Math.PI / 2;
+                        sideRoad1.position.set(0, 0.1, i);
+                        sideRoad1.receiveShadow = true;
+                        this.scene.add(sideRoad1);
+                        
+                        const sideRoad2 = new THREE.Mesh(roadGeometry2, roadMaterial);
+                        sideRoad2.rotation.x = -Math.PI / 2;
+                        sideRoad2.position.set(i, 0.1, 0);
+                        sideRoad2.receiveShadow = true;
+                        this.scene.add(sideRoad2);
+                    }
+                }
+            }
+            
+            createStreetLights() {
+                for (let i = -200; i <= 200; i += 50) {
+                    for (let j = -200; j <= 200; j += 50) {
+                        if (Math.abs(i) % 100 === 0 || Math.abs(j) % 100 === 0) {
+                            // עמוד
+                            const poleGeometry = new THREE.CylinderGeometry(0.2, 0.2, 12);
+                            const poleMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
+                            const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+                            pole.position.set(i, 6, j);
+                            pole.castShadow = true;
+                            
+                            // מנורה
+                            const lampGeometry = new THREE.SphereGeometry(1);
+                            const lampMaterial = new THREE.MeshLambertMaterial({ 
+                                color: 0xffff88,
+                                emissive: 0x444422
+                            });
+                            const lamp = new THREE.Mesh(lampGeometry, lampMaterial);
+                            lamp.position.set(i, 11, j);
+                            
+                            this.scene.add(pole);
+                            this.scene.add(lamp);
+                            
+                            // אור מהמנורה
+                            const pointLight = new THREE.PointLight(0xffff88, 0.5, 30);
+                            pointLight.position.set(i, 11, j);
+                            this.scene.add(pointLight);
+                        }
+                    }
+                }
+            }
+            
+            setupControls() {
+                document.addEventListener('keydown', (event) => {
+                    switch (event.code) {
+                        case 'KeyW':
+                        case 'ArrowUp':
+                            this.controls.moveForward = true;
+                            break;
+                        case 'KeyS':
+                        case 'ArrowDown':
+                            this.controls.moveBackward = true;
+                            break;
+                        case 'KeyA':
+                        case 'ArrowLeft':
+                            this.controls.moveLeft = true;
+                            break;
+                        case 'KeyD':
+                        case 'ArrowRight':
+                            this.controls.moveRight = true;
+                            break;
+                        case 'Space':
+                            this.controls.jump = true;
+                            event.preventDefault();
+                            break;
+                        case 'ShiftLeft':
+                        case 'ShiftRight':
+                            this.controls.run = true;
+                            break;
+                        case 'KeyC':
+                            this.controls.crouch = !this.controls.crouch;
+                            break;
+                        case 'KeyE':
+                            this.checkInteraction();
+                            break;
+                        case 'Escape':
+                            this.exitPointerLock();
+                            break;
+                    }
+                });
+                
+                document.addEventListener('keyup', (event) => {
+                    switch (event.code) {
+                        case 'KeyW':
+                        case 'ArrowUp':
+                            this.controls.moveForward = false;
+                            break;
+                        case 'KeyS':
+                        case 'ArrowDown':
+                            this.controls.moveBackward = false;
+                            break;
+                        case 'KeyA':
+                        case 'ArrowLeft':
+                            this.controls.moveLeft = false;
+                            break;
+                        case 'KeyD':
+                        case 'ArrowRight':
+                            this.controls.moveRight = false;
+                            break;
+                        case 'Space':
+                            this.controls.jump = false;
+                            break;
+                        case 'ShiftLeft':
+                        case 'ShiftRight':
+                            this.controls.run = false;
+                            break;
+                    }
+                });
+            }
+            
+            setupPointerLock() {
+                const element = document.body;
+                
+                element.addEventListener('click', () => {
+                    element.requestPointerLock();
+                });
+                
+                document.addEventListener('pointerlockchange', () => {
+                    this.isPointerLocked = document.pointerLockElement === element;
+                    if (this.isPointerLocked) {
+                        this.showNotification('עכבר נעול - esc לשחרור 🖱️');
+                    } else {
+                        this.showNotification('עכבר משוחרר - קליק לנעילה 👆');
+                    }
+                });
+                
+                document.addEventListener('mousemove', (event) => {
+                    if (!this.isPointerLocked) return;
+                    
+                    const sensitivity = 0.002;
+                    this.camera.rotation.y -= event.movementX * sensitivity;
+                    this.camera.rotation.x -= event.movementY * sensitivity;
+                    
+                    // הגבלת זווית למעלה ולמטה
+                    this.camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.camera.rotation.x));
+                });
+            }
+            
+            updatePlayer(delta) {
+                const speed = this.controls.run ? 20 : 10;
+                const jumpPower = 15;
+                const gravity = -30;
+                
+                // כוח הכבידה
+                this.playerVelocity.y += gravity * delta;
+                
+                // תנועה קדימה/אחורה
+                this.cameraDirection.set(0, 0, -1);
+                this.cameraDirection.applyQuaternion(this.camera.quaternion);
+                this.cameraDirection.y = 0;
+                this.cameraDirection.normalize();
+                
+                if (this.controls.moveForward) {
+                    this.playerPosition.addScaledVector(this.cameraDirection, speed * delta);
+                }
+                if (this.controls.moveBackward) {
+                    this.playerPosition.addScaledVector(this.cameraDirection, -speed * delta);
+                }
+                
+                // תנועה ימינה/שמאלה
+                const rightDirection = new THREE.Vector3();
+                rightDirection.crossVectors(this.cameraDirection, new THREE.Vector3(0, 1, 0));
+                
+                if (this.controls.moveLeft) {
+                    this.playerPosition.addScaledVector(rightDirection, -speed * delta);
+                }
+                if (this.controls.moveRight) {
+                    this.playerPosition.addScaledVector(rightDirection, speed * delta);
+                }
+                
+                // קפיצה
+                if (this.controls.jump && this.playerPosition.y <= 2.1) {
+                    this.playerVelocity.y = jumpPower;
+                }
+                
+                // עדכון מיקום עם מהירות
+                this.playerPosition.y += this.playerVelocity.y * delta;
+                
+                // בדיקת קרקע
+                if (this.playerPosition.y <= 2) {
+                    this.playerPosition.y = 2;
+                    this.playerVelocity.y = 0;
+                }
+                
+                // עדכון מיקום הדמות והמצלמה
+                this.player.position.copy(this.playerPosition);
+                
+                const cameraHeight = this.controls.crouch ? 1.5 : 3.5;
+                this.camera.position.set(
+                    this.playerPosition.x,
+                    this.playerPosition.y + cameraHeight,
+                    this.playerPosition.z
+                );
+            }
+            
+            checkInteraction() {
+                const interactionDistance = 10;
+                
+                // בדיקת בניינים
+                for (let building of this.buildings) {
+                    const distance = this.playerPosition.distanceTo(building.position);
+                    if (distance < interactionDistance && building.userData.interactable) {
+                        if (!building.userData.visited) {
+                            building.userData.visited = true;
+                            this.buildingsFound++;
+                            this.showNotification(`גילית ${building.userData.type}! 🏢`);
+                        } else {
+                            this.showNotification(`כבר ביקרת ב${building.userData.type} 🔄`);
+                        }
+                        return;
+                    }
+                }
+                
+                // בדיקת מכוניות
+                for (let car of this.cars) {
+                    const distance = this.playerPosition.distanceTo(car.position);
+                    if (distance < interactionDistance) {
+                        this.showNotification('מכונית יפה! אולי בעתיד נוכל לנהוג 🚗');
+                        return;
+                    }
+                }
+            }
+            
+            updateUI() {
+                document.getElementById('position').textContent = 
+                    `${Math.floor(this.playerPosition.x)}, ${Math.floor(this.playerPosition.y)}, ${Math.floor(this.playerPosition.z)}`;
+                document.getElementById('speed').textContent = 
+                    this.controls.run ? 'ריצה' : 'הליכה';
+                document.getElementById('height').textContent = 
+                    Math.floor(this.playerPosition.y - 2) + 'm';
+                document.getElementById('buildingsFound').textContent = this.buildingsFound;
+                document.getElementById('fps').textContent = this.fps;
+            }
+            
+            calculateFPS() {
+                this.frameCount++;
+                const time = this.clock.getElapsedTime();
+                
+                if (time - this.lastFpsUpdate >= 1) {
+                    this.fps = Math.round(this.frameCount / (time - this.lastFpsUpdate));
+                    this.frameCount = 0;
+                    this.lastFpsUpdate = time;
+                }
+            }
+            
+            showNotification(message) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 4000);
+            }
+            
+            exitPointerLock() {
+                document.exitPointerLock();
+            }
+            
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                
+                const delta = this.clock.getDelta();
+                
+                this.updatePlayer(delta);
+                this.updateUI();
+                this.calculateFPS();
+                
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        
+        // התחלת המשחק
+        let game;
+        window.addEventListener('load', () => {
+            game = new OpenWorld3D();
+        });
+        
+        // טיפול בשינוי גודל החלון
+        window.addEventListener('resize', () => {
+            if (game) game.onWindowResize();
+        });
+    </script>
+</body>
+</html>
