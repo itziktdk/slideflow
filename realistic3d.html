@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עולם פתוח 3D ריאליסטי - לירוי</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Heebo', sans-serif;
+            overflow: hidden;
+            background: #1a1a1a;
+            user-select: none;
+            cursor: none;
+        }
+        
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #333;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        #inventory {
+            position: fixed;
+            top: 20px;
+            left: 250px;
+            z-index: 1000;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #333;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            z-index: 999;
+            pointer-events: none;
+        }
+        
+        #crosshair::before,
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255,255,255,0.8);
+        }
+        
+        #crosshair::before {
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+        
+        #crosshair::after {
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+        }
+        
+        #interactionPrompt {
+            position: fixed;
+            top: 60%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+            border: 2px solid #ffff00;
+            box-shadow: 0 5px 15px rgba(255,255,0,0.3);
+        }
+        
+        #interactionPrompt.show {
+            opacity: 1;
+        }
+        
+        #progressBar {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1002;
+        }
+        
+        #progressBar.show {
+            opacity: 1;
+        }
+        
+        #progressFill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffff00);
+            transition: width 0.1s;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+            border: 2px solid #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        
+        .notification.rare {
+            border-color: #ff6b00;
+            box-shadow: 0 5px 15px rgba(255,107,0,0.5);
+            background: rgba(255,107,0,0.2);
+        }
+        
+        .notification.legendary {
+            border-color: #ff0066;
+            box-shadow: 0 5px 15px rgba(255,0,102,0.5);
+            background: rgba(255,0,102,0.2);
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 5px 15px rgba(255,0,102,0.5); }
+            to { box-shadow: 0 5px 25px rgba(255,0,102,0.8); }
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border: 2px solid #333;
+        }
+        
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            z-index: 2000;
+            background: rgba(0,0,0,0.9);
+            padding: 20px 30px;
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+        
+        @media (max-width: 768px) {
+            #ui, #controls, #inventory {
+                font-size: 10px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer"></div>
+    
+    <div id="loading">טוען עולם 3D ריאליסטי... 🎮</div>
+    
+    <div id="crosshair"></div>
+    
+    <div id="ui">
+        <div><strong>🎮 עולם פתוח 3D</strong></div>
+        <div>מיקום: <span id="position">0, 0, 0</span></div>
+        <div>בריאות: <span id="health">100</span>❤️</div>
+        <div>סיבולת: <span id="stamina">100</span>⚡</div>
+        <div>FPS: <span id="fps">0</span></div>
+        <div>תיבות נמצאו: <span id="chestsFound">0</span>📦</div>
+    </div>
+    
+    <div id="inventory">
+        <div><strong>📦 תיק</strong></div>
+        <div>🪙 זהב: <span id="gold">0</span></div>
+        <div>💎 יהלומים: <span id="diamonds">0</span></div>
+        <div>⚔️ כלי נשק: <span id="weapons">0</span></div>
+        <div>🔧 כלים: <span id="tools">0</span></div>
+        <div>📜 פריטים נדירים: <span id="rareItems">0</span></div>
+    </div>
+    
+    <div id="interactionPrompt">החזק E לפתיחה...</div>
+    
+    <div id="progressBar">
+        <div id="progressFill"></div>
+    </div>
+    
+    <div id="controls">
+        <div><strong>בקרות 3D:</strong></div>
+        <div>WASD - תנועה</div>
+        <div>עכבר - מבט</div>
+        <div>Shift - ריצה</div>
+        <div>Space - קפיצה</div>
+        <div>E - פעולה/פתיחה</div>
+        <div>TAB - תיק</div>
+        <div>קליק - נעילת עכבר</div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        class RealisticOpenWorld {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.player = null;
+                this.controls = {
+                    moveForward: false,
+                    moveBackward: false,
+                    moveLeft: false,
+                    moveRight: false,
+                    jump: false,
+                    run: false,
+                    interact: false
+                };
+                
+                this.playerPosition = new THREE.Vector3(0, 2, 0);
+                this.playerVelocity = new THREE.Vector3(0, 0, 0);
+                this.cameraRotation = { x: 0, y: 0 };
+                
+                this.buildings = [];
+                this.chests = [];
+                this.trees = [];
+                this.cars = [];
+                
+                this.inventory = {
+                    gold: 0,
+                    diamonds: 0,
+                    weapons: 0,
+                    tools: 0,
+                    rareItems: 0
+                };
+                
+                this.player_stats = {
+                    health: 100,
+                    stamina: 100,
+                    maxStamina: 100
+                };
+                
+                this.chestsFound = 0;
+                this.isPointerLocked = false;
+                this.clock = new THREE.Clock();
+                this.fps = 0;
+                this.frameCount = 0;
+                this.lastFpsUpdate = 0;
+                
+                this.interactionTarget = null;
+                this.isInteracting = false;
+                this.interactionProgress = 0;
+                this.interactionTime = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                this.createScene();
+                this.createPlayer();
+                this.createWorld();
+                this.setupControls();
+                this.setupPointerLock();
+                this.animate();
+                
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    this.showNotification('ברוך הבא לעולם הריאליסטי! חפש תיבות נדירות! 🎮', 'normal');
+                }, 2000);
+            }
+            
+            createScene() {
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x87CEEB);
+                this.scene.fog = new THREE.Fog(0x87CEEB, 50, 300);
+                
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                document.getElementById('gameContainer').appendChild(this.renderer.domElement);
+                
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                this.scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(100, 100, 50);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 2048;
+                directionalLight.shadow.mapSize.height = 2048;
+                directionalLight.shadow.camera.near = 0.5;
+                directionalLight.shadow.camera.far = 500;
+                directionalLight.shadow.camera.left = -100;
+                directionalLight.shadow.camera.right = 100;
+                directionalLight.shadow.camera.top = 100;
+                directionalLight.shadow.camera.bottom = -100;
+                this.scene.add(directionalLight);
+            }
+            
+            createPlayer() {
+                // דמות בן אדם ריאליסטית יותר
+                const playerGroup = new THREE.Group();
+                
+                // גוף
+                const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.4, 1.2);
+                const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x4169E1 }); // כחול חולצה
+                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                body.position.y = 0.6;
+                body.castShadow = true;
+                playerGroup.add(body);
+                
+                // ראש
+                const headGeometry = new THREE.SphereGeometry(0.25);
+                const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFDBAE }); // צבע עור
+                const head = new THREE.Mesh(headGeometry, headMaterial);
+                head.position.y = 1.5;
+                head.castShadow = true;
+                playerGroup.add(head);
+                
+                // זרועות
+                const armGeometry = new THREE.CylinderGeometry(0.1, 0.12, 0.8);
+                const armMaterial = new THREE.MeshLambertMaterial({ color: 0xFFDBAE });
+                
+                const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+                leftArm.position.set(-0.5, 0.8, 0);
+                leftArm.castShadow = true;
+                playerGroup.add(leftArm);
+                
+                const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+                rightArm.position.set(0.5, 0.8, 0);
+                rightArm.castShadow = true;
+                playerGroup.add(rightArm);
+                
+                // רגליים
+                const legGeometry = new THREE.CylinderGeometry(0.12, 0.15, 1);
+                const legMaterial = new THREE.MeshLambertMaterial({ color: 0x000080 }); // מכנסיים כחולים
+                
+                const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+                leftLeg.position.set(-0.2, -0.5, 0);
+                leftLeg.castShadow = true;
+                playerGroup.add(leftLeg);
+                
+                const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+                rightLeg.position.set(0.2, -0.5, 0);
+                rightLeg.castShadow = true;
+                playerGroup.add(rightLeg);
+                
+                this.player = playerGroup;
+                this.player.position.copy(this.playerPosition);
+                this.scene.add(this.player);
+                
+                this.camera.position.set(0, 1.7, 0);
+            }
+            
+            createWorld() {
+                this.createGround();
+                this.createBuildings();
+                this.createChests();
+                this.createTrees();
+                this.createCars();
+                this.createRoads();
+            }
+            
+            createGround() {
+                const groundGeometry = new THREE.PlaneGeometry(500, 500);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+            }
+            
+            createBuildings() {
+                const buildingColors = [0x8B4513, 0x696969, 0x4682B4, 0xB22222, 0x2F4F4F];
+                
+                for (let i = 0; i < 30; i++) {
+                    const width = 8 + Math.random() * 15;
+                    const height = 10 + Math.random() * 30;
+                    const depth = 8 + Math.random() * 12;
+                    
+                    const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+                    const buildingMaterial = new THREE.MeshLambertMaterial({ 
+                        color: buildingColors[Math.floor(Math.random() * buildingColors.length)]
+                    });
+                    const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                    
+                    let x, z;
+                    do {
+                        x = (Math.random() - 0.5) * 300;
+                        z = (Math.random() - 0.5) * 300;
+                    } while (Math.abs(x) < 15 && Math.abs(z) < 15);
+                    
+                    building.position.set(x, height / 2, z);
+                    building.castShadow = true;
+                    building.receiveShadow = true;
+                    
+                    this.buildings.push(building);
+                    this.scene.add(building);
+                }
+            }
+            
+            createChests() {
+                const chestTypes = [
+                    { rarity: 'common', color: 0x8B4513, chance: 0.7, name: 'תיבת עץ' },
+                    { rarity: 'rare', color: 0xC0C0C0, chance: 0.25, name: 'תיבת כסף' },
+                    { rarity: 'epic', color: 0xFFD700, chance: 0.04, name: 'תיבת זהב' },
+                    { rarity: 'legendary', color: 0x8A2BE2, chance: 0.01, name: 'תיבה אגדית' }
+                ];
+                
+                // רק 15 תיבות בעולם - נדירות!
+                for (let i = 0; i < 15; i++) {
+                    let chestType = chestTypes[0]; // ברירת מחדל - common
+                    const rand = Math.random();
+                    
+                    if (rand < chestTypes[3].chance) {
+                        chestType = chestTypes[3]; // legendary
+                    } else if (rand < chestTypes[3].chance + chestTypes[2].chance) {
+                        chestType = chestTypes[2]; // epic
+                    } else if (rand < chestTypes[3].chance + chestTypes[2].chance + chestTypes[1].chance) {
+                        chestType = chestTypes[1]; // rare
+                    }
+                    
+                    // בניית התיבה
+                    const chestGroup = new THREE.Group();
+                    
+                    // גוף התיבה
+                    const chestGeometry = new THREE.BoxGeometry(2, 1.5, 1.5);
+                    const chestMaterial = new THREE.MeshLambertMaterial({ color: chestType.color });
+                    const chestBody = new THREE.Mesh(chestGeometry, chestMaterial);
+                    chestBody.castShadow = true;
+                    chestBody.receiveShadow = true;
+                    chestGroup.add(chestBody);
+                    
+                    // מנעול
+                    const lockGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.1);
+                    const lockMaterial = new THREE.MeshLambertMaterial({ color: 0x444444 });
+                    const lock = new THREE.Mesh(lockGeometry, lockMaterial);
+                    lock.position.set(0, 0, 0.8);
+                    chestGroup.add(lock);
+                    
+                    // מיקום רנדומלי
+                    const x = (Math.random() - 0.5) * 400;
+                    const z = (Math.random() - 0.5) * 400;
+                    chestGroup.position.set(x, 0.75, z);
+                    
+                    chestGroup.userData = {
+                        type: 'chest',
+                        rarity: chestType.rarity,
+                        name: chestType.name,
+                        opened: false,
+                        interactionTime: chestType.rarity === 'legendary' ? 5 : 
+                                       chestType.rarity === 'epic' ? 4 :
+                                       chestType.rarity === 'rare' ? 3 : 2
+                    };
+                    
+                    this.chests.push(chestGroup);
+                    this.scene.add(chestGroup);
+                }
+            }
+            
+            createTrees() {
+                for (let i = 0; i < 80; i++) {
+                    const treeGroup = new THREE.Group();
+                    
+                    const trunkGeometry = new THREE.CylinderGeometry(0.5, 1, 8);
+                    const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                    trunk.castShadow = true;
+                    
+                    const leavesGeometry = new THREE.SphereGeometry(4, 8, 6);
+                    const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+                    const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+                    leaves.position.y = 6;
+                    leaves.castShadow = true;
+                    
+                    treeGroup.add(trunk);
+                    treeGroup.add(leaves);
+                    
+                    const x = (Math.random() - 0.5) * 400;
+                    const z = (Math.random() - 0.5) * 400;
+                    treeGroup.position.set(x, 4, z);
+                    
+                    this.trees.push(treeGroup);
+                    this.scene.add(treeGroup);
+                }
+            }
+            
+            createCars() {
+                const carColors = [0xff0000, 0x0000ff, 0xffff00, 0x800080, 0x008000];
+                
+                for (let i = 0; i < 15; i++) {
+                    const carGroup = new THREE.Group();
+                    
+                    const carBodyGeometry = new THREE.BoxGeometry(4, 1.5, 2);
+                    const carBodyMaterial = new THREE.MeshLambertMaterial({ 
+                        color: carColors[Math.floor(Math.random() * carColors.length)]
+                    });
+                    const carBody = new THREE.Mesh(carBodyGeometry, carBodyMaterial);
+                    carBody.castShadow = true;
+                    
+                    const windowGeometry = new THREE.BoxGeometry(3.5, 1, 1.8);
+                    const windowMaterial = new THREE.MeshLambertMaterial({ 
+                        color: 0x87CEEB, 
+                        opacity: 0.7, 
+                        transparent: true 
+                    });
+                    const windows = new THREE.Mesh(windowGeometry, windowMaterial);
+                    windows.position.y = 1;
+                    
+                    carGroup.add(carBody);
+                    carGroup.add(windows);
+                    
+                    const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3);
+                    const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+                    
+                    const wheelPositions = [
+                        [-1.5, -0.5, 0.8],
+                        [1.5, -0.5, 0.8],
+                        [-1.5, -0.5, -0.8],
+                        [1.5, -0.5, -0.8]
+                    ];
+                    
+                    wheelPositions.forEach(pos => {
+                        const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                        wheel.position.set(pos[0], pos[1], pos[2]);
+                        wheel.rotation.z = Math.PI / 2;
+                        wheel.castShadow = true;
+                        carGroup.add(wheel);
+                    });
+                    
+                    const x = (Math.random() - 0.5) * 200;
+                    const z = (Math.random() - 0.5) * 200;
+                    carGroup.position.set(x, 1, z);
+                    carGroup.rotation.y = Math.random() * Math.PI * 2;
+                    
+                    this.cars.push(carGroup);
+                    this.scene.add(carGroup);
+                }
+            }
+            
+            createRoads() {
+                const roadGeometry1 = new THREE.PlaneGeometry(300, 15);
+                const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x2F2F2F });
+                const road1 = new THREE.Mesh(roadGeometry1, roadMaterial);
+                road1.rotation.x = -Math.PI / 2;
+                road1.position.y = 0.1;
+                road1.receiveShadow = true;
+                this.scene.add(road1);
+                
+                const roadGeometry2 = new THREE.PlaneGeometry(15, 300);
+                const road2 = new THREE.Mesh(roadGeometry2, roadMaterial);
+                road2.rotation.x = -Math.PI / 2;
+                road2.position.y = 0.1;
+                road2.receiveShadow = true;
+                this.scene.add(road2);
+            }
+            
+            setupControls() {
+                document.addEventListener('keydown', (event) => {
+                    switch (event.code) {
+                        case 'KeyW':
+                        case 'ArrowUp':
+                            this.controls.moveForward = true;
+                            break;
+                        case 'KeyS':
+                        case 'ArrowDown':
+                            this.controls.moveBackward = true;
+                            break;
+                        case 'KeyA':
+                        case 'ArrowLeft':
+                            this.controls.moveLeft = true;
+                            break;
+                        case 'KeyD':
+                        case 'ArrowRight':
+                            this.controls.moveRight = true;
+                            break;
+                        case 'Space':
+                            this.controls.jump = true;
+                            event.preventDefault();
+                            break;
+                        case 'ShiftLeft':
+                        case 'ShiftRight':
+                            this.controls.run = true;
+                            break;
+                        case 'KeyE':
+                            if (!this.isInteracting && this.interactionTarget) {
+                                this.startInteraction();
+                            }
+                            break;
+                        case 'Escape':
+                            this.exitPointerLock();
+                            break;
+                    }
+                });
+                
+                document.addEventListener('keyup', (event) => {
+                    switch (event.code) {
+                        case 'KeyW':
+                        case 'ArrowUp':
+                            this.controls.moveForward = false;
+                            break;
+                        case 'KeyS':
+                        case 'ArrowDown':
+                            this.controls.moveBackward = false;
+                            break;
+                        case 'KeyA':
+                        case 'ArrowLeft':
+                            this.controls.moveLeft = false;
+                            break;
+                        case 'KeyD':
+                        case 'ArrowRight':
+                            this.controls.moveRight = false;
+                            break;
+                        case 'Space':
+                            this.controls.jump = false;
+                            break;
+                        case 'ShiftLeft':
+                        case 'ShiftRight':
+                            this.controls.run = false;
+                            break;
+                        case 'KeyE':
+                            this.stopInteraction();
+                            break;
+                    }
+                });
+            }
+            
+            setupPointerLock() {
+                const element = document.body;
+                
+                element.addEventListener('click', () => {
+                    element.requestPointerLock();
+                });
+                
+                document.addEventListener('pointerlockchange', () => {
+                    this.isPointerLocked = document.pointerLockElement === element;
+                });
+                
+                document.addEventListener('mousemove', (event) => {
+                    if (!this.isPointerLocked) return;
+                    
+                    const sensitivity = 0.002;
+                    this.cameraRotation.y -= event.movementX * sensitivity;
+                    this.cameraRotation.x -= event.movementY * sensitivity;
+                    
+                    this.cameraRotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.cameraRotation.x));
+                });
+            }
+            
+            updatePlayer(delta) {
+                const speed = this.controls.run ? 15 : 8;
+                const jumpPower = 12;
+                const gravity = -25;
+                
+                // סיבולת
+                if (this.controls.run && (this.controls.moveForward || this.controls.moveBackward || this.controls.moveLeft || this.controls.moveRight)) {
+                    this.player_stats.stamina = Math.max(0, this.player_stats.stamina - delta * 20);
+                } else {
+                    this.player_stats.stamina = Math.min(this.player_stats.maxStamina, this.player_stats.stamina + delta * 10);
+                }
+                
+                // אם אין סיבולת, לא יכול לרוץ
+                const actualSpeed = (this.controls.run && this.player_stats.stamina > 0) ? speed : 8;
+                
+                this.playerVelocity.y += gravity * delta;
+                
+                // עדכון כיוון המצלמה
+                this.camera.rotation.x = this.cameraRotation.x;
+                this.camera.rotation.y = this.cameraRotation.y;
+                
+                const direction = new THREE.Vector3();
+                this.camera.getWorldDirection(direction);
+                direction.y = 0;
+                direction.normalize();
+                
+                const right = new THREE.Vector3();
+                right.crossVectors(direction, new THREE.Vector3(0, 1, 0));
+                
+                // תנועה
+                if (this.controls.moveForward) {
+                    this.playerPosition.addScaledVector(direction, actualSpeed * delta);
+                }
+                if (this.controls.moveBackward) {
+                    this.playerPosition.addScaledVector(direction, -actualSpeed * delta);
+                }
+                if (this.controls.moveLeft) {
+                    this.playerPosition.addScaledVector(right, -actualSpeed * delta);
+                }
+                if (this.controls.moveRight) {
+                    this.playerPosition.addScaledVector(right, actualSpeed * delta);
+                }
+                
+                if (this.controls.jump && this.playerPosition.y <= 2.1) {
+                    this.playerVelocity.y = jumpPower;
+                }
+                
+                this.playerPosition.y += this.playerVelocity.y * delta;
+                
+                if (this.playerPosition.y <= 2) {
+                    this.playerPosition.y = 2;
+                    this.playerVelocity.y = 0;
+                }
+                
+                // עדכון מיקומים
+                this.player.position.copy(this.playerPosition);
+                this.camera.position.copy(this.playerPosition);
+                this.camera.position.y += 1.7;
+            }
+            
+            checkInteractions() {
+                const interactionDistance = 5;
+                let nearestChest = null;
+                let minDistance = Infinity;
+                
+                for (let chest of this.chests) {
+                    if (chest.userData.opened) continue;
+                    
+                    const distance = this.playerPosition.distanceTo(chest.position);
+                    if (distance < interactionDistance && distance < minDistance) {
+                        minDistance = distance;
+                        nearestChest = chest;
+                    }
+                }
+                
+                if (nearestChest) {
+                    this.interactionTarget = nearestChest;
+                    document.getElementById('interactionPrompt').classList.add('show');
+                    document.getElementById('interactionPrompt').textContent = 
+                        `החזק E לפתיחת ${nearestChest.userData.name}`;
+                } else {
+                    this.interactionTarget = null;
+                    document.getElementById('interactionPrompt').classList.remove('show');
+                }
+            }
+            
+            startInteraction() {
+                if (!this.interactionTarget) return;
+                
+                this.isInteracting = true;
+                this.interactionProgress = 0;
+                this.interactionTime = this.interactionTarget.userData.interactionTime;
+                
+                document.getElementById('progressBar').classList.add('show');
+                document.getElementById('interactionPrompt').textContent = 'פותח...';
+            }
+            
+            stopInteraction() {
+                this.isInteracting = false;
+                this.interactionProgress = 0;
+                
+                document.getElementById('progressBar').classList.remove('show');
+                document.getElementById('progressFill').style.width = '0%';
+                
+                if (this.interactionTarget) {
+                    document.getElementById('interactionPrompt').textContent = 
+                        `החזק E לפתיחת ${this.interactionTarget.userData.name}`;
+                }
+            }
+            
+            updateInteraction(delta) {
+                if (!this.isInteracting || !this.interactionTarget) return;
+                
+                this.interactionProgress += delta;
+                const progress = Math.min(this.interactionProgress / this.interactionTime, 1);
+                
+                document.getElementById('progressFill').style.width = (progress * 100) + '%';
+                
+                if (progress >= 1) {
+                    this.completeInteraction();
+                }
+            }
+            
+            completeInteraction() {
+                const chest = this.interactionTarget;
+                chest.userData.opened = true;
+                this.chestsFound++;
+                
+                // הסרת התיבה מהסצנה (או שינוי צבע)
+                chest.children[0].material.color.setHex(0x444444);
+                
+                // לוט על פי נדירות
+                const loot = this.generateLoot(chest.userData.rarity);
+                this.addLoot(loot);
+                
+                let notificationClass = 'normal';
+                if (chest.userData.rarity === 'rare') notificationClass = 'rare';
+                if (chest.userData.rarity === 'epic' || chest.userData.rarity === 'legendary') notificationClass = 'legendary';
+                
+                this.showNotification(
+                    `🎉 פתחת ${chest.userData.name}! ${loot.description}`, 
+                    notificationClass
+                );
+                
+                this.stopInteraction();
+                this.interactionTarget = null;
+            }
+            
+            generateLoot(rarity) {
+                switch (rarity) {
+                    case 'common':
+                        return {
+                            gold: 10 + Math.floor(Math.random() * 20),
+                            diamonds: 0,
+                            weapons: Math.random() > 0.8 ? 1 : 0,
+                            tools: Math.random() > 0.7 ? 1 : 0,
+                            rareItems: 0,
+                            description: '🪙 זהב בסיסי'
+                        };
+                    case 'rare':
+                        return {
+                            gold: 30 + Math.floor(Math.random() * 40),
+                            diamonds: Math.floor(Math.random() * 3),
+                            weapons: Math.random() > 0.5 ? 1 : 0,
+                            tools: 1,
+                            rareItems: Math.random() > 0.8 ? 1 : 0,
+                            description: '💎 יהלומים + זהב!'
+                        };
+                    case 'epic':
+                        return {
+                            gold: 80 + Math.floor(Math.random() * 70),
+                            diamonds: 3 + Math.floor(Math.random() * 5),
+                            weapons: 1 + Math.floor(Math.random() * 2),
+                            tools: 2,
+                            rareItems: 1,
+                            description: '⚔️ נשק נדיר + יהלומים!'
+                        };
+                    case 'legendary':
+                        return {
+                            gold: 200 + Math.floor(Math.random() * 300),
+                            diamonds: 10 + Math.floor(Math.random() * 15),
+                            weapons: 2 + Math.floor(Math.random() * 3),
+                            tools: 3 + Math.floor(Math.random() * 2),
+                            rareItems: 2 + Math.floor(Math.random() * 3),
+                            description: '👑 אוצר אגדי! נשק + יהלומים נדירים!'
+                        };
+                    default:
+                        return { gold: 5, diamonds: 0, weapons: 0, tools: 0, rareItems: 0, description: 'משהו קטן' };
+                }
+            }
+            
+            addLoot(loot) {
+                this.inventory.gold += loot.gold;
+                this.inventory.diamonds += loot.diamonds;
+                this.inventory.weapons += loot.weapons;
+                this.inventory.tools += loot.tools;
+                this.inventory.rareItems += loot.rareItems;
+            }
+            
+            updateUI() {
+                document.getElementById('position').textContent = 
+                    `${Math.floor(this.playerPosition.x)}, ${Math.floor(this.playerPosition.y)}, ${Math.floor(this.playerPosition.z)}`;
+                document.getElementById('health').textContent = Math.floor(this.player_stats.health);
+                document.getElementById('stamina').textContent = Math.floor(this.player_stats.stamina);
+                document.getElementById('fps').textContent = this.fps;
+                document.getElementById('chestsFound').textContent = this.chestsFound;
+                
+                // עדכון תיק
+                document.getElementById('gold').textContent = this.inventory.gold;
+                document.getElementById('diamonds').textContent = this.inventory.diamonds;
+                document.getElementById('weapons').textContent = this.inventory.weapons;
+                document.getElementById('tools').textContent = this.inventory.tools;
+                document.getElementById('rareItems').textContent = this.inventory.rareItems;
+            }
+            
+            calculateFPS() {
+                this.frameCount++;
+                const time = this.clock.getElapsedTime();
+                
+                if (time - this.lastFpsUpdate >= 1) {
+                    this.fps = Math.round(this.frameCount / (time - this.lastFpsUpdate));
+                    this.frameCount = 0;
+                    this.lastFpsUpdate = time;
+                }
+            }
+            
+            showNotification(message, type = 'normal') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 5000);
+            }
+            
+            exitPointerLock() {
+                document.exitPointerLock();
+            }
+            
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                
+                const delta = this.clock.getDelta();
+                
+                this.updatePlayer(delta);
+                this.checkInteractions();
+                this.updateInteraction(delta);
+                this.updateUI();
+                this.calculateFPS();
+                
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        
+        let game;
+        window.addEventListener('load', () => {
+            game = new RealisticOpenWorld();
+        });
+        
+        window.addEventListener('resize', () => {
+            if (game) game.onWindowResize();
+        });
+    </script>
+</body>
+</html>
