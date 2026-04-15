@@ -124,14 +124,14 @@ let sunLight, ambientLight;
 
 // Settings
 const settings = {
-  sensitivity: 0.005, camDist: 8, walkSpeed: 8, runMult: 1.8,
+  sensitivity: 0.005, camDist: 5, walkSpeed: 8, runMult: 1.8,
   volume: 0.5, showFps: false, particles: true, jumpForce: 12, gravity: 30
 };
 
 // State
 const keys = {};
 let mouseX = 0, mouseY = 0;
-let camTheta = 0, camPhi = 0.35;
+let camTheta = 0, camPhi = 0.2;
 let player, playerInCar = null;
 let health = 100, money = 0, wantedLevel = 0, wantedTimer = 0;
 let inventory = [{name:'Fist',icon:'O',type:'melee'},{name:'',icon:''},{name:'',icon:''},{name:'',icon:''},{name:'',icon:''}];
@@ -455,7 +455,7 @@ function createHumanoid(skinColor, shirtColor, pantsColor, scale) {
 
 function createPlayer(){
   player = createHumanoid(0xdeb887, 0x1a1a8b, 0x2f2f2f, 1);
-  player.position.set(0, 0, 0);
+  player.position.set(25, 0, 25);
   player.castShadow = true;
   scene.add(player);
 
@@ -530,8 +530,8 @@ function createCar(color){
 function spawnCars(){
   const carColors = [0xff0000,0x0044ff,0x00aa00,0xffff00,0xff00ff,0x00ffff,0xff8800,0xffffff,0x444444,0x880088];
   const spots = [
-    [25,0,25],[75,0,-30],[-40,0,60],[-80,0,-70],[50,0,-80],
-    [-20,0,20],[60,0,40],[-60,0,-30],[10,0,-50],[-70,0,50]
+    [15,0,15],[35,0,10],[-15,0,20],[-35,0,-20],[50,0,-10],
+    [-10,0,35],[40,0,30],[-30,0,10],[10,0,-30],[-25,0,40]
   ];
   spots.forEach((s,i)=>{
     const car = createCar(carColors[i % carColors.length]);
