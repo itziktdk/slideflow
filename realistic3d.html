@@ -38,6 +38,14 @@ canvas#game{display:block;width:100vw;height:100vh}
 #settings-close{display:block;margin:16px auto 0;padding:8px 24px;background:#fc4;color:#000;border:none;border-radius:6px;font-size:16px;cursor:pointer;font-weight:bold}
 /* Mobile */
 #mobile-controls{display:none;z-index:30}
+body.mobile #mobile-controls{display:block}
+body.mobile #controls-info{display:none!important}
+body.mobile #minimap-wrap{bottom:160px;left:20px}
+body.mobile #health-wrap{bottom:155px;left:130px}
+body.mobile #money{top:15px;right:60px;font-size:18px}
+body.mobile #wanted{top:38px;right:60px;font-size:20px}
+body.mobile .inv-slot{width:42px;height:42px;font-size:16px}
+body.mobile #inventory-bar{bottom:auto;top:70px;left:50%}
 #joystick-area{position:fixed;bottom:30px;left:20px;width:120px;height:120px;z-index:30}
 #joystick-base{width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.2);position:relative}
 #joystick-thumb{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.4);position:absolute;top:35px;left:35px}
@@ -48,16 +56,7 @@ canvas#game{display:block;width:100vw;height:100vh}
 #btn-interact{bottom:40px;right:150px}
 #btn-horn{bottom:100px;right:90px;display:none}
 #btn-settings{position:fixed;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,0.5);border:2px solid rgba(255,255,255,0.3);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;z-index:30;cursor:pointer}
-@media(max-width:768px){
-  #controls-info{display:none!important}
-  #mobile-controls{display:block}
-  #minimap-wrap{bottom:160px;left:20px}
-  #health-wrap{bottom:155px;left:130px}
-  #money{top:15px;right:60px;font-size:18px}
-  #wanted{top:38px;right:60px;font-size:20px}
-  .inv-slot{width:42px;height:42px;font-size:16px}
-  #inventory-bar{bottom:auto;top:70px;left:50%}
-}
+/* media query removed — mobile styles handled by body.mobile class */
 </style>
 </head>
 <body>
@@ -104,6 +103,7 @@ canvas#game{display:block;width:100vw;height:100vh}
 'use strict';
 // ==================== GLOBALS ====================
 const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+if(isMobile) document.body.classList.add('mobile');
 const PI = Math.PI, PI2 = PI*2, HALF_PI = PI/2;
 const clock = new THREE.Clock();
 let scene, camera, renderer, listener;
@@ -118,7 +118,7 @@ const settings = {
 // State
 const keys = {};
 let mouseX = 0, mouseY = 0;
-let camTheta = 0, camPhi = 0.6;
+let camTheta = 0, camPhi = 0.35;
 let player, playerInCar = null;
 let health = 100, money = 0, wantedLevel = 0, wantedTimer = 0;
 let inventory = [{name:'Fist',icon:'O',type:'melee'},{name:'',icon:''},{name:'',icon:''},{name:'',icon:''},{name:'',icon:''}];
