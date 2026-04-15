@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>עולם פתוח 3D ריאליסטי + הגדרות - לירוי</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap');
@@ -10,13 +10,23 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Heebo', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: 'Heebo', sans-serif;
             overflow: hidden;
             background: #1a1a1a;
             user-select: none;
             cursor: none;
         }
         
+        /* Icon system */
+        .icon { display: inline-block; vertical-align: middle; margin-right: 4px; }
+        .icon-gold { background: #FFD700; border-radius: 50%; width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px; }
+        .icon-diamond { width: 12px; height: 12px; background: #00BFFF; transform: rotate(45deg); display: inline-block; vertical-align: middle; margin-right: 4px; }
+        .icon-sword { display: inline-flex; align-items: center; margin-right: 4px; }
+        .icon-sword::before { content: ''; display: inline-block; width: 14px; height: 2px; background: #ccc; transform: rotate(-45deg); }
+        .icon-sword::after { content: ''; display: inline-block; width: 14px; height: 2px; background: #ccc; transform: rotate(45deg); margin-left: -10px; }
+        .icon-gamepad { display: inline-block; vertical-align: middle; margin-right: 4px; width: 16px; height: 16px; }
+        .icon-box { display: inline-block; width: 14px; height: 14px; border: 2px solid #aaa; vertical-align: middle; margin-right: 4px; border-radius: 2px; }
+
         #gameContainer {
             width: 100vw;
             height: 100vh;
@@ -36,7 +46,7 @@
             backdrop-filter: blur(10px);
             border: 2px solid #333;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            font-family: 'Heebo', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: 'Heebo', sans-serif;
         }
         
         #inventory {
@@ -52,7 +62,7 @@
             backdrop-filter: blur(10px);
             border: 2px solid #333;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            font-family: 'Heebo', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: 'Heebo', sans-serif;
         }
 
         #weaponBar {
@@ -77,7 +87,7 @@
             justify-content: center;
             color: white;
             font-size: 24px;
-            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: 'Heebo', sans-serif;
             position: relative;
             backdrop-filter: blur(10px);
         }
@@ -94,6 +104,16 @@
             font-size: 10px;
             color: #aaa;
             font-family: 'Heebo', sans-serif;
+        }
+
+        .weapon-slot .weapon-icon {
+            width: 28px;
+            height: 28px;
+        }
+
+        .weapon-slot .weapon-icon svg {
+            width: 100%;
+            height: 100%;
         }
         
         #settingsModal {
@@ -140,7 +160,7 @@
             font-size: 24px;
             font-weight: 700;
             color: #fff;
-            font-family: 'Heebo', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: 'Heebo', sans-serif;
         }
         
         .close-btn {
@@ -176,7 +196,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-family: 'Heebo', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: 'Heebo', sans-serif;
         }
         
         .setting-item {
@@ -290,56 +310,215 @@
             z-index: 1001;
             border: 2px solid #333;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            font-family: 'Heebo', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            font-family: 'Heebo', sans-serif;
         }
         
         .notification.show {
             opacity: 1;
             transform: translateX(-50%) translateY(-10px);
         }
+
+        /* ===== MOBILE CONTROLS ===== */
+        #mobileControls {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 900;
+            pointer-events: none;
+        }
+
+        #mobileControls * {
+            pointer-events: auto;
+        }
+
+        body.mobile #mobileControls {
+            display: block;
+        }
+
+        body.mobile #controls {
+            display: none !important;
+        }
+
+        body.mobile #weaponBar {
+            bottom: auto;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        body.mobile .notification {
+            bottom: 160px;
+        }
+
+        body.mobile #ui {
+            font-size: 11px;
+            padding: 8px;
+            top: 10px;
+            left: 10px;
+        }
+
+        body.mobile #inventory {
+            font-size: 11px;
+            padding: 8px;
+            top: 10px;
+            left: 170px;
+        }
+
+        /* Joystick */
+        #joystickArea {
+            position: fixed;
+            bottom: 40px;
+            left: 30px;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.15);
+            touch-action: none;
+        }
+
+        #joystickKnob {
+            position: absolute;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            border: 2px solid rgba(255,255,255,0.35);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: none;
+        }
+
+        /* Action buttons */
+        .mobile-btn {
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Heebo', sans-serif;
+            font-weight: 700;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-btn.active, .mobile-btn:active {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        #btnJump {
+            bottom: 40px;
+            right: 30px;
+            width: 80px;
+            height: 80px;
+            font-size: 28px;
+        }
+
+        #btnAttack {
+            bottom: 140px;
+            right: 40px;
+            width: 62px;
+            height: 62px;
+            font-size: 22px;
+        }
+
+        #btnSprint {
+            bottom: 50px;
+            right: 130px;
+            width: 52px;
+            height: 52px;
+            font-size: 12px;
+        }
+
+        #btnInteract {
+            bottom: 210px;
+            right: 50px;
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+        }
+
+        #btnSettings {
+            top: 12px;
+            right: 12px;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            z-index: 1100;
+        }
+
+        /* Camera touch area */
+        #cameraTouchArea {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 800;
+            touch-action: none;
+        }
+
+        body.mobile #cameraTouchArea {
+            display: block;
+        }
+
+        #cameraTouchArea {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div id="gameContainer"></div>
+
+    <!-- Camera touch area (below mobile controls) -->
+    <div id="cameraTouchArea"></div>
     
     <div id="ui">
-        <div><strong>🎮 עולם פתוח 3D</strong></div>
+        <div><strong><svg class="icon-gamepad" viewBox="0 0 24 24" fill="white"><path d="M6 9h2v2H6zm4-2h4v2h-4zm6 2h2v2h-2zM4 17h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2z" opacity="0.7"/></svg> עולם פתוח 3D</strong></div>
         <div>מיקום: <span id="position">0, 0, 0</span></div>
         <div>FPS: <span id="fps">0</span></div>
         <div>תיבות נמצאו: <span id="chestsFound">0</span></div>
     </div>
     
     <div id="inventory">
-        <div><strong>📦 תיק</strong></div>
-        <div>🪙 זהב: <span id="gold">0</span></div>
-        <div>💎 יהלומים: <span id="diamonds">0</span></div>
-        <div>⚔️ כלי נשק: <span id="weapons">0</span></div>
+        <div><strong><span class="icon-box"></span> תיק</strong></div>
+        <div><span class="icon-gold"></span> זהב: <span id="gold">0</span></div>
+        <div><span class="icon-diamond"></span> יהלומים: <span id="diamonds">0</span></div>
+        <div><span class="icon-sword"></span> כלי נשק: <span id="weapons">0</span></div>
     </div>
 
     <div id="weaponBar">
         <div class="weapon-slot active" id="weaponSlot1">
             <span class="key-hint">1</span>
-            <span>⚔️</span>
+            <span class="weapon-icon"><svg viewBox="0 0 24 24" fill="#ccc"><path d="M5 19L19 5M12 3v4M3 12h4M14.5 9.5l-5 5"/></svg></span>
         </div>
         <div class="weapon-slot" id="weaponSlot2">
             <span class="key-hint">2</span>
-            <span>🪓</span>
+            <span class="weapon-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M8 20L4 16l8-8-1-3 3-1 2 2-1 3h3l-8 8z"/></svg></span>
         </div>
         <div class="weapon-slot" id="weaponSlot3">
             <span class="key-hint">3</span>
-            <span>🏹</span>
+            <span class="weapon-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M4 20c2-4 4-14 8-16M4 20l2-2M20 4l-8 16"/></svg></span>
         </div>
     </div>
     
     <div id="settingsModal">
         <div class="settings-panel">
             <div class="inventory-header">
-                <div class="inventory-title">⚙️ הגדרות משחק</div>
-                <button class="close-btn" onclick="game.closeSettings()">×</button>
+                <div class="inventory-title">&#9881; הגדרות משחק</div>
+                <button class="close-btn" onclick="game.closeSettings()">&#215;</button>
             </div>
             
             <div class="setting-group">
-                <div class="setting-title">🖱️ בקרות</div>
+                <div class="setting-title">&#9654; בקרות</div>
                 <div class="setting-item">
                     <div class="setting-label">רגישות עכבר</div>
                     <div class="setting-control">
@@ -367,7 +546,7 @@
             </div>
             
             <div class="setting-group">
-                <div class="setting-title">🎵 אודיו וגרפיקה</div>
+                <div class="setting-title">&#9835; אודיו וגרפיקה</div>
                 <div class="setting-item">
                     <div class="setting-label">עוצמת קול</div>
                     <div class="setting-control">
@@ -407,15 +586,33 @@
         <div>E - פעולה/פתיחה</div>
         <div>1/2/3 - החלף נשק</div>
         <div>קליק - תקיפה/נעילת עכבר</div>
-        <div><strong>ESC - הגדרות ⚙️</strong></div>
+        <div><strong>ESC - הגדרות &#9881;</strong></div>
     </div>
     
     <div id="notification" class="notification"></div>
+
+    <!-- Mobile Controls Overlay -->
+    <div id="mobileControls">
+        <div id="joystickArea">
+            <div id="joystickKnob"></div>
+        </div>
+        <div id="btnJump" class="mobile-btn">&#9650;</div>
+        <div id="btnAttack" class="mobile-btn">&#10006;</div>
+        <div id="btnSprint" class="mobile-btn">RUN</div>
+        <div id="btnInteract" class="mobile-btn">E</div>
+        <div id="btnSettings" class="mobile-btn">&#9881;</div>
+    </div>
 
     <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <script>
+        // Mobile detection
+        const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        if (isMobile) {
+            document.body.classList.add('mobile');
+        }
+
         class RealisticOpenWorld {
             constructor() {
                 this.scene = null;
@@ -459,16 +656,22 @@
                 this.isMoving = false;
                 this.isRunning = false;
                 this.isOnGround = true;
-                this.playerFacing = 0; // Y rotation the player model faces
+                this.playerFacing = 0;
 
                 // Weapon system
-                this.currentWeapon = 0; // 0=sword, 1=axe, 2=bow
+                this.currentWeapon = 0;
                 this.weaponSwingTime = 0;
                 this.isSwinging = false;
                 this.weaponMesh = null;
 
                 // Player body parts for animation
                 this.playerParts = {};
+
+                // Mobile touch state
+                this.isMobile = isMobile;
+                this.joystick = { active: false, touchId: null, startX: 0, startY: 0, dx: 0, dy: 0 };
+                this.cameraTouch = { active: false, touchId: null, lastX: 0, lastY: 0 };
+                this.sprintToggle = false;
                 
                 // הגדרות
                 this.settingsOpen = false;
@@ -491,11 +694,15 @@
                 this.createPlayer();
                 this.createWorld();
                 this.setupControls();
-                this.setupPointerLock();
+                if (this.isMobile) {
+                    this.setupMobileControls();
+                } else {
+                    this.setupPointerLock();
+                }
                 this.animate();
                 
                 setTimeout(() => {
-                    this.showNotification('ברוך הבא לעולם הריאליסטי! לחץ ESC להגדרות! 🎮', 'normal');
+                    this.showNotification('&#9733; ברוך הבא לעולם הריאליסטי! ' + (this.isMobile ? 'גרור להסתובב!' : 'לחץ ESC להגדרות!'), 'normal');
                 }, 1000);
             }
             
@@ -515,14 +722,11 @@
                 this.renderer.toneMappingExposure = 1.1;
                 document.getElementById('gameContainer').appendChild(this.renderer.domElement);
                 
-                // Gradient sky
                 this.createSky();
                 
-                // Hemisphere light (sky blue from above, ground green from below)
                 const hemiLight = new THREE.HemisphereLight(0x88bbff, 0x446622, 0.7);
                 this.scene.add(hemiLight);
                 
-                // Main directional (sun) light with shadows
                 const sunLight = new THREE.DirectionalLight(0xfff4e0, 1.2);
                 sunLight.position.set(80, 120, 60);
                 sunLight.castShadow = true;
@@ -537,7 +741,6 @@
                 sunLight.shadow.bias = -0.001;
                 this.scene.add(sunLight);
 
-                // Soft fill light
                 const fillLight = new THREE.DirectionalLight(0x8888ff, 0.3);
                 fillLight.position.set(-50, 30, -60);
                 this.scene.add(fillLight);
@@ -571,7 +774,6 @@
                 const pantsColor = 0x2c2c54;
                 const shoeColor = 0x333333;
 
-                // --- TORSO ---
                 const torsoGeo = new THREE.BoxGeometry(0.6, 0.7, 0.35);
                 const torsoMat = new THREE.MeshLambertMaterial({ color: shirtColor });
                 const torso = new THREE.Mesh(torsoGeo, torsoMat);
@@ -580,7 +782,6 @@
                 playerGroup.add(torso);
                 this.playerParts.torso = torso;
 
-                // --- HEAD ---
                 const headGeo = new THREE.SphereGeometry(0.2, 12, 10);
                 const headMat = new THREE.MeshLambertMaterial({ color: skinColor });
                 const head = new THREE.Mesh(headGeo, headMat);
@@ -589,7 +790,6 @@
                 playerGroup.add(head);
                 this.playerParts.head = head;
 
-                // --- ARMS ---
                 const armGeo = new THREE.BoxGeometry(0.18, 0.6, 0.18);
                 const armMat = new THREE.MeshLambertMaterial({ color: shirtColor });
 
@@ -611,13 +811,11 @@
                 playerGroup.add(rightArmPivot);
                 this.playerParts.rightArm = rightArmPivot;
 
-                // --- Hand (for weapon attachment) ---
                 const handGroup = new THREE.Group();
                 handGroup.position.set(0, -0.6, 0);
                 rightArmPivot.add(handGroup);
                 this.playerParts.rightHand = handGroup;
 
-                // --- LEGS ---
                 const legGeo = new THREE.BoxGeometry(0.2, 0.55, 0.2);
                 const legMat = new THREE.MeshLambertMaterial({ color: pantsColor });
 
@@ -627,7 +825,6 @@
                 leftLeg.position.y = -0.275;
                 leftLeg.castShadow = true;
                 leftLegPivot.add(leftLeg);
-                // shoe
                 const shoeGeo = new THREE.BoxGeometry(0.22, 0.1, 0.3);
                 const shoeMat = new THREE.MeshLambertMaterial({ color: shoeColor });
                 const leftShoe = new THREE.Mesh(shoeGeo, shoeMat);
@@ -652,14 +849,11 @@
                 this.player.position.copy(this.playerPosition);
                 this.scene.add(this.player);
 
-                // Create initial weapon
                 this.createWeaponModel();
-                
                 this.updateCameraPosition();
             }
 
             createWeaponModel() {
-                // Remove old weapon
                 if (this.weaponMesh) {
                     this.playerParts.rightHand.remove(this.weaponMesh);
                 }
@@ -667,7 +861,6 @@
                 const weaponGroup = new THREE.Group();
 
                 if (this.currentWeapon === 0) {
-                    // Sword
                     const blade = new THREE.Mesh(
                         new THREE.BoxGeometry(0.06, 0.8, 0.02),
                         new THREE.MeshLambertMaterial({ color: 0xcccccc })
@@ -686,7 +879,6 @@
                     handle.position.y = -0.12;
                     weaponGroup.add(handle);
                 } else if (this.currentWeapon === 1) {
-                    // Axe
                     const handle = new THREE.Mesh(
                         new THREE.CylinderGeometry(0.025, 0.025, 0.7),
                         new THREE.MeshLambertMaterial({ color: 0x5c3a1e })
@@ -699,7 +891,6 @@
                     axeHead.position.set(0.1, 0.5, 0);
                     weaponGroup.add(axeHead);
                 } else {
-                    // Bow
                     const curve = new THREE.QuadraticBezierCurve3(
                         new THREE.Vector3(0, -0.35, 0),
                         new THREE.Vector3(0.2, 0, 0),
@@ -708,7 +899,6 @@
                     const tubeGeo = new THREE.TubeGeometry(curve, 12, 0.02, 6, false);
                     const bowMat = new THREE.MeshLambertMaterial({ color: 0x8B5A2B });
                     weaponGroup.add(new THREE.Mesh(tubeGeo, bowMat));
-                    // String
                     const stringGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.7);
                     const stringMat = new THREE.MeshBasicMaterial({ color: 0xeeeeee });
                     const string = new THREE.Mesh(stringGeo, stringMat);
@@ -729,15 +919,12 @@
             }
             
             createGround() {
-                // Procedural ground texture
                 const canvas = document.createElement('canvas');
                 canvas.width = 512;
                 canvas.height = 512;
                 const ctx = canvas.getContext('2d');
-                // Base green
                 ctx.fillStyle = '#3a7d2a';
                 ctx.fillRect(0, 0, 512, 512);
-                // Noise patches
                 for (let i = 0; i < 4000; i++) {
                     const x = Math.random() * 512;
                     const y = Math.random() * 512;
@@ -764,21 +951,18 @@
                 const roadMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
                 const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x999999 });
 
-                // Main road along X
                 const road1 = new THREE.Mesh(new THREE.PlaneGeometry(500, 8), roadMat);
                 road1.rotation.x = -Math.PI / 2;
                 road1.position.y = 0.02;
                 road1.receiveShadow = true;
                 this.scene.add(road1);
 
-                // Main road along Z
                 const road2 = new THREE.Mesh(new THREE.PlaneGeometry(8, 500), roadMat);
                 road2.rotation.x = -Math.PI / 2;
                 road2.position.y = 0.02;
                 road2.receiveShadow = true;
                 this.scene.add(road2);
 
-                // Sidewalks (slightly raised)
                 const swGeo = new THREE.BoxGeometry(500, 0.12, 1.5);
                 [-5.5, 5.5].forEach(z => {
                     const sw = new THREE.Mesh(swGeo, sidewalkMat);
@@ -794,7 +978,6 @@
                     this.scene.add(sw);
                 });
 
-                // Road dashes (center line) along X
                 const dashMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
                 for (let x = -240; x < 240; x += 6) {
                     const dash = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.15), dashMat);
@@ -823,7 +1006,6 @@
                     building.receiveShadow = true;
                     buildingGroup.add(building);
 
-                    // Windows
                     const winMat = new THREE.MeshBasicMaterial({ color: 0xaaddff });
                     const winGeo = new THREE.PlaneGeometry(1, 1.3);
                     const floors = Math.floor(height / 3.5);
@@ -832,11 +1014,9 @@
                         for (let w = 0; w < winsPerFloor; w++) {
                             const wy = 2.5 + f * 3.5;
                             const wx = -width / 2 + 1.5 + w * (width - 2) / Math.max(winsPerFloor - 1, 1);
-                            // Front face
                             const win1 = new THREE.Mesh(winGeo, winMat);
                             win1.position.set(wx, wy, depth / 2 + 0.01);
                             buildingGroup.add(win1);
-                            // Back face
                             const win2 = new THREE.Mesh(winGeo, winMat);
                             win2.position.set(wx, wy, -depth / 2 - 0.01);
                             win2.rotation.y = Math.PI;
@@ -844,7 +1024,6 @@
                         }
                     }
 
-                    // Door
                     const doorMat = new THREE.MeshLambertMaterial({ color: 0x5c3a1e });
                     const door = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.5), doorMat);
                     door.position.set(0, 1.25, depth / 2 + 0.02);
@@ -880,7 +1059,6 @@
                     chestBody.castShadow = true;
                     chestGroup.add(chestBody);
 
-                    // Lid
                     const lidGeo = new THREE.BoxGeometry(2.05, 0.3, 1.55);
                     const lidMat = new THREE.MeshLambertMaterial({ color: chestType.color });
                     const lid = new THREE.Mesh(lidGeo, lidMat);
@@ -888,7 +1066,6 @@
                     lid.castShadow = true;
                     chestGroup.add(lid);
 
-                    // Lock
                     const lockGeo = new THREE.BoxGeometry(0.2, 0.2, 0.1);
                     const lockMat = new THREE.MeshLambertMaterial({ color: 0xccaa00 });
                     const lock = new THREE.Mesh(lockGeo, lockMat);
@@ -913,7 +1090,6 @@
             }
             
             createTrees() {
-                // Use instanced meshes for tree parts
                 const trunkGeo = new THREE.CylinderGeometry(0.5, 1, 8, 8);
                 const trunkMat = new THREE.MeshLambertMaterial({ color: 0x6B4226 });
                 const leavesGeo = new THREE.SphereGeometry(4, 8, 6);
@@ -929,17 +1105,14 @@
                 for (let i = 0; i < count; i++) {
                     const x = (Math.random() - 0.5) * 400;
                     const z = (Math.random() - 0.5) * 400;
-                    // Skip if on road
                     if (Math.abs(x) < 8 && Math.abs(z) < 250) continue;
                     if (Math.abs(z) < 8 && Math.abs(x) < 250) continue;
 
-                    // trunk
                     dummy.position.set(x, 4, z);
                     dummy.scale.set(1, 1, 1);
                     dummy.updateMatrix();
                     trunkInstanced.setMatrixAt(i, dummy.matrix);
 
-                    // leaves
                     dummy.position.set(x, 10, z);
                     const s = 0.8 + Math.random() * 0.5;
                     dummy.scale.set(s, s, s);
@@ -1030,7 +1203,6 @@
                     }
                 });
 
-                // Attack on click
                 document.addEventListener('mousedown', (e) => {
                     if (this.isPointerLocked && e.button === 0 && this.inventory.weapons > 0) {
                         this.swingWeapon();
@@ -1038,17 +1210,167 @@
                 });
             }
 
+            setupMobileControls() {
+                const joystickArea = document.getElementById('joystickArea');
+                const joystickKnob = document.getElementById('joystickKnob');
+                const cameraTouchArea = document.getElementById('cameraTouchArea');
+                const maxRadius = 50;
+
+                // Joystick
+                joystickArea.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.changedTouches[0];
+                    const rect = joystickArea.getBoundingClientRect();
+                    this.joystick.active = true;
+                    this.joystick.touchId = touch.identifier;
+                    this.joystick.startX = rect.left + rect.width / 2;
+                    this.joystick.startY = rect.top + rect.height / 2;
+                    this.updateJoystick(touch.clientX, touch.clientY, joystickKnob, maxRadius);
+                }, { passive: false });
+
+                joystickArea.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    for (let i = 0; i < e.changedTouches.length; i++) {
+                        const touch = e.changedTouches[i];
+                        if (touch.identifier === this.joystick.touchId) {
+                            this.updateJoystick(touch.clientX, touch.clientY, joystickKnob, maxRadius);
+                        }
+                    }
+                }, { passive: false });
+
+                const joystickEnd = (e) => {
+                    for (let i = 0; i < e.changedTouches.length; i++) {
+                        if (e.changedTouches[i].identifier === this.joystick.touchId) {
+                            this.joystick.active = false;
+                            this.joystick.touchId = null;
+                            this.joystick.dx = 0;
+                            this.joystick.dy = 0;
+                            joystickKnob.style.transform = 'translate(-50%, -50%)';
+                            this.controls.moveForward = false;
+                            this.controls.moveBackward = false;
+                            this.controls.moveLeft = false;
+                            this.controls.moveRight = false;
+                        }
+                    }
+                };
+                joystickArea.addEventListener('touchend', joystickEnd);
+                joystickArea.addEventListener('touchcancel', joystickEnd);
+
+                // Camera touch (on the background area)
+                cameraTouchArea.addEventListener('touchstart', (e) => {
+                    if (this.cameraTouch.active) return;
+                    const touch = e.changedTouches[0];
+                    this.cameraTouch.active = true;
+                    this.cameraTouch.touchId = touch.identifier;
+                    this.cameraTouch.lastX = touch.clientX;
+                    this.cameraTouch.lastY = touch.clientY;
+                }, { passive: true });
+
+                cameraTouchArea.addEventListener('touchmove', (e) => {
+                    for (let i = 0; i < e.changedTouches.length; i++) {
+                        const touch = e.changedTouches[i];
+                        if (touch.identifier === this.cameraTouch.touchId) {
+                            const dx = touch.clientX - this.cameraTouch.lastX;
+                            const dy = touch.clientY - this.cameraTouch.lastY;
+                            const sensitivity = this.settings.mouseSensitivity / 8000;
+                            this.cameraRotation.y -= dx * sensitivity;
+                            this.cameraRotation.x -= dy * sensitivity;
+                            this.cameraRotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.cameraRotation.x));
+                            this.cameraTouch.lastX = touch.clientX;
+                            this.cameraTouch.lastY = touch.clientY;
+                        }
+                    }
+                }, { passive: true });
+
+                const cameraEnd = (e) => {
+                    for (let i = 0; i < e.changedTouches.length; i++) {
+                        if (e.changedTouches[i].identifier === this.cameraTouch.touchId) {
+                            this.cameraTouch.active = false;
+                            this.cameraTouch.touchId = null;
+                        }
+                    }
+                };
+                cameraTouchArea.addEventListener('touchend', cameraEnd);
+                cameraTouchArea.addEventListener('touchcancel', cameraEnd);
+
+                // Buttons
+                this.setupMobileButton('btnJump', () => { this.controls.jump = true; }, () => { this.controls.jump = false; });
+                this.setupMobileButton('btnAttack', () => { if (this.inventory.weapons > 0) this.swingWeapon(); }, null);
+                
+                document.getElementById('btnSprint').addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.sprintToggle = !this.sprintToggle;
+                    this.controls.run = this.sprintToggle;
+                    e.target.classList.toggle('active', this.sprintToggle);
+                }, { passive: false });
+
+                document.getElementById('btnInteract').addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.checkInteraction();
+                }, { passive: false });
+
+                document.getElementById('btnSettings').addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (this.settingsOpen) {
+                        this.closeSettings();
+                    } else {
+                        this.openSettings();
+                    }
+                }, { passive: false });
+            }
+
+            setupMobileButton(id, onDown, onUp) {
+                const el = document.getElementById(id);
+                el.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    el.classList.add('active');
+                    if (onDown) onDown();
+                }, { passive: false });
+                el.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    el.classList.remove('active');
+                    if (onUp) onUp();
+                }, { passive: false });
+                el.addEventListener('touchcancel', (e) => {
+                    el.classList.remove('active');
+                    if (onUp) onUp();
+                });
+            }
+
+            updateJoystick(touchX, touchY, knob, maxRadius) {
+                let dx = touchX - this.joystick.startX;
+                let dy = touchY - this.joystick.startY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > maxRadius) {
+                    dx = (dx / dist) * maxRadius;
+                    dy = (dy / dist) * maxRadius;
+                }
+                knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+                
+                // Normalize to -1..1
+                const nx = dx / maxRadius;
+                const ny = dy / maxRadius;
+                const deadzone = 0.15;
+
+                this.controls.moveForward = ny < -deadzone;
+                this.controls.moveBackward = ny > deadzone;
+                this.controls.moveLeft = nx < -deadzone;
+                this.controls.moveRight = nx > deadzone;
+
+                this.joystick.dx = Math.abs(nx) > deadzone ? nx : 0;
+                this.joystick.dy = Math.abs(ny) > deadzone ? ny : 0;
+            }
+
             switchWeapon(index) {
                 if (this.currentWeapon === index) return;
                 this.currentWeapon = index;
                 this.createWeaponModel();
-                // Update UI
                 document.querySelectorAll('.weapon-slot').forEach((el, i) => {
                     el.classList.toggle('active', i === index);
                 });
-                const names = ['חרב', 'גרזן', 'קשת'];
+                const names = ['\u05D7\u05E8\u05D1', '\u05D2\u05E8\u05D6\u05DF', '\u05E7\u05E9\u05EA'];
                 if (this.inventory.weapons > 0) {
-                    this.showNotification(`🔄 נשק: ${names[index]}`, 'normal');
+                    this.showNotification('\u21BB \u05E0\u05E9\u05E7: ' + names[index], 'normal');
                 }
             }
 
@@ -1086,7 +1408,7 @@
                 const speed = this.controls.run ? this.settings.runSpeed : this.settings.walkSpeed;
                 const jumpPower = 12;
                 const gravity = -25;
-                const groundY = 0; // Player feet at ground level
+                const groundY = 0;
                 
                 this.playerVelocity.y += gravity * delta;
                 
@@ -1113,7 +1435,6 @@
                 if (this.isMoving) {
                     moveDir.normalize();
                     this.playerPosition.addScaledVector(moveDir, speed * delta);
-                    // Face movement direction
                     this.playerFacing = Math.atan2(moveDir.x, moveDir.z);
                 }
                 
@@ -1132,18 +1453,14 @@
                 
                 this.player.position.copy(this.playerPosition);
 
-                // Smooth player rotation to face direction
                 const targetRot = this.playerFacing;
                 let currentRot = this.player.rotation.y;
                 let diff = targetRot - currentRot;
-                // Normalize angle
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 this.player.rotation.y += diff * Math.min(1, 10 * delta);
 
-                // Animate body parts
                 this.animatePlayer(delta);
-
                 this.updateCameraPosition();
             }
 
@@ -1152,7 +1469,6 @@
                 const p = this.playerParts;
 
                 if (!this.isOnGround) {
-                    // Jump pose
                     const t = Math.min(1, Math.abs(this.playerVelocity.y) / 12);
                     p.leftLeg.rotation.x = -0.4 * t;
                     p.rightLeg.rotation.x = 0.3 * t;
@@ -1162,35 +1478,27 @@
                     const freq = this.isRunning ? 12 : 7;
                     const amp = this.isRunning ? 0.7 : 0.45;
                     const t = this.animTime * freq;
-                    // Legs swing opposite
                     p.leftLeg.rotation.x = Math.sin(t) * amp;
                     p.rightLeg.rotation.x = -Math.sin(t) * amp;
-                    // Arms swing opposite to legs
                     p.leftArm.rotation.x = -Math.sin(t) * amp * 0.6;
                     p.rightArm.rotation.x = Math.sin(t) * amp * 0.6;
-                    // Slight torso bob
                     p.torso.position.y = 1.15 + Math.abs(Math.sin(t * 2)) * 0.03;
                 } else {
-                    // Idle breathing
                     const breath = Math.sin(this.animTime * 2) * 0.015;
                     p.torso.position.y = 1.15 + breath;
                     p.head.position.y = 1.72 + breath;
-                    // Return limbs to rest smoothly
                     p.leftLeg.rotation.x *= 0.9;
                     p.rightLeg.rotation.x *= 0.9;
                     p.leftArm.rotation.x *= 0.9;
                     p.rightArm.rotation.x *= 0.9;
-                    // Subtle arm sway
                     p.leftArm.rotation.z = Math.sin(this.animTime * 1.5) * 0.03;
                     p.rightArm.rotation.z = -Math.sin(this.animTime * 1.5) * 0.03;
                 }
 
-                // Weapon visibility
                 if (this.weaponMesh) {
                     this.weaponMesh.visible = this.inventory.weapons > 0;
                 }
 
-                // Weapon swing animation
                 if (this.isSwinging) {
                     this.weaponSwingTime += delta;
                     const swingDuration = 0.35;
@@ -1200,7 +1508,6 @@
                         this.weaponSwingTime = 0;
                         p.rightArm.rotation.x *= 0.5;
                     } else {
-                        // Swing arc
                         const swing = Math.sin(t * Math.PI) * 2.0;
                         p.rightArm.rotation.x = -swing;
                     }
@@ -1216,7 +1523,7 @@
                 );
                 
                 const playerCenter = this.playerPosition.clone();
-                playerCenter.y += 1.5; // Look at chest height
+                playerCenter.y += 1.5;
 
                 this.camera.position.copy(playerCenter).add(cameraOffset);
                 this.camera.lookAt(playerCenter);
@@ -1250,7 +1557,7 @@
                         this.createExplosion(nearestChest.position);
                     }
                     
-                    this.showNotification(`🎉 פתחת ${nearestChest.userData.name}! ${loot.description}`, 'normal');
+                    this.showNotification('\u2605 \u05E4\u05EA\u05D7\u05EA ' + nearestChest.userData.name + '! ' + loot.description, 'normal');
                 }
             }
             
@@ -1261,24 +1568,24 @@
                             gold: 10 + Math.floor(Math.random() * 20),
                             diamonds: 0,
                             weapons: Math.random() > 0.8 ? 1 : 0,
-                            description: '🪙 זהב בסיסי'
+                            description: '\u25CF \u05D6\u05D4\u05D1 \u05D1\u05E1\u05D9\u05E1\u05D9'
                         };
                     case 'rare':
                         return {
                             gold: 50 + Math.floor(Math.random() * 50),
                             diamonds: 1 + Math.floor(Math.random() * 3),
                             weapons: 1,
-                            description: '💎 יהלומים + זהב!'
+                            description: '\u25C6 \u05D9\u05D4\u05DC\u05D5\u05DE\u05D9\u05DD + \u05D6\u05D4\u05D1!'
                         };
                     case 'legendary':
                         return {
                             gold: 200 + Math.floor(Math.random() * 300),
                             diamonds: 5 + Math.floor(Math.random() * 10),
                             weapons: 2 + Math.floor(Math.random() * 3),
-                            description: '👑 אוצר אגדי!'
+                            description: '\u265B \u05D0\u05D5\u05E6\u05E8 \u05D0\u05D2\u05D3\u05D9!'
                         };
                     default:
-                        return { gold: 5, diamonds: 0, weapons: 0, description: 'משהו קטן' };
+                        return { gold: 5, diamonds: 0, weapons: 0, description: '\u05DE\u05E9\u05D4\u05D5 \u05E7\u05D8\u05DF' };
                 }
             }
             
@@ -1323,7 +1630,9 @@
                 this.settingsOpen = true;
                 document.getElementById('settingsModal').classList.add('show');
                 this.updateSettingsDisplay();
-                document.exitPointerLock();
+                if (!this.isMobile) {
+                    document.exitPointerLock();
+                }
             }
             
             closeSettings() {
@@ -1359,7 +1668,6 @@
                 document.getElementById('diamonds').textContent = this.inventory.diamonds;
                 document.getElementById('weapons').textContent = this.inventory.weapons;
 
-                // Show/hide weapon bar based on weapons
                 document.getElementById('weaponBar').style.display = this.inventory.weapons > 0 ? 'flex' : 'none';
             }
             
@@ -1378,7 +1686,7 @@
             
             showNotification(message, type = 'normal') {
                 const notification = document.getElementById('notification');
-                notification.textContent = message;
+                notification.innerHTML = message;
                 notification.classList.add('show');
                 
                 setTimeout(() => {
@@ -1389,7 +1697,7 @@
             animate() {
                 requestAnimationFrame(() => this.animate());
                 
-                const delta = Math.min(this.clock.getDelta(), 0.05); // Cap delta
+                const delta = Math.min(this.clock.getDelta(), 0.05);
                 
                 this.updatePlayer(delta);
                 this.updateUI();
